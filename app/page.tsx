@@ -1,4 +1,4 @@
-type RankEntry = { mode: string; rank: string };
+
 
 const MODES = [
   "Összes",
