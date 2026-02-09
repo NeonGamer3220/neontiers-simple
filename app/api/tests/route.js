@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-const data = [];
+let data = []; // ideiglenes memória (később DB)
 
 export async function GET() {
   return NextResponse.json({ tests: data });
@@ -21,10 +21,10 @@ export async function POST(req) {
   }
 
   data.push({
-    username: body.username,
-    gamemode: body.gamemode,
-    rank: body.rank,
-    tester: body.tester || "",
+    username: String(body.username),
+    gamemode: String(body.gamemode),
+    rank: String(body.rank),
+    tester: body.tester ? String(body.tester) : "",
     timestamp: new Date().toISOString(),
   });
 
