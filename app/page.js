@@ -11,10 +11,10 @@ export default function Home() {
   }, []);
 
   return (
-    <main style={{ padding: 40, color: "white" }}>
+    <main style={{ padding: 40, color: "white", fontFamily: "sans-serif" }}>
       <h1>NeonTiers</h1>
 
-      {tests.length === 0 && <p>Nincs adat</p>}
+      {tests.length === 0 && <p>Nincs teszt adat</p>}
 
       {tests.map((t, i) => (
         <div key={i} style={{
