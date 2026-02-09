@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const MODES = [
   "Összes",
@@ -52,6 +52,7 @@ function PlayerCard({ index, player, selectedMode }) {
           <div className="text-2xl font-extrabold opacity-80">{index + 1}.</div>
           <div>
             <div className="text-2xl font-extrabold">{player.name}</div>
+
             <div className="mt-3 flex flex-wrap gap-2">
               {shown.length === 0 ? (
                 <span className="rounded-full bg-white/5 px-3 py-1 text-sm opacity-70">
@@ -83,44 +84,60 @@ function PlayerCard({ index, player, selectedMode }) {
 }
 
 export default function Page() {
-  const [players] = useState([
-    {
-      name: "NeonGamer322",
-      ranks: [
-        { mode: "Sword", rank: "HT4" },
-        { mode: "Mace", rank: "LT3" },
-        { mode: "DiaSMP", rank: "HT3" },
-      ],
-    },
-    {
-      name: "antidoe",
-      ranks: [
-        { mode: "Vanilla", rank: "HT2" },
-        { mode: "UHC", rank: "HT2" },
-        { mode: "Pot", rank: "LT1" },
-      ],
-    },
-  ]);
-
   const [selectedMode, setSelectedMode] = useState("Összes");
   const [query, setQuery] = useState("");
+  const [tests, setTests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const computed = useMemo(() => {
-    const q = query.toLowerCase().trim();
+  async function load() {
+    try {
+      const res = await fetch("/api/tests", { cache: "no-store" });
+      const json = await res.json();
+      setTests(Array.isArray(json.tests) ? json.tests : []);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    const withPoints = players.map((p) => ({
+  useEffect(() => {
+    load();
+    const id = setInterval(load, 5000); // frissítés 5 mp-enként
+    return () => clearInterval(id);
+  }, []);
+
+  const players = useMemo(() => {
+    // tests -> players map
+    const map = new Map();
+
+    for (const t of tests) {
+      const name = String(t.username || "").trim();
+      const mode = String(t.gamemode || "").trim();
+      const rank = String(t.rank || "").trim();
+
+      if (!name || !mode || !rank) continue;
+
+      if (!map.has(name)) map.set(name, { name, ranks: [] });
+      map.get(name).ranks.push({ mode, rank });
+    }
+
+    const list = Array.from(map.values()).map((p) => ({
       ...p,
       points: calcTotalPoints(p.ranks),
     }));
 
-    return withPoints
+    return list.sort((a, b) => b.points - a.points);
+  }, [tests]);
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase().trim();
+
+    return players
       .filter((p) => (q ? p.name.toLowerCase().includes(q) : true))
       .filter((p) =>
         selectedMode === "Összes"
           ? true
           : p.ranks.some((r) => r.mode === selectedMode)
-      )
-      .sort((a, b) => b.points - a.points);
+      );
   }, [players, query, selectedMode]);
 
   return (
@@ -155,10 +172,15 @@ export default function Page() {
           </div>
         </div>
 
-        <h2 className="text-4xl font-extrabold">Ranglista</h2>
+        <div className="flex items-end justify-between">
+          <h2 className="text-4xl font-extrabold">Ranglista</h2>
+          <div className="text-sm opacity-70">
+            {loading ? "Betöltés..." : `${filtered.length} játékos`}
+          </div>
+        </div>
 
         <div className="space-y-4">
-          {computed.map((p, i) => (
+          {filtered.map((p, i) => (
             <PlayerCard
               key={p.name}
               index={i}
