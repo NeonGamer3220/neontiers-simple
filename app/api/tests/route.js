@@ -1,32 +1,20 @@
-import { NextResponse } from "next/server";
+export const dynamic = "force-dynamic";
 
-let data = []; // ideiglenes memória (később DB)
+let TESTS = [];
 
 export async function GET() {
-  return NextResponse.json({ tests: data });
+  return Response.json({ tests: TESTS });
 }
 
 export async function POST(req) {
-  const key = process.env.BOT_API_KEY;
-  const auth = req.headers.get("authorization") || "";
-
-  if (!key || auth !== `Bearer ${key}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = req.headers.get("authorization");
+  if (auth !== `Bearer ${process.env.BOT_API_KEY}`) {
+    return new Response("Unauthorized", { status: 401 });
   }
 
   const body = await req.json();
 
-  if (!body.username || !body.gamemode || !body.rank) {
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 });
-  }
+  TESTS.push(body);
 
-  data.push({
-    username: String(body.username),
-    gamemode: String(body.gamemode),
-    rank: String(body.rank),
-    tester: body.tester ? String(body.tester) : "",
-    timestamp: new Date().toISOString(),
-  });
-
-  return NextResponse.json({ ok: true });
+  return Response.json({ success: true });
 }
