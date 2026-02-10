@@ -1,23 +1,51 @@
-// app/api/tests/route.js
 import { NextResponse } from "next/server";
 
-// =========================
-// AUTH (BOT -> WEBSITE)
-// =========================
-// A bot ezt küldi:
-// Authorization: Bearer <BOT_API_KEY>
-function isAuthorized(req) {
-  const expected = process.env.BOT_API_KEY;
-  if (!expected) return false;
-
-  const auth = req.headers.get("authorization") || "";
-  return auth === `Bearer ${expected}`;
+// Optional: Vercel KV (recommended for persistence on Vercel)
+// Install: npm i @vercel/kv
+let kv: any = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  kv = require("@vercel/kv").kv;
+} catch {
+  kv = null;
 }
 
-// =========================
-// CONSTANTS
-// =========================
-const MODE_LIST = [
+type Mode =
+  | "Vanilla"
+  | "UHC"
+  | "Pot"
+  | "NethPot"
+  | "SMP"
+  | "Sword"
+  | "Axe"
+  | "Mace"
+  | "Cart"
+  | "Creeper"
+  | "DiaSMP"
+  | "OGVanilla"
+  | "ShieldlessUHC"
+  | "SpearMace"
+  | "SpearElytra";
+
+type Rank = "Unranked" | "LT5" | "HT5" | "LT4" | "HT4" | "LT3" | "HT3";
+
+type TestRow = {
+  username: string;   // Minecraft név (skinhez is)
+  testerId: string;   // Discord user id (aki tesztelte)
+  testerTag?: string; // opcionális, ha küldöd
+  mode: Mode;
+  rank: Rank;
+  timestamp: number;
+};
+
+type PlayerRecord = {
+  username: string;
+  testsByMode: Partial<Record<Mode, TestRow>>; // gamemode-onként csak 1 (legutóbbi)
+  points: number; // összpont: csak a testsByMode-ban lévő legutolsók pontjai
+  updatedAt: number;
+};
+
+const MODE_LIST: Mode[] = [
   "Vanilla",
   "UHC",
   "Pot",
@@ -35,228 +63,166 @@ const MODE_LIST = [
   "SpearElytra",
 ];
 
-const RANK_POINTS = {
-  Unranked: 0,
+const RANK_LIST: Rank[] = ["Unranked", "LT5", "HT5", "LT4", "HT4", "LT3", "HT3"];
 
+const POINTS: Record<Rank, number> = {
+  Unranked: 0,
   LT5: 1,
   HT5: 2,
-
   LT4: 3,
   HT4: 4,
-
   LT3: 5,
   HT3: 8,
-
-  LT2: 12,
-  HT2: 15,
-
-  LT1: 20,
-  HT1: 25,
 };
 
-function normalizeMode(mode) {
-  if (!mode) return null;
-  const m = String(mode).trim();
-
-  // allow lowercase input too
-  const found = MODE_LIST.find((x) => x.toLowerCase() === m.toLowerCase());
-  return found || null;
+function normUsername(u: string) {
+  return u.trim();
 }
 
-function normalizeRank(rank) {
-  if (!rank) return null;
-  const r = String(rank).trim();
-
-  // allow "unranked" / "Unranked"
-  const key = Object.keys(RANK_POINTS).find(
-    (x) => x.toLowerCase() === r.toLowerCase()
-  );
-  return key || null;
-}
-
-function toInt(x) {
-  const n = Number(x);
-  return Number.isFinite(n) ? n : null;
-}
-
-// =========================
-// IN-MEMORY STORE (Vercel instance memory)
-// NOTE: This is not a real database. If Vercel restarts the instance, data can reset.
-// =========================
-function getStore() {
-  if (!globalThis.__NEONTIERS_STORE__) {
-    globalThis.__NEONTIERS_STORE__ = {
-      // username -> player object
-      players: {},
-    };
+function computePoints(rec: PlayerRecord): number {
+  let sum = 0;
+  for (const m of MODE_LIST) {
+    const t = rec.testsByMode[m];
+    if (t) sum += POINTS[t.rank] ?? 0;
   }
-  return globalThis.__NEONTIERS_STORE__;
+  return sum;
 }
 
-function computeTotalPoints(player) {
-  // Only latest test per mode counts
-  let total = 0;
-  for (const mode of Object.keys(player.tests)) {
-    total += player.tests[mode].points || 0;
-  }
-  player.totalPoints = total;
+const KV_KEY = "neontiers:players:v1";
+
+/**
+ * Storage:
+ * - If KV is available -> persistent (GOOD)
+ * - Else -> in-memory (ONLY for local dev; NOT reliable on Vercel)
+ */
+function getMemStore(): Record<string, PlayerRecord> {
+  const g = globalThis as any;
+  if (!g.__NEONTIERS_MEM_STORE__) g.__NEONTIERS_MEM_STORE__ = {};
+  return g.__NEONTIERS_MEM_STORE__;
 }
 
-function serializePlayers(modeFilter = null) {
-  const store = getStore();
-  const list = Object.values(store.players).map((p) => {
-    const testsArray = Object.values(p.tests);
-
-    // if filtering by mode, only include that mode in response
-    let filteredTests = testsArray;
-    if (modeFilter) {
-      filteredTests = testsArray.filter((t) => t.mode === modeFilter);
-    }
-
-    // sort tests by updatedAt desc (latest first)
-    filteredTests.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-
-    return {
-      username: p.username,
-      totalPoints: p.totalPoints || 0,
-      tests: filteredTests,
-    };
-  });
-
-  // If filtering by mode, points should be only that mode's points for sorting
-  if (modeFilter) {
-    for (const p of list) {
-      const t = p.tests[0];
-      p.totalPoints = t ? t.points : 0;
-    }
+async function loadAll(): Promise<Record<string, PlayerRecord>> {
+  if (kv) {
+    const data = await kv.get(KV_KEY);
+    return (data as Record<string, PlayerRecord>) ?? {};
   }
-
-  // sort by points desc, then username asc
-  list.sort((a, b) => {
-    if ((b.totalPoints || 0) !== (a.totalPoints || 0)) {
-      return (b.totalPoints || 0) - (a.totalPoints || 0);
-    }
-    return a.username.localeCompare(b.username);
-  });
-
-  return list;
+  return getMemStore();
 }
 
-// =========================
-// GET /api/tests
-// Optional: /api/tests?mode=Mace
-// =========================
-export async function GET(req) {
-  const { searchParams } = new URL(req.url);
-  const modeParam = searchParams.get("mode");
-  const mode = modeParam ? normalizeMode(modeParam) : null;
-
-  if (modeParam && !mode) {
-    return NextResponse.json(
-      { error: "Invalid mode", allowed: MODE_LIST },
-      { status: 400 }
-    );
+async function saveAll(all: Record<string, PlayerRecord>): Promise<void> {
+  if (kv) {
+    await kv.set(KV_KEY, all);
+    return;
   }
-
-  const tests = serializePlayers(mode);
-  return NextResponse.json({ tests }, { status: 200 });
+  const mem = getMemStore();
+  for (const k of Object.keys(mem)) delete mem[k];
+  Object.assign(mem, all);
 }
 
-// =========================
-// POST /api/tests
-// Body JSON:
-// {
-//   "username": "NeonGamer322",
-//   "mode": "Mace",        // or "gamemode": "Mace"
-//   "rank": "HT3",         // or "tier": "HT3"
-//   "tester": "NeoTiers"   // optional
-// }
-//
-// RULE: only ONE latest result per (username + mode) exists.
-// It overwrites the previous result, and points are recalculated.
-// =========================
-export async function POST(req) {
-  // AUTH CHECK
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+function authOk(req: Request): boolean {
+  const apiKey = process.env.BOT_API_KEY || process.env.WEBSITE_API_KEY || "";
+  if (!apiKey) return true; // ha nincs beállítva, engedjük (fejlesztéshez)
+  const header = req.headers.get("authorization") || "";
+  // Expected: "Bearer <BOT_API_KEY>"
+  return header === `Bearer ${apiKey}`;
+}
 
-  let body;
+export async function GET() {
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
-  }
+    const all = await loadAll();
+    const players = Object.values(all)
+      .sort((a, b) => b.points - a.points || b.updatedAt - a.updatedAt);
 
-  const username = body?.username ? String(body.username).trim() : "";
-  const modeRaw = body?.mode ?? body?.gamemode ?? "";
-  const rankRaw = body?.rank ?? body?.tier ?? "";
-
-  const tester =
-    body?.tester !== undefined && body?.tester !== null
-      ? String(body.tester).trim()
-      : null;
-
-  if (!username) {
-    return NextResponse.json({ error: "Missing username" }, { status: 400 });
-  }
-
-  const mode = normalizeMode(modeRaw);
-  if (!mode) {
+    return NextResponse.json({
+      tests: players,
+      storage: kv ? "kv" : "memory",
+    });
+  } catch (e: any) {
     return NextResponse.json(
-      { error: "Missing/invalid mode", allowed: MODE_LIST },
-      { status: 400 }
+      { error: "Server error", detail: String(e?.message ?? e) },
+      { status: 500 }
     );
   }
+}
 
-  const rank = normalizeRank(rankRaw);
-  if (!rank) {
-    return NextResponse.json(
-      { error: "Missing/invalid rank", allowed: Object.keys(RANK_POINTS) },
-      { status: 400 }
-    );
-  }
+export async function POST(req: Request) {
+  try {
+    if (!authOk(req)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const points = RANK_POINTS[rank];
-  const updatedAt = Date.now();
+    const body = await req.json().catch(() => ({}));
 
-  // upsert player
-  const store = getStore();
-  if (!store.players[username]) {
-    store.players[username] = {
-      username,
-      tests: {}, // mode -> test
-      totalPoints: 0,
-    };
-  }
+    const username = normUsername(String(body.username ?? ""));
+    const mode = String(body.gamemode ?? body.mode ?? "");
+    const rank = String(body.rank ?? "");
+    const testerId = String(body.tester_id ?? body.testerId ?? body.tester ?? "");
+    const testerTag = body.tester_tag ? String(body.tester_tag) : undefined;
 
-  const player = store.players[username];
+    if (!username || !mode || !rank) {
+      return NextResponse.json(
+        { error: "Missing username/mode/rank" },
+        { status: 400 }
+      );
+    }
 
-  // overwrite ONLY this mode (so you can't have 3x Mace)
-  player.tests[mode] = {
-    mode,
-    rank,
-    points,
-    tester,
-    updatedAt,
-  };
+    if (!MODE_LIST.includes(mode as Mode)) {
+      return NextResponse.json({ error: "Invalid gamemode" }, { status: 400 });
+    }
+    if (!RANK_LIST.includes(rank as Rank)) {
+      return NextResponse.json({ error: "Invalid rank" }, { status: 400 });
+    }
 
-  // recompute totals (only latest per mode counts)
-  computeTotalPoints(player);
+    const all = await loadAll();
+    const key = username.toLowerCase();
 
-  return NextResponse.json(
-    {
-      ok: true,
-      saved: {
+    const now = Date.now();
+
+    const existing: PlayerRecord =
+      all[key] ?? {
         username,
-        mode,
-        rank,
-        points,
-        tester,
-        updatedAt,
-      },
-      totalPoints: player.totalPoints,
-    },
-    { status: 201 }
-  );
+        testsByMode: {},
+        points: 0,
+        updatedAt: now,
+      };
+
+    const m = mode as Mode;
+
+    // previous rank (automatikus)
+    const prevRank: Rank = existing.testsByMode[m]?.rank ?? "Unranked";
+
+    // Update only latest per mode
+    const newRow: TestRow = {
+      username,
+      testerId,
+      testerTag,
+      mode: m,
+      rank: rank as Rank,
+      timestamp: now,
+    };
+
+    existing.username = username; // keep original casing
+    existing.testsByMode[m] = newRow;
+    existing.updatedAt = now;
+    existing.points = computePoints(existing);
+
+    all[key] = existing;
+    await saveAll(all);
+
+    return NextResponse.json({
+      ok: true,
+      username: existing.username,
+      mode: m,
+      previous_rank: prevRank,
+      new_rank: newRow.rank,
+      points_total: existing.points,
+      points_delta: (POINTS[newRow.rank] ?? 0) - (POINTS[prevRank] ?? 0),
+      storage: kv ? "kv" : "memory",
+    });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: "Server error", detail: String(e?.message ?? e) },
+      { status: 500 }
+    );
+  }
 }
