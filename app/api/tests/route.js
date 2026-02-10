@@ -17,18 +17,13 @@ const RANK_POINTS = {
 };
 
 function getStore() {
-  // Vercel serverless: ez “best effort” memória.
-  // Ha akarsz 100% perzisztenciát, később KV/DB kell.
   if (!globalThis.__NEONTIERS_STORE) {
-    globalThis.__NEONTIERS_STORE = {
-      // key: usernameLower -> { usernameOriginal, modes: { mode: { rank, tester, updatedAt } } }
-      players: {},
-    };
+    globalThis.__NEONTIERS_STORE = { players: {} };
   }
   return globalThis.__NEONTIERS_STORE;
 }
 
-function buildResponsePlayers(store) {
+function buildPlayers(store) {
   const arr = [];
 
   for (const key of Object.keys(store.players)) {
@@ -49,41 +44,29 @@ function buildResponsePlayers(store) {
       points += (RANK_POINTS[entry.rank] ?? 0);
     }
 
-    // rendezzük a tageket updatedAt szerint, hogy “szép” legyen
     tests.sort((a, b) => (a.updatedAt || 0) - (b.updatedAt || 0));
 
-    arr.push({
-      username: p.username,
-      points,
-      tests,
-    });
+    arr.push({ username: p.username, points, tests });
   }
 
-  // leaderboard: pont szerint csökkenő
   arr.sort((a, b) => b.points - a.points);
-
   return arr;
 }
 
 export async function GET() {
   const store = getStore();
+  const players = buildPlayers(store);
 
-  // a frontend eddig {tests:[...]}-t várt, ezért visszaadunk
-  // 1) tests: egy flatten lista (UNIQUE gamemode már)
-  // 2) players: leaderboard-hoz
-  const players = buildResponsePlayers(store);
-
+  // compat + frontend
   const flatTests = [];
-  for (const p of players) {
-    for (const t of p.tests) flatTests.push(t);
-  }
+  for (const p of players) for (const t of p.tests) flatTests.push(t);
 
   return NextResponse.json({ tests: flatTests, players });
 }
 
 export async function POST(req) {
   const auth = req.headers.get("authorization") || "";
-  const expected = process.env.BOT_API_KEY || ""; // Vercel env
+  const expected = process.env.BOT_API_KEY || "";
   if (!expected || auth !== `Bearer ${expected}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -107,19 +90,11 @@ export async function POST(req) {
   const store = getStore();
   const key = username.toLowerCase();
 
-  if (!store.players[key]) {
-    store.players[key] = { username, modes: {} };
-  } else {
-    // tartjuk a legutóbbi “szép” nevet
-    store.players[key].username = username;
-  }
+  if (!store.players[key]) store.players[key] = { username, modes: {} };
+  store.players[key].username = username;
 
-  // ✅ UPSERT: ugyanannál a gamemode-nál FELÜLÍRUNK
-  store.players[key].modes[gamemode] = {
-    rank,
-    tester,
-    updatedAt: Date.now(),
-  };
+  // ✅ UPSERT: ugyanazon (player+gamemode) felülírás
+  store.players[key].modes[gamemode] = { rank, tester, updatedAt: Date.now() };
 
   return NextResponse.json({ ok: true });
 }
