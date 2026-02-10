@@ -1,100 +1,95 @@
+// app/api/tests/route.js
 import { NextResponse } from "next/server";
 
-const MODE_LIST = [
-  "Vanilla","UHC","Pot","NethPot","SMP","Sword","Axe","Mace","Cart","Creeper","DiaSMP","OGVanilla","ShieldlessUHC",
-  "SpearMace","SpearElytra",
-];
+const API_KEY = process.env.BOT_API_KEY || "";
 
-const RANK_LIST = ["Unranked","LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1"];
-
-const RANK_POINTS = {
-  Unranked: 0,
-  LT5: 1, HT5: 2,
-  LT4: 3, HT4: 4,
-  LT3: 5, HT3: 6,
-  LT2: 7, HT2: 8,
-  LT1: 9, HT1: 10,
-};
-
+// egyszerű in-memory store (serverlessen nem örök életű)
 function getStore() {
-  if (!globalThis.__NEONTIERS_STORE) {
-    globalThis.__NEONTIERS_STORE = { players: {} };
+  if (!globalThis.__NEONTIERS_STORE__) {
+    globalThis.__NEONTIERS_STORE__ = {
+      // tests: [{ username, mode, rank, points, testerId, testerTag, timestamp, previousRank }]
+      tests: []
+    };
   }
-  return globalThis.__NEONTIERS_STORE;
+  return globalThis.__NEONTIERS_STORE__;
 }
 
-function buildPlayers(store) {
-  const arr = [];
-
-  for (const key of Object.keys(store.players)) {
-    const p = store.players[key];
-
-    const tests = [];
-    let points = 0;
-
-    for (const mode of Object.keys(p.modes)) {
-      const entry = p.modes[mode];
-      tests.push({
-        username: p.username,
-        gamemode: mode,
-        rank: entry.rank,
-        tester: entry.tester,
-        updatedAt: entry.updatedAt,
-      });
-      points += (RANK_POINTS[entry.rank] ?? 0);
-    }
-
-    tests.sort((a, b) => (a.updatedAt || 0) - (b.updatedAt || 0));
-
-    arr.push({ username: p.username, points, tests });
-  }
-
-  arr.sort((a, b) => b.points - a.points);
-  return arr;
+function json(data, status = 200) {
+  return NextResponse.json(data, { status });
 }
 
-export async function GET() {
+function normalizeMode(s) {
+  return String(s || "").trim();
+}
+
+function normalizeUsername(s) {
+  return String(s || "").trim();
+}
+
+export async function GET(req) {
   const store = getStore();
-  const players = buildPlayers(store);
+  const { searchParams } = new URL(req.url);
 
-  // compat + frontend
-  const flatTests = [];
-  for (const p of players) for (const t of p.tests) flatTests.push(t);
+  const username = normalizeUsername(searchParams.get("username"));
+  if (!username) {
+    return json({ tests: store.tests });
+  }
 
-  return NextResponse.json({ tests: flatTests, players });
+  const filtered = store.tests.filter(
+    (t) => String(t.username).toLowerCase() === username.toLowerCase()
+  );
+
+  return json({ tests: filtered });
 }
 
 export async function POST(req) {
-  const auth = req.headers.get("authorization") || "";
-  const expected = process.env.BOT_API_KEY || "";
-  if (!expected || auth !== `Bearer ${expected}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // API key ellenőrzés
+  const key = req.headers.get("x-api-key") || "";
+  if (API_KEY && key !== API_KEY) {
+    return json({ error: "Unauthorized" }, 401);
   }
 
   let body;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    return json({ error: "Invalid JSON" }, 400);
   }
 
-  const username = String(body.username || "").trim();
-  const gamemode = String(body.gamemode || "").trim();
-  const rank = String(body.rank || "").trim();
-  const tester = String(body.tester || "").trim();
+  const username = normalizeUsername(body.username);
+  const mode = normalizeMode(body.mode);
+  const rank = String(body.rank || "Unranked").trim();
+  const points = Number(body.points || 0);
 
-  if (!username) return NextResponse.json({ error: "Missing username" }, { status: 400 });
-  if (!MODE_LIST.includes(gamemode)) return NextResponse.json({ error: "Invalid gamemode" }, { status: 400 });
-  if (!RANK_LIST.includes(rank)) return NextResponse.json({ error: "Invalid rank" }, { status: 400 });
+  if (!username || !mode) {
+    return json({ error: "Missing username/mode" }, 400);
+  }
 
   const store = getStore();
-  const key = username.toLowerCase();
 
-  if (!store.players[key]) store.players[key] = { username, modes: {} };
-  store.players[key].username = username;
+  // UPSERT: username + mode alapján felülírunk
+  const idx = store.tests.findIndex(
+    (t) =>
+      String(t.username).toLowerCase() === username.toLowerCase() &&
+      String(t.mode).toLowerCase() === mode.toLowerCase()
+  );
 
-  // ✅ UPSERT: ugyanazon (player+gamemode) felülírás
-  store.players[key].modes[gamemode] = { rank, tester, updatedAt: Date.now() };
+  const record = {
+    username,
+    mode,
+    rank,
+    points,
+    testerId: String(body.testerId || ""),
+    testerTag: String(body.testerTag || ""),
+    timestamp: Number(body.timestamp || Date.now()),
+    previousRank: String(body.previousRank || "Unranked")
+  };
 
-  return NextResponse.json({ ok: true });
+  if (idx >= 0) {
+    store.tests[idx] = record;
+  } else {
+    store.tests.push(record);
+  }
+
+  return json({ ok: true, record, tests: store.tests });
 }
