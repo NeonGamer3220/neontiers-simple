@@ -1,86 +1,70 @@
-import { NextResponse } from "next/server";
+import { NextResponse } from "next/server"
 
-/**
- * In-memory store
- * (Vercelen stateless, de most EZ a cél – később DB)
- */
-let tests: {
-  username: string;
-  tester: string;
-  gamemode: string;
-  tier: string;
-  points: number;
-  timestamp: number;
-}[] = [];
+const API_KEY = process.env.BOT_API_KEY
 
-/**
- * Tier → pont
- */
-function tierToPoints(tier: string): number {
-  if (tier.startsWith("HT")) return 8;
-  if (tier.startsWith("LT")) return 5;
-  return 0;
+let tests = []
+
+function calculatePoints(rank) {
+  const map = {
+    "LT1": 1,
+    "LT2": 3,
+    "LT3": 5,
+    "HT1": 6,
+    "HT2": 7,
+    "HT3": 8,
+    "HT4": 10
+  }
+
+  return map[rank] || 0
 }
 
-/**
- * GET – weboldal lekéri az adatokat
- */
 export async function GET() {
-  return NextResponse.json({ tests });
+  return NextResponse.json({ tests })
 }
 
-/**
- * POST – Discord bot küldi a tesztet
- */
-export async function POST(req: Request) {
+export async function POST(req) {
   try {
-    const body = await req.json();
-    const { username, tester, gamemode, tier } = body;
+    const auth = req.headers.get("authorization")
 
-    if (!username || !tester || !gamemode || !tier) {
+    if (!auth || auth !== `Bearer ${API_KEY}`) {
       return NextResponse.json(
-        { error: "Missing username/tester/gamemode/tier" },
-        { status: 400 }
-      );
+        { error: "Unauthorized" },
+        { status: 401 }
+      )
     }
 
-    const points = tierToPoints(tier);
+    const body = await req.json()
 
-    /**
-     * 🔥 FONTOS RÉSZ 🔥
-     * Ha ugyanarra a gamemode-ra már van eredmény:
-     * → TÖRÖLJÜK
-     */
+    const { username, tester, gamemode, rank } = body
+
+    if (!username || !gamemode || !rank) {
+      return NextResponse.json(
+        { error: "Missing username/gamemode/rank" },
+        { status: 400 }
+      )
+    }
+
+    // 🔥 Csak az utolsó gamemode maradhat
     tests = tests.filter(
       (t) => !(t.username === username && t.gamemode === gamemode)
-    );
+    )
 
-    /**
-     * ÚJ (LEGUTOLSÓ) EREDMÉNY BETÉTELE
-     */
     tests.push({
       username,
       tester,
       gamemode,
-      tier,
-      points,
-      timestamp: Date.now(),
-    });
+      rank,
+      points: calculatePoints(rank)
+    })
 
     return NextResponse.json({
-      success: true,
-      saved: {
-        username,
-        tester,
-        gamemode,
-        tier,
-        points,
-      },
-    });
+      success: true
+    })
+
   } catch (err) {
     return NextResponse.json(
-      { error: "Invalid JSON payload" },
+      { error: "Server error" },
       { status: 500 }
-    );
+    )
   }
 }
