@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
-const filePath = path.join(process.cwd(), "data.json");
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-const RANK_POINTS = {
+const rankPoints = {
   LT5: 1,
   HT5: 2,
   LT4: 3,
@@ -17,25 +17,19 @@ const RANK_POINTS = {
   LT2: 7,
   HT2: 8,
   LT1: 9,
-  HT1: 10
+  HT1: 10,
 };
 
-function readData() {
-  if (!fs.existsSync(filePath)) {
-    fs.writeFileSync(filePath, JSON.stringify({ tests: [] }, null, 2));
+export async function GET() {
+  const { data, error } = await supabase
+    .from("tests")
+    .select("*");
+
+  if (error) {
+    return Response.json({ error: error.message }, { status: 500 });
   }
 
-  const raw = fs.readFileSync(filePath);
-  return JSON.parse(raw);
-}
-
-function writeData(data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
-
-export async function GET() {
-  const data = readData();
-  return NextResponse.json(data);
+  return Response.json({ tests: data });
 }
 
 export async function POST(req) {
@@ -44,31 +38,34 @@ export async function POST(req) {
     const { username, gamemode, rank } = body;
 
     if (!username || !gamemode || !rank) {
-      return NextResponse.json(
+      return Response.json(
         { error: "Missing username/gamemode/rank" },
         { status: 400 }
       );
     }
 
-    const data = readData();
+    const points = rankPoints[rank] || 0;
 
-    // 🔥 csak az utolsó maradjon ugyanabból a gamemode-ból
-    data.tests = data.tests.filter(
-      (t) => !(t.username === username && t.gamemode === gamemode)
-    );
+    // upsert: egy játékosnak egy gamemode-ból csak 1 rekord
+    const { error } = await supabase
+      .from("tests")
+      .upsert(
+        {
+          username,
+          gamemode,
+          rank,
+          points,
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "username,gamemode" }
+      );
 
-    data.tests.push({
-      username,
-      gamemode,
-      rank,
-      points: RANK_POINTS[rank] || 0,
-      timestamp: Date.now()
-    });
+    if (error) {
+      return Response.json({ error: error.message }, { status: 500 });
+    }
 
-    writeData(data);
-
-    return NextResponse.json({ success: true });
+    return Response.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
