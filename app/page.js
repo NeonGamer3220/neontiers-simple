@@ -1,189 +1,93 @@
-"use client";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-import { useEffect, useMemo, useState } from "react";
+import fs from "fs";
+import path from "path";
 
-const MODE_LIST = [
-  "Összes",
-  "Vanilla",
-  "UHC",
-  "Pot",
-  "NethPot",
-  "SMP",
-  "Sword",
-  "Axe",
-  "Mace",
-  "Cart",
-  "Creeper",
-  "DiaSMP",
-  "OGVanilla",
-  "ShieldlessUHC",
-  "SpearMace",
-  "SpearElytra",
-];
+const filePath = path.join(process.cwd(), "data.json");
 
-function fmtPoints(n) {
-  const v = Number(n || 0);
-  return Number.isFinite(v) ? v : 0;
-}
+const RANK_POINTS = {
+  LT5: 1,
+  HT5: 2,
+  LT4: 3,
+  HT4: 4,
+  LT3: 5,
+  HT3: 6,
+  LT2: 7,
+  HT2: 8,
+  LT1: 9,
+  HT1: 10
+};
 
-export default function Page() {
-  const [tests, setTests] = useState([]);
-  const [mode, setMode] = useState("Összes");
-  const [q, setQ] = useState("");
-  const [loading, setLoading] = useState(true);
+export default function Home() {
+  let data = { tests: [] };
 
-  async function load() {
-    try {
-      setLoading(true);
-      const res = await fetch("/api/tests", { cache: "no-store" });
-      const data = await res.json();
-      setTests(Array.isArray(data?.tests) ? data.tests : []);
-    } catch {
-      setTests([]);
-    } finally {
-      setLoading(false);
-    }
+  if (fs.existsSync(filePath)) {
+    data = JSON.parse(fs.readFileSync(filePath));
   }
 
-  useEffect(() => {
-    load();
-    const t = setInterval(load, 5000); // 5mp-enként frissít
-    return () => clearInterval(t);
-  }, []);
+  const players = {};
 
-  const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    return tests.filter((r) => {
-      if (mode !== "Összes" && r.gamemode !== mode) return false;
-      if (!query) return true;
-      return String(r.username || "").toLowerCase().includes(query);
-    });
-  }, [tests, mode, q]);
-
-  // Leaderboard: username alapján összeadjuk a pontokat a különböző gamemode-ok legutolsó rekordjaiból
-  const leaderboard = useMemo(() => {
-    const byUser = new Map();
-
-    for (const r of tests) {
-      const name = r.username;
-      if (!name) continue;
-
-      if (!byUser.has(name)) byUser.set(name, { username: name, rows: [], points: 0 });
-
-      const u = byUser.get(name);
-      u.rows.push(r);
+  data.tests.forEach((t) => {
+    if (!players[t.username]) {
+      players[t.username] = {
+        username: t.username,
+        totalPoints: 0,
+        modes: {}
+      };
     }
 
-    // userenként: a rows már eleve "user+mode egyedi" az API miatt, szóval sima sum
-    const list = [];
-    for (const u of byUser.values()) {
-      const pts = u.rows.reduce((acc, x) => acc + fmtPoints(x.points), 0);
-      list.push({
-        username: u.username,
-        rows: u.rows.sort((a, b) => String(a.gamemode).localeCompare(String(b.gamemode))),
-        points: pts,
-      });
-    }
+    players[t.username].modes[t.gamemode] = t.rank;
+  });
 
-    list.sort((a, b) => b.points - a.points || a.username.localeCompare(b.username));
-    return list;
-  }, [tests]);
+  Object.values(players).forEach((p) => {
+    p.totalPoints = Object.values(p.modes).reduce(
+      (sum, rank) => sum + (RANK_POINTS[rank] || 0),
+      0
+    );
+  });
+
+  const sorted = Object.values(players).sort(
+    (a, b) => b.totalPoints - a.totalPoints
+  );
 
   return (
-    <main className="min-h-screen w-full">
-      <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="flex items-center justify-between gap-6">
-          <h1 className="text-4xl font-extrabold tracking-tight">NeonTiers</h1>
+    <main className="min-h-screen bg-gradient-to-br from-black via-[#0b1020] to-[#0f2a2f] text-white p-10">
+      <h1 className="text-4xl font-bold mb-10">NeonTiers</h1>
 
-          <div className="flex items-center gap-3">
-            <input
-              className="search"
-              placeholder="Játékos keresése"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <a className="pillLink" href="https://discord.com" target="_blank" rel="noreferrer">
-              Discord
-            </a>
-            <button className="pillLink" type="button">
-              Mod
-            </button>
+      <h2 className="text-3xl font-semibold mb-6">Ranglista</h2>
+
+      <div className="space-y-6">
+        {sorted.map((player, index) => (
+          <div
+            key={player.username}
+            className="bg-white/5 border border-white/10 rounded-2xl p-6 flex justify-between items-center backdrop-blur"
+          >
+            <div>
+              <div className="text-2xl font-bold">
+                {index + 1}. {player.username}
+              </div>
+
+              <div className="flex gap-3 mt-3 flex-wrap">
+                {Object.entries(player.modes).map(([mode, rank]) => (
+                  <span
+                    key={mode}
+                    className="bg-white/10 px-3 py-1 rounded-full text-sm"
+                  >
+                    {mode} {rank}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="text-right">
+              <div className="text-3xl font-bold text-cyan-400">
+                {player.totalPoints}
+              </div>
+              <div className="text-xs text-gray-400">PONT</div>
+            </div>
           </div>
-        </div>
-
-        <div className="panel mt-8">
-          <div className="modes">
-            {MODE_LIST.map((m) => (
-              <button
-                key={m}
-                className={`modeBtn ${mode === m ? "active" : ""}`}
-                onClick={() => setMode(m)}
-                type="button"
-              >
-                {m}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-10 flex items-center justify-between">
-          <h2 className="text-4xl font-extrabold tracking-tight">Ranglista</h2>
-          <div className="opacity-75">{leaderboard.length} játékos</div>
-        </div>
-
-        <div className="mt-6 space-y-4">
-          {loading ? (
-            <div className="emptyCard">Betöltés...</div>
-          ) : mode !== "Összes" ? (
-            // Mode nézet: csak a kiválasztott gamemode rekordjai
-            filtered.length === 0 ? (
-              <div className="emptyCard">Nincs találat.</div>
-            ) : (
-              filtered.map((r, idx) => (
-                <div key={`${r.username}-${r.gamemode}`} className="rowCard">
-                  <div className="rankNo">{idx + 1}.</div>
-                  <div className="rowMain">
-                    <div className="rowName">{r.username}</div>
-                    <div className="badges">
-                      <span className="badge">
-                        {r.gamemode} {r.rank}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="points">
-                    <div className="pointsBig">{fmtPoints(r.points)}</div>
-                    <div className="pointsSmall">PONT</div>
-                  </div>
-                </div>
-              ))
-            )
-          ) : (
-            // Összes nézet: leaderboard
-            leaderboard.length === 0 ? (
-              <div className="emptyCard">Még nincs adat.</div>
-            ) : (
-              leaderboard.map((u, idx) => (
-                <div key={u.username} className="rowCard">
-                  <div className="rankNo">{idx + 1}.</div>
-                  <div className="rowMain">
-                    <div className="rowName">{u.username}</div>
-                    <div className="badges">
-                      {u.rows.map((r) => (
-                        <span key={`${u.username}-${r.gamemode}`} className="badge">
-                          {r.gamemode} {r.rank}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="points">
-                    <div className="pointsBig">{fmtPoints(u.points)}</div>
-                    <div className="pointsSmall">PONT</div>
-                  </div>
-                </div>
-              ))
-            )
-          )}
-        </div>
+        ))}
       </div>
     </main>
   );
