@@ -1,97 +1,74 @@
-// app/api/tests/route.js
 import { NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
-import { MODE_LIST, RANK_LIST, rankPoints } from "@/lib/ranks";
+import fs from "fs";
+import path from "path";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const redis = Redis.fromEnv();
+const filePath = path.join(process.cwd(), "data.json");
 
-// Egyetlen kulcs alatt tároljuk a teljes listát
-const STORE_KEY = "neontiers:tests:v1";
+const RANK_POINTS = {
+  LT5: 1,
+  HT5: 2,
+  LT4: 3,
+  HT4: 4,
+  LT3: 5,
+  HT3: 6,
+  LT2: 7,
+  HT2: 8,
+  LT1: 9,
+  HT1: 10
+};
 
-function json(res, status = 200) {
-  return NextResponse.json(res, { status });
+function readData() {
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, JSON.stringify({ tests: [] }, null, 2));
+  }
+
+  const raw = fs.readFileSync(filePath);
+  return JSON.parse(raw);
 }
 
-function getAuthToken(req) {
-  const h = req.headers.get("authorization") || "";
-  // elfogadjuk: "Bearer xxx" és sima "xxx" formában is
-  if (h.toLowerCase().startsWith("bearer ")) return h.slice(7).trim();
-  return h.trim();
-}
-
-async function loadTests() {
-  const data = await redis.get(STORE_KEY);
-  if (!data) return [];
-  if (Array.isArray(data)) return data;
-  return [];
-}
-
-async function saveTests(tests) {
-  await redis.set(STORE_KEY, tests);
+function writeData(data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
 export async function GET() {
-  const tests = await loadTests();
-  return json({ tests });
+  const data = readData();
+  return NextResponse.json(data);
 }
 
 export async function POST(req) {
   try {
-    const requiredKey = process.env.BOT_API_KEY || "";
-    const gotKey = getAuthToken(req);
-
-    if (!requiredKey || gotKey !== requiredKey) {
-      return json({ error: "Unauthorized" }, 401);
-    }
-
-    const body = await req.json().catch(() => ({}));
-
-    const username = (body.username || "").trim();
-    const gamemode = (body.gamemode || "").trim();
-    const rank = (body.rank || "").trim();
-    const testerId = String(body.testerId || "").trim();
-    const testerName = String(body.testerName || "").trim();
+    const body = await req.json();
+    const { username, gamemode, rank } = body;
 
     if (!username || !gamemode || !rank) {
-      return json({ error: "Missing username/gamemode/rank" }, 400);
-    }
-    if (!MODE_LIST.includes(gamemode)) {
-      return json({ error: "Invalid gamemode" }, 400);
-    }
-    if (!RANK_LIST.includes(rank)) {
-      return json({ error: "Invalid rank" }, 400);
+      return NextResponse.json(
+        { error: "Missing username/gamemode/rank" },
+        { status: 400 }
+      );
     }
 
-    const tests = await loadTests();
+    const data = readData();
 
-    // 1 user + 1 gamemode => csak a legutóbbi maradhat
-    const filtered = tests.filter(
-      (t) =>
-        !(
-          String(t.username).toLowerCase() === username.toLowerCase() &&
-          String(t.gamemode) === gamemode
-        )
+    // 🔥 csak az utolsó maradjon ugyanabból a gamemode-ból
+    data.tests = data.tests.filter(
+      (t) => !(t.username === username && t.gamemode === gamemode)
     );
 
-    const now = Date.now();
-    const newRow = {
+    data.tests.push({
       username,
       gamemode,
       rank,
-      points: rankPoints(rank), // <-- ITT a fixelt pontozás
-      testerId,
-      testerName,
-      updatedAt: now,
-    };
+      points: RANK_POINTS[rank] || 0,
+      timestamp: Date.now()
+    });
 
-    filtered.push(newRow);
-    await saveTests(filtered);
+    writeData(data);
 
-    return json({ ok: true, saved: newRow });
-  } catch (e) {
-    return json({ error: "Server error", details: String(e?.message || e) }, 500);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
