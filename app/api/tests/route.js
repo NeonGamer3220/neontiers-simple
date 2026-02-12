@@ -2,9 +2,17 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-let memory = {
-  tests: [], // { username, gamemode, rank, points, created_at }
-};
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabase =
+  SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { persistSession: false },
+      })
+    : null;
 
 // Rang -> pont (a te map-ed)
 const RANK_POINTS = {
@@ -41,24 +49,68 @@ function pick(obj, keys) {
 }
 
 function normMode(s) {
-  // egységesítés: Mace/SpearMace stb maradjon így, csak trim
   return String(s || "").trim();
 }
 
 function normRank(s) {
   const r = String(s || "").trim();
   if (!r) return "";
-  // engedjük a kisbetűs beírást is: lt3 -> LT3
   const up = r.toUpperCase();
   if (up === "UNRANKED") return "Unranked";
   return up;
 }
 
-export async function GET() {
-  return json({ tests: memory.tests });
+function requireSupabase() {
+  if (!supabase) {
+    return json(
+      {
+        error: "Supabase is not configured",
+        need_env: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+      },
+      500
+    );
+  }
+  return null;
+}
+
+// GET:
+// - /api/tests                 -> lista (DB-ből)
+// - /api/tests?username=...&gamemode=... -> 1 darab (az adott user + mode aktuális)
+export async function GET(req) {
+  const missing = requireSupabase();
+  if (missing) return missing;
+
+  const { searchParams } = new URL(req.url);
+  const username = (searchParams.get("username") || "").trim();
+  const gamemode = (searchParams.get("gamemode") || "").trim();
+
+  if (username && gamemode) {
+    const { data, error } = await supabase
+      .from("tests")
+      .select("username,gamemode,rank,points,created_at")
+      .ilike("username", username)
+      .ilike("gamemode", gamemode)
+      .maybeSingle();
+
+    if (error) return json({ error: error.message }, 500);
+    return json({ test: data || null });
+  }
+
+  const { data, error } = await supabase
+    .from("tests")
+    .select("username,gamemode,rank,points,created_at")
+    .order("points", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) return json({ error: error.message }, 500);
+
+  return json({ tests: data || [] });
 }
 
 export async function POST(req) {
+  const missing = requireSupabase();
+  if (missing) return missing;
+
   let body = null;
   try {
     body = await req.json();
@@ -66,7 +118,7 @@ export async function POST(req) {
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  // ✅ fogadjuk el több néven is (bot vs web vs régi verziók)
+  // Fogadjuk el többféle kulcsnévvel (bot/web régi verziók)
   const username = pick(body, [
     "username",
     "minecraft_name",
@@ -77,21 +129,8 @@ export async function POST(req) {
     "testedplayer",
   ]);
 
-  const gamemodeRaw = pick(body, [
-    "gamemode",
-    "game_mode",
-    "mode",
-    "gameMode",
-    "testmode",
-  ]);
-
-  const rankRaw = pick(body, [
-    "rank",
-    "tier",
-    "earned_rank",
-    "earnedRank",
-    "result",
-  ]);
+  const gamemodeRaw = pick(body, ["gamemode", "game_mode", "mode", "gameMode", "testmode"]);
+  const rankRaw = pick(body, ["rank", "tier", "earned_rank", "earnedRank", "result"]);
 
   const gamemode = normMode(gamemodeRaw);
   const rank = normRank(rankRaw);
@@ -101,7 +140,6 @@ export async function POST(req) {
       {
         error: "Missing username/gamemode/rank",
         received: { username, gamemode, rank },
-        hint: "Send one of: username|minecraft_name + gamemode|mode + rank|tier",
       },
       400
     );
@@ -110,16 +148,44 @@ export async function POST(req) {
   const points =
     body?.points !== undefined && body?.points !== null && String(body.points).trim() !== ""
       ? Number(body.points)
-      : (RANK_POINTS[rank] ?? 0);
+      : RANK_POINTS[rank] ?? 0;
 
-  const created_at = new Date().toISOString();
+  // 1) Előző rekord lekérése (ez kell a botnak!)
+  const { data: prev, error: prevErr } = await supabase
+    .from("tests")
+    .select("username,gamemode,rank,points,created_at")
+    .ilike("username", username)
+    .ilike("gamemode", gamemode)
+    .maybeSingle();
 
-  // ✅ csak az UTOLSÓ maradjon meg gamemode-onként ugyanannál a játékosnál
-  memory.tests = memory.tests.filter(
-    (t) => !(t.username.toLowerCase() === username.toLowerCase() && t.gamemode.toLowerCase() === gamemode.toLowerCase())
+  if (prevErr) return json({ error: prevErr.message }, 500);
+
+  // 2) Upsert: csak 1 sor legyen user+mode-ra (különben duplikál)
+  // FONTOS: Supabase-ben legyen UNIQUE constraint a (username, gamemode)-ra.
+  const row = {
+    username,
+    gamemode,
+    rank,
+    points,
+    created_at: new Date().toISOString(),
+  };
+
+  const { data: saved, error: saveErr } = await supabase
+    .from("tests")
+    .upsert(row, { onConflict: "username,gamemode" })
+    .select("username,gamemode,rank,points,created_at")
+    .single();
+
+  if (saveErr) return json({ error: saveErr.message }, 500);
+
+  return json(
+    {
+      ok: true,
+      previous: prev
+        ? { rank: prev.rank, points: prev.points, created_at: prev.created_at }
+        : { rank: "Unranked", points: 0, created_at: null },
+      saved,
+    },
+    200
   );
-
-  memory.tests.push({ username, gamemode, rank, points, created_at });
-
-  return json({ ok: true, saved: { username, gamemode, rank, points, created_at } }, 200);
 }
