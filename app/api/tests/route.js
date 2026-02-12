@@ -1,13 +1,13 @@
-import { createClient } from "@supabase/supabase-js";
-
+// app/api/tests/route.js
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+let memory = {
+  tests: [], // { username, gamemode, rank, points, created_at }
+};
 
-const rankPoints = {
+// Rang -> pont (a te map-ed)
+const RANK_POINTS = {
   LT5: 1,
   HT5: 2,
   LT4: 3,
@@ -18,54 +18,108 @@ const rankPoints = {
   HT2: 8,
   LT1: 9,
   HT1: 10,
+  Unranked: 0,
 };
 
-export async function GET() {
-  const { data, error } = await supabase
-    .from("tests")
-    .select("*");
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data, null, 2), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+    },
+  });
+}
 
-  if (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+function pick(obj, keys) {
+  for (const k of keys) {
+    if (obj && obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") {
+      return String(obj[k]).trim();
+    }
   }
+  return "";
+}
 
-  return Response.json({ tests: data });
+function normMode(s) {
+  // egységesítés: Mace/SpearMace stb maradjon így, csak trim
+  return String(s || "").trim();
+}
+
+function normRank(s) {
+  const r = String(s || "").trim();
+  if (!r) return "";
+  // engedjük a kisbetűs beírást is: lt3 -> LT3
+  const up = r.toUpperCase();
+  if (up === "UNRANKED") return "Unranked";
+  return up;
+}
+
+export async function GET() {
+  return json({ tests: memory.tests });
 }
 
 export async function POST(req) {
+  let body = null;
   try {
-    const body = await req.json();
-    const { username, gamemode, rank } = body;
-
-    if (!username || !gamemode || !rank) {
-      return Response.json(
-        { error: "Missing username/gamemode/rank" },
-        { status: 400 }
-      );
-    }
-
-    const points = rankPoints[rank] || 0;
-
-    // upsert: egy játékosnak egy gamemode-ból csak 1 rekord
-    const { error } = await supabase
-      .from("tests")
-      .upsert(
-        {
-          username,
-          gamemode,
-          rank,
-          points,
-          created_at: new Date().toISOString(),
-        },
-        { onConflict: "username,gamemode" }
-      );
-
-    if (error) {
-      return Response.json({ error: error.message }, { status: 500 });
-    }
-
-    return Response.json({ success: true });
-  } catch (err) {
-    return Response.json({ error: "Server error" }, { status: 500 });
+    body = await req.json();
+  } catch {
+    return json({ error: "Invalid JSON body" }, 400);
   }
+
+  // ✅ fogadjuk el több néven is (bot vs web vs régi verziók)
+  const username = pick(body, [
+    "username",
+    "minecraft_name",
+    "minecraftName",
+    "mc_name",
+    "mcName",
+    "player",
+    "testedplayer",
+  ]);
+
+  const gamemodeRaw = pick(body, [
+    "gamemode",
+    "game_mode",
+    "mode",
+    "gameMode",
+    "testmode",
+  ]);
+
+  const rankRaw = pick(body, [
+    "rank",
+    "tier",
+    "earned_rank",
+    "earnedRank",
+    "result",
+  ]);
+
+  const gamemode = normMode(gamemodeRaw);
+  const rank = normRank(rankRaw);
+
+  if (!username || !gamemode || !rank) {
+    return json(
+      {
+        error: "Missing username/gamemode/rank",
+        received: { username, gamemode, rank },
+        hint: "Send one of: username|minecraft_name + gamemode|mode + rank|tier",
+      },
+      400
+    );
+  }
+
+  const points =
+    body?.points !== undefined && body?.points !== null && String(body.points).trim() !== ""
+      ? Number(body.points)
+      : (RANK_POINTS[rank] ?? 0);
+
+  const created_at = new Date().toISOString();
+
+  // ✅ csak az UTOLSÓ maradjon meg gamemode-onként ugyanannál a játékosnál
+  memory.tests = memory.tests.filter(
+    (t) => !(t.username.toLowerCase() === username.toLowerCase() && t.gamemode.toLowerCase() === gamemode.toLowerCase())
+  );
+
+  memory.tests.push({ username, gamemode, rank, points, created_at });
+
+  return json({ ok: true, saved: { username, gamemode, rank, points, created_at } }, 200);
 }
