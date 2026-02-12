@@ -1,94 +1,209 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+"use client";
 
-import fs from "fs";
-import path from "path";
+import { useEffect, useMemo, useState } from "react";
 
-const filePath = path.join(process.cwd(), "data.json");
+const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
-const RANK_POINTS = {
-  LT5: 1,
-  HT5: 2,
-  LT4: 3,
-  HT4: 4,
-  LT3: 5,
-  HT3: 6,
-  LT2: 7,
-  HT2: 8,
-  LT1: 9,
-  HT1: 10
-};
+// gombok sorrendben
+const MODE_LIST = [
+  "Összes",
+  "Vanilla",
+  "UHC",
+  "Pot",
+  "NethPot",
+  "SMP",
+  "Sword",
+  "Axe",
+  "Mace",
+  "Cart",
+  "Creeper",
+  "DiaSMP",
+  "OGVanilla",
+  "ShieldlessUHC",
+  "SpearMace",
+  "SpearElytra",
+];
 
-export default function Home() {
-  let data = { tests: [] };
+function safeMode(x) {
+  if (!x) return "";
+  return String(x);
+}
 
-  if (fs.existsSync(filePath)) {
-    data = JSON.parse(fs.readFileSync(filePath));
-  }
+function safeRank(x) {
+  if (!x) return "";
+  return String(x);
+}
 
-  const players = {};
+export default function Page() {
+  const [tests, setTests] = useState([]);
+  const [selectedMode, setSelectedMode] = useState("Összes");
+  const [query, setQuery] = useState("");
 
-  data.tests.forEach((t) => {
-    if (!players[t.username]) {
-      players[t.username] = {
-        username: t.username,
-        totalPoints: 0,
-        modes: {}
-      };
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const res = await fetch("/api/tests", { cache: "no-store" });
+        const data = await res.json();
+        if (!cancelled) setTests(Array.isArray(data?.tests) ? data.tests : []);
+      } catch {
+        if (!cancelled) setTests([]);
+      }
     }
 
-    players[t.username].modes[t.gamemode] = t.rank;
-  });
+    load();
+    const t = setInterval(load, 5000); // frissülés
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, []);
 
-  Object.values(players).forEach((p) => {
-    p.totalPoints = Object.values(p.modes).reduce(
-      (sum, rank) => sum + (RANK_POINTS[rank] || 0),
-      0
-    );
-  });
+  // player -> utolsó eredmény gamemode-onként + pont összeg
+  const players = useMemo(() => {
+    const map = new Map();
 
-  const sorted = Object.values(players).sort(
-    (a, b) => b.totalPoints - a.totalPoints
-  );
+    for (const row of tests) {
+      const username = (row?.username || "").trim();
+      const gamemode = safeMode(row?.gamemode).trim();
+      const rank = safeRank(row?.rank).trim();
+      const points = Number(row?.points || 0);
+      const createdAt = row?.created_at ? new Date(row.created_at).getTime() : 0;
+
+      if (!username || !gamemode || !rank) continue;
+
+      if (!map.has(username)) {
+        map.set(username, {
+          username,
+          byMode: {}, // gamemode -> { rank, points, createdAt }
+        });
+      }
+
+      const u = map.get(username);
+      const prev = u.byMode[gamemode];
+
+      // csak a legutolsó maradjon gamemode-onként
+      if (!prev || createdAt >= prev.createdAt) {
+        u.byMode[gamemode] = { gamemode, rank, points, createdAt };
+      }
+    }
+
+    // összegzés + lista
+    const list = [];
+    for (const u of map.values()) {
+      const modes = Object.values(u.byMode);
+      const total = modes.reduce((s, m) => s + (Number(m.points) || 0), 0);
+      list.push({
+        username: u.username,
+        modes,
+        total,
+      });
+    }
+
+    // pont szerint csökkenő
+    list.sort((a, b) => b.total - a.total);
+    return list;
+  }, [tests]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    return players
+      .map((p) => {
+        let modes = p.modes;
+
+        if (selectedMode !== "Összes") {
+          modes = modes.filter((m) => String(m.gamemode).toLowerCase() === selectedMode.toLowerCase());
+        }
+
+        return { ...p, modes };
+      })
+      .filter((p) => {
+        if (selectedMode !== "Összes" && p.modes.length === 0) return false;
+        if (!q) return true;
+        return p.username.toLowerCase().includes(q);
+      });
+  }, [players, selectedMode, query]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-black via-[#0b1020] to-[#0f2a2f] text-white p-10">
-      <h1 className="text-4xl font-bold mb-10">NeonTiers</h1>
+    <div className="container">
+      <div className="topbar">
+        <div className="brand">
+          <div className="logoDot" />
+          <div className="brandTitle">NeonTiers</div>
+        </div>
 
-      <h2 className="text-3xl font-semibold mb-6">Ranglista</h2>
-
-      <div className="space-y-6">
-        {sorted.map((player, index) => (
-          <div
-            key={player.username}
-            className="bg-white/5 border border-white/10 rounded-2xl p-6 flex justify-between items-center backdrop-blur"
-          >
-            <div>
-              <div className="text-2xl font-bold">
-                {index + 1}. {player.username}
-              </div>
-
-              <div className="flex gap-3 mt-3 flex-wrap">
-                {Object.entries(player.modes).map(([mode, rank]) => (
-                  <span
-                    key={mode}
-                    className="bg-white/10 px-3 py-1 rounded-full text-sm"
-                  >
-                    {mode} {rank}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="text-right">
-              <div className="text-3xl font-bold text-cyan-400">
-                {player.totalPoints}
-              </div>
-              <div className="text-xs text-gray-400">PONT</div>
-            </div>
+        <div className="rightSide">
+          <div className="searchWrap">
+            <div className="searchIcon">🔎</div>
+            <input
+              className="search"
+              placeholder="Játékos keresése"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
           </div>
-        ))}
+
+          <a className="btn btnPrimary" href="/" title="Főoldal">
+            Főoldal
+          </a>
+
+          <a className="btn" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
+            Discord
+          </a>
+        </div>
       </div>
-    </main>
+
+      <div className="panel">
+        <div className="filtersRow">
+          {MODE_LIST.map((m) => (
+            <button
+              key={m}
+              className={`pill ${selectedMode === m ? "pillActive" : ""}`}
+              onClick={() => setSelectedMode(m)}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="sectionTitleRow">
+        <div className="sectionTitle">Ranglista</div>
+        <div className="sectionMeta">{filtered.length} játékos</div>
+      </div>
+
+      <div className="listCard">
+        {filtered.length === 0 ? (
+          <div className="empty">Nincs adat.</div>
+        ) : (
+          filtered.map((p, idx) => (
+            <div className="playerRow" key={p.username}>
+              <div className="rankNum">{idx + 1}.</div>
+
+              <div>
+                <div className="playerName">{p.username}</div>
+                <div className="tags">
+                  {p.modes
+                    .slice()
+                    .sort((a, b) => (a.gamemode > b.gamemode ? 1 : -1))
+                    .map((m) => (
+                      <div className="tag" key={`${p.username}-${m.gamemode}`}>
+                        {m.gamemode} {m.rank}
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              <div className="pointsBox">
+                <div className="pointsNum">{p.total}</div>
+                <div className="pointsLabel">PONT</div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
   );
 }
