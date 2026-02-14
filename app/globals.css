@@ -257,3 +257,58 @@ a { color: inherit; text-decoration: none; }
   color: var(--muted);
   font-weight: 700;
 }
+/* ===== RANK GLOWS ===== */
+
+.rank {
+  font-weight: bold;
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+/* Tier 1 - Yellow (Gold) */
+.tier-1 {
+  color: #ffd700;
+  text-shadow:
+    0 0 5px #ffd700,
+    0 0 10px #ffd700,
+    0 0 20px #ffae00;
+}
+
+/* Tier 2 - Silver */
+.tier-2 {
+  color: #cfcfcf;
+  text-shadow:
+    0 0 5px #ffffff,
+    0 0 10px #cfcfcf,
+    0 0 20px #aaaaaa;
+}
+
+/* Tier 3 - Bronze */
+.tier-3 {
+  color: #cd7f32;
+  text-shadow:
+    0 0 5px #cd7f32,
+    0 0 10px #a65e2e,
+    0 0 20px #7b3f00;
+}
+
+/* Tier 4 - Neon Purple */
+.tier-4 {
+  color: #b026ff;
+  text-shadow:
+    0 0 5px #b026ff,
+    0 0 15px #b026ff,
+    0 0 30px #8a00ff;
+}
+
+/* Tier 5 - Blue */
+.tier-5 {
+  color: #00bfff;
+  text-shadow:
+    0 0 5px #00bfff,
+    0 0 15px #0099ff,
+    0 0 30px #0066ff;
+}
+
