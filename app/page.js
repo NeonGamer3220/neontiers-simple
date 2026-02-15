@@ -602,12 +602,13 @@ export default function Page() {
         }
 
         .pointsNum {
-          font-size: 42px;
-          font-weight: 1100;
-          color: #6fe3ff;
-          text-shadow: 0 0 16px rgba(111, 227, 255, 0.25);
-          line-height: 1;
-        }
+  font-size: 42px;
+  font-weight: 900; /* ← ez a lényeg */
+  color: #6fe3ff;
+  text-shadow: 0 0 16px rgba(111, 227, 255, 0.25);
+  line-height: 1;
+}
+
 
         .pointsLabel {
           font-weight: 1000;
