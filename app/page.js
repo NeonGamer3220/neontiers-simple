@@ -14,9 +14,9 @@ function tierFromRank(rank) {
 }
 
 export default async function Page() {
-  const res = await fetch(process.env.NEXT_PUBLIC_SITE_URL + "/api/tests", {
-    cache: "no-store"
-  });
+  const res = await fetch("http://localhost:3000/api/tests", {
+  cache: "no-store"
+});
 
   const data = await res.json();
   const tests = data.tests || [];
