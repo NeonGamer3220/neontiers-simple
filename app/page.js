@@ -129,7 +129,7 @@ export default function Page() {
     load();
 
     // Optional: auto refresh every 10s (remove if you don’t want)
-    const t = setInterval(load, 10000);
+    const t = setInterval(load, 60000);
     return () => {
       alive = false;
       clearInterval(t);
