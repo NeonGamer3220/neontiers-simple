@@ -1,127 +1,44 @@
 # NeonTiers Bot - Tierlist Name Change Command
 
 ## Overview
-Added a new API endpoint to change player names on the tierlist when they change their Minecraft username.
+Added a new Discord slash command `/tierlistnamechange` to change player names on the tierlist when they change their Minecraft username.
 
-## API Endpoint: PUT /api/tests/rename
+## Discord Command: /tierlistnamechange
 
-### Authentication
-The endpoint requires an admin API key for security. Set the `ADMIN_API_KEY` environment variable in your `.env` file.
-
-### Request
-```http
-PUT /api/tests/rename
-Authorization: Bearer YOUR_ADMIN_API_KEY
-Content-Type: application/json
-
-{
-  "oldName": "OldPlayerName",
-  "newName": "NewPlayerName"
-}
+### Usage:
+```
+/tierlistnamechange oldname: OldPlayerName newname: NewPlayerName
 ```
 
-### Alternative JSON keys accepted:
-- `oldName`: oldName, old_name, currentName, current_name, old, previous, from
-- `newName`: newName, new_name, name, new
+### Parameters:
+- `oldname` - The current name on the tierlist
+- `newname` - The new name to replace the old one
 
-### Response (Success)
-```json
-{
-  "ok": true,
-  "message": "Successfully renamed \"OldPlayerName\" to \"NewPlayerName\"",
-  "updatedCount": 3,
-  "updatedRecords": [
-    {
-      "id": 1,
-      "username": "NewPlayerName",
-      "gamemode": "UHC",
-      "rank": "HT1",
-      "points": 10,
-      "created_at": "2024-01-01T00:00:00.000Z"
-    }
-  ]
-}
+### Requirements:
+- Only staff members (admin or STAFF_ROLE_ID) can use this command
+
+### Example:
+```
+/tierlistnamechange oldname: Player123 newname: NewPlayer456
 ```
 
-### Response (Error)
-- 400: Missing oldName or newName
-- 401: Missing or invalid authorization header
-- 403: Invalid API key
-- 404: Player not found
-- 500: Server error
+Result: All tierlist entries for "Player123" will be updated to "NewPlayer456" across all gamemodes, while keeping their tiers/ranks unchanged.
 
-## Setup
+## Implementation Details
 
-### 1. Add Environment Variable (Optional)
-You can customize the key, but a default key is already set:
-```
-ADMIN_API_KEY=neontiers-admin-2024-secure
-```
+### Changes made:
 
-> **Security Note:** It's recommended to change this to your own secure key in production!
+1. **Discord Bot** (`neotiers-bot/main.py`):
+   - Added `api_rename_player()` function to call the website API
+   - Added `/tierlistnamechange` slash command
+   - Command requires staff permissions
 
-### 2. Discord Slash Command (for your bot)
-In your Discord bot code, add a new slash command:
+2. **Website API** (`neontiers-simple/app/api/tests/route.js`):
+   - Added PUT endpoint `/api/tests/rename`
+   - Uses `BOT_API_KEY` for authentication (same key the bot uses)
 
-```javascript
-const { SlashCommandBuilder } = require('discord.js');
+### Setup:
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('tierlistnamechange')
-    .setDescription('Change a player name on the tierlist (admin only)')
-    .addStringOption(option =>
-      option.setName('oldname')
-        .setDescription('The current name on the tierlist')
-        .setRequired(true))
-    .addStringOption(option =>
-      option.setName('newname')
-        .setDescription('The new name to replace the old one')
-        .setRequired(true)),
-  
-  async execute(interaction) {
-    // Check if user has admin permissions
-    if (!interaction.member.permissions.has('Administrator')) {
-      return interaction.reply({ content: '❌ You don\'t have permission to use this command!', ephemeral: true });
-    }
+The bot already uses `BOT_API_KEY` to authenticate with the website. The rename endpoint uses the same key, so it should work automatically once deployed.
 
-    const oldName = interaction.options.getString('oldname');
-    const newName = interaction.options.getString('newname');
-
-    try {
-      const response = await fetch('https://your-app.vercel.app/api/tests/rename', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer neontiers-admin-2024-secure`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ oldName, newName })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return interaction.reply({ content: `❌ Error: ${data.error}`, ephemeral: true });
-      }
-
-      await interaction.reply({ 
-        content: `✅ Successfully renamed **${oldName}** to **${newName}**\nUpdated ${data.updatedCount} tierlist entries.`,
-        ephemeral: false 
-      });
-    } catch (error) {
-      await interaction.reply({ content: `❌ Failed to update name: ${error.message}`, ephemeral: true });
-    }
-  }
-};
-```
-
-## Usage
-After setting up:
-1. Run `/tierlistnamechange OldName NewName` in Discord
-2. The command will update all tierlist entries for that player
-3. The tiers/ranks remain unchanged, only the display name is updated
-
-## Notes
-- This updates ALL tier entries for a player (across all gamemodes)
-- The tiers and points remain unchanged
-- Only the username display is modified
+Make sure your Vercel environment has `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and optionally `BOT_API_KEY` (or it will use a default key).
