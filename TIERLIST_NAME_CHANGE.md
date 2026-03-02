@@ -52,11 +52,13 @@ Content-Type: application/json
 
 ## Setup
 
-### 1. Add Environment Variable
-Add to your `.env` file:
+### 1. Add Environment Variable (Optional)
+You can customize the key, but a default key is already set:
 ```
-ADMIN_API_KEY=your-secure-random-key-here
+ADMIN_API_KEY=neontiers-admin-2024-secure
 ```
+
+> **Security Note:** It's recommended to change this to your own secure key in production!
 
 ### 2. Discord Slash Command (for your bot)
 In your Discord bot code, add a new slash command:
@@ -90,7 +92,7 @@ module.exports = {
       const response = await fetch('https://your-app.vercel.app/api/tests/rename', {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${process.env.ADMIN_API_KEY}`,
+          'Authorization': `Bearer neontiers-admin-2024-secure`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ oldName, newName })

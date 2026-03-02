@@ -6,7 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "";
+// Default admin key - CHANGE THIS to your own secure key in production!
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY || "neontiers-admin-2024-secure";
 
 const supabase =
   SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
