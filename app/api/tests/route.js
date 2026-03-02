@@ -98,6 +98,74 @@ function requireAdmin(authHeader) {
   return null;
 }
 
+// Handle rename request
+async function handleRename(req) {
+  const missing = requireSupabase();
+  if (missing) return missing;
+  
+  // Check admin authentication
+  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+  const authError = requireAdmin(authHeader);
+  if (authError) return authError;
+  
+  let body = null;
+  try {
+    body = await req.json();
+  } catch {
+    return json({ error: "Invalid JSON body" }, 400);
+  }
+  
+  const oldName = pick(body, ["oldName", "old_name", "currentName", "current_name", "old", "previous", "from"]);
+  const newName = pick(body, ["newName", "new_name", "name", "new"]);
+  
+  if (!oldName || !newName) {
+    return json(
+      {
+        error: "Missing oldName or newName",
+        received: { oldName, newName },
+      },
+      400
+    );
+  }
+  
+  // Check if old name exists
+  const { data: existing, error: findErr } = await supabase
+    .from("tests")
+    .select("id, username, gamemode, rank, points, created_at")
+    .ilike("username", oldName);
+  
+  if (findErr) return json({ error: findErr.message }, 500);
+  
+  if (!existing || existing.length === 0) {
+    return json(
+      {
+        error: "Player not found",
+        details: `No player found with name "${oldName}"`,
+      },
+      404
+    );
+  }
+  
+  // Update all records with old name to new name
+  const { data: updated, error: updateErr } = await supabase
+    .from("tests")
+    .update({ username: newName })
+    .ilike("username", oldName)
+    .select("id, username, gamemode, rank, points, created_at");
+  
+  if (updateErr) return json({ error: updateErr.message }, 500);
+  
+  return json(
+    {
+      ok: true,
+      message: `Successfully renamed "${oldName}" to "${newName}"`,
+      updatedCount: updated ? updated.length : 0,
+      updatedRecords: updated,
+    },
+    200
+  );
+}
+
 // GET:
 // - /api/tests                 -> lista (DB-ből)
 // - /api/tests?username=...&gamemode=... -> 1 darab (az adott user + mode aktuális)
@@ -132,7 +200,15 @@ export async function GET(req) {
   return json({ tests: data || [] });
 }
 
+// POST: Handle both test saving and rename
 export async function POST(req) {
+  // Check if this is a rename request by checking the URL
+  const url = req.url || "";
+  if (url.includes("/rename")) {
+    return handleRename(req);
+  }
+  
+  // Original test saving logic
   const missing = requireSupabase();
   if (missing) return missing;
 
@@ -215,70 +291,7 @@ export async function POST(req) {
   );
 }
 
-// PUT: /api/tests/rename - Change player name on tierlist (admin only)
+// PUT: Also handle rename for compatibility
 export async function PUT(req) {
-  const missing = requireSupabase();
-  if (missing) return missing;
-  
-  // Check admin authentication
-  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-  const authError = requireAdmin(authHeader);
-  if (authError) return authError;
-  
-  let body = null;
-  try {
-    body = await req.json();
-  } catch {
-    return json({ error: "Invalid JSON body" }, 400);
-  }
-  
-  const oldName = pick(body, ["oldName", "old_name", "currentName", "current_name", "old", "previous", "from"]);
-  const newName = pick(body, ["newName", "new_name", "name", "new"]);
-  
-  if (!oldName || !newName) {
-    return json(
-      {
-        error: "Missing oldName or newName",
-        received: { oldName, newName },
-      },
-      400
-    );
-  }
-  
-  // Check if old name exists
-  const { data: existing, error: findErr } = await supabase
-    .from("tests")
-    .select("id, username, gamemode, rank, points, created_at")
-    .ilike("username", oldName);
-  
-  if (findErr) return json({ error: findErr.message }, 500);
-  
-  if (!existing || existing.length === 0) {
-    return json(
-      {
-        error: "Player not found",
-        details: `No player found with name "${oldName}"`,
-      },
-      404
-    );
-  }
-  
-  // Update all records with old name to new name
-  const { data: updated, error: updateErr } = await supabase
-    .from("tests")
-    .update({ username: newName })
-    .ilike("username", oldName)
-    .select("id, username, gamemode, rank, points, created_at");
-  
-  if (updateErr) return json({ error: updateErr.message }, 500);
-  
-  return json(
-    {
-      ok: true,
-      message: `Successfully renamed "${oldName}" to "${newName}"`,
-      updatedCount: updated ? updated.length : 0,
-      updatedRecords: updated,
-    },
-    200
-  );
+  return handleRename(req);
 }
