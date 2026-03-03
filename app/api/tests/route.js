@@ -87,7 +87,7 @@ export async function GET(req) {
   if (username && gamemode) {
     const { data, error } = await supabase
       .from("tests")
-      .select("username,gamemode,rank,points,created_at")
+      .select("username,gamemode,rank,points,created_at,retired")
       .ilike("username", username)
       .ilike("gamemode", gamemode)
       .maybeSingle();
@@ -115,10 +115,10 @@ export async function GET(req) {
   if (mode && tier) {
     const { data, error } = await supabase
       .from("tests")
-      .select("username,gamemode,rank,points,created_at")
+      .select("username,gamemode,rank,points,created_at,retired")
       .ilike("gamemode", mode)
       .ilike("rank", tier)
-      .eq("retired", false) // Exclude retired players
+      .not("rank", "like", "R%") // Exclude retired players (ranks starting with R)
       .limit(100); // Fetch a batch to pick from
 
     if (error) return json({ error: error.message }, 500);
