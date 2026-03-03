@@ -87,7 +87,7 @@ export async function GET(req) {
   if (username && gamemode) {
     const { data, error } = await supabase
       .from("tests")
-      .select("username,gamemode,rank,points,created_at,retired")
+      .select("username,gamemode,rank,points,created_at")
       .ilike("username", username)
       .ilike("gamemode", gamemode)
       .maybeSingle();
@@ -115,20 +115,22 @@ export async function GET(req) {
   if (mode && tier) {
     const { data, error } = await supabase
       .from("tests")
-      .select("username,gamemode,rank,points,created_at,retired")
+      .select("username,gamemode,rank,points,created_at")
       .ilike("gamemode", mode)
       .ilike("rank", tier)
-      .not("rank", "like", "R%") // Exclude retired players (ranks starting with R)
       .limit(100); // Fetch a batch to pick from
 
     if (error) return json({ error: error.message }, 500);
 
-    if (!data || data.length === 0) {
+    // Filter out retired players manually (ranks starting with R)
+    const activePlayers = (data || []).filter(p => !p.rank.startsWith("R"));
+
+    if (activePlayers.length === 0) {
       return json({ player: null, message: "No players found for this mode and tier" });
     }
 
     // Pick random
-    const randomPlayer = data[Math.floor(Math.random() * data.length)];
+    const randomPlayer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
     return json({ player: randomPlayer });
   }
 
