@@ -108,6 +108,29 @@ export async function GET(req) {
     return json({ tests: data || [] });
   }
 
+  // Get random player for a specific mode and tier
+  const mode = (searchParams.get("mode") || "").trim();
+  const tier = (searchParams.get("tier") || "").trim();
+
+  if (mode && tier) {
+    const { data, error } = await supabase
+      .from("tests")
+      .select("username,gamemode,rank,points,created_at")
+      .ilike("gamemode", mode)
+      .ilike("rank", tier)
+      .limit(100); // Fetch a batch to pick from
+
+    if (error) return json({ error: error.message }, 500);
+
+    if (!data || data.length === 0) {
+      return json({ player: null, message: "No players found for this mode and tier" });
+    }
+
+    // Pick random
+    const randomPlayer = data[Math.floor(Math.random() * data.length)];
+    return json({ player: randomPlayer });
+  }
+
   const { data, error } = await supabase
     .from("tests")
     .select("username,gamemode,rank,points,created_at")
