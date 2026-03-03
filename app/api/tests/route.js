@@ -96,6 +96,18 @@ export async function GET(req) {
     return json({ test: data || null });
   }
 
+  // New: Get all tests for a specific username
+  if (username) {
+    const { data, error } = await supabase
+      .from("tests")
+      .select("username,gamemode,rank,points,created_at")
+      .ilike("username", username)
+      .order("points", { ascending: false });
+
+    if (error) return json({ error: error.message }, 500);
+    return json({ tests: data || [] });
+  }
+
   const { data, error } = await supabase
     .from("tests")
     .select("username,gamemode,rank,points,created_at")
