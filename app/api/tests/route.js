@@ -118,6 +118,7 @@ export async function GET(req) {
       .select("username,gamemode,rank,points,created_at")
       .ilike("gamemode", mode)
       .ilike("rank", tier)
+      .eq("retired", false) // Exclude retired players
       .limit(100); // Fetch a batch to pick from
 
     if (error) return json({ error: error.message }, 500);
