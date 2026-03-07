@@ -173,11 +173,11 @@ export default function Page() {
 
     const latestRows = Array.from(latestByUserMode.values());
 
-    // Filter by mode
+    // Filter by mode (case-insensitive)
     const filteredByMode =
       activeMode === "Összes"
         ? latestRows
-        : latestRows.filter((r) => r.gamemode === activeMode);
+        : latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
 
     // Group by username
     const byUser = new Map();
