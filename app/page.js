@@ -24,6 +24,29 @@ const MODE_LIST = [
   "SpearElytra",
 ];
 
+// Map lowercase mode keys to display names
+const MODE_DISPLAY_MAP = {
+  "vanilla": "Vanilla",
+  "uhc": "UHC",
+  "pot": "Pot",
+  "nethpot": "NethPot",
+  "smp": "SMP",
+  "sword": "Sword",
+  "axe": "Axe",
+  "mace": "Mace",
+  "cart": "Cart",
+  "creeper": "Creeper",
+  "diasmp": "DiaSMP",
+  "ogvanilla": "OGVanilla",
+  "shieldlessuhc": "ShieldlessUHC",
+  "spearmace": "SpearMace",
+  "spearelytra": "SpearElytra",
+};
+
+function displayMode(mode) {
+  return MODE_DISPLAY_MAP[mode?.toLowerCase()] || mode || "";
+}
+
 // Rank -> tier number (for glow) + points (for fallback)
 const RANK_POINTS = {
   LT5: 1,
@@ -301,7 +324,7 @@ export default function Page() {
 
                       return (
                         <span className="pill" key={`${r.gamemode}:${r.rank}`} style={pillStyle}>
-                          {r.gamemode} {r.rank}
+                          {displayMode(r.gamemode)} {r.rank}
                         </span>
                       );
                     })}
