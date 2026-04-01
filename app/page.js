@@ -4,6 +4,22 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
+// =========================
+// EASTER THEME 🐣
+// =========================
+const EASTER_MODE = true;
+
+const EASTER_EGGS = [
+  { emoji: "🥚", color: "#FFB6C1" },
+  { emoji: "🐣", color: "#FFEAA7" },
+  { emoji: "🐰", color: "#DDA0DD" },
+  { emoji: "🌷", color: "#FF69B4" },
+  { emoji: "🦋", color: "#87CEEB" },
+  { emoji: "🌼", color: "#FFD700" },
+  { emoji: "🐇", color: "#E6E6FA" },
+  { emoji: "🌸", color: "#FFB7C5" },
+];
+
 // Gamemodes (buttons)
 const MODE_LIST = [
   "Összes",
@@ -233,14 +249,42 @@ export default function Page() {
     return searched;
   }, [tests, activeMode, query]);
 
+  // Generate floating Easter eggs
+  const floatingEggs = EASTER_MODE
+    ? Array.from({ length: 18 }, (_, i) => {
+        const egg = EASTER_EGGS[i % EASTER_EGGS.length];
+        return {
+          key: i,
+          emoji: egg.emoji,
+          style: {
+            left: `${5 + (i * 5.2) % 90}%`,
+            animationDelay: `${(i * 0.7) % 6}s`,
+            animationDuration: `${6 + (i % 5) * 1.5}s`,
+            fontSize: `${18 + (i % 3) * 8}px`,
+          },
+        };
+      })
+    : [];
+
   return (
     <div className="page">
       <div className="bg" />
 
+      {/* Easter floating eggs */}
+      {EASTER_MODE && (
+        <div className="easterEggsContainer">
+          {floatingEggs.map((egg) => (
+            <span key={egg.key} className="floatingEgg" style={egg.style}>
+              {egg.emoji}
+            </span>
+          ))}
+        </div>
+      )}
+
       <header className="topbar">
         <div className="brand">
           <span className="dot" />
-          <span className="brandText">NeonTiers</span>
+          <span className="brandText">{EASTER_MODE ? "🐰 NeonTiers" : "NeonTiers"}</span>
         </div>
 
         <div className="searchWrap">
@@ -283,7 +327,7 @@ export default function Page() {
         </section>
 
         <div className="sectionHead">
-          <h1 className="title">Ranglista</h1>
+          <h1 className="title">{EASTER_MODE ? "🌸 Ranglista 🌸" : "Ranglista"}</h1>
           <div className="count">
             {loading ? "Betöltés..." : `${leaderboard.length} játékos`}
           </div>
@@ -379,10 +423,10 @@ export default function Page() {
         .bg {
           position: absolute;
           inset: 0;
-          background: radial-gradient(900px 600px at 10% 20%, rgba(155, 89, 255, 0.33), transparent 60%),
-            radial-gradient(1000px 700px at 70% 40%, rgba(0, 200, 255, 0.18), transparent 60%),
-            radial-gradient(900px 700px at 60% 100%, rgba(0, 130, 255, 0.15), transparent 70%),
-            linear-gradient(180deg, #060a1a, #050816);
+          background: radial-gradient(900px 600px at 10% 20%, rgba(255, 182, 193, 0.25), transparent 60%),
+            radial-gradient(1000px 700px at 70% 40%, rgba(221, 160, 221, 0.2), transparent 60%),
+            radial-gradient(900px 700px at 60% 100%, rgba(135, 206, 235, 0.18), transparent 70%),
+            linear-gradient(180deg, #0f0a1a, #0a0816);
           filter: saturate(1.05);
           transform: scale(1.05);
         }
@@ -659,6 +703,40 @@ export default function Page() {
           color: var(--muted);
           font-weight: 700;
           font-size: 13px;
+        }
+
+        /* Easter floating eggs */
+        .easterEggsContainer {
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+          overflow: hidden;
+        }
+
+        .floatingEgg {
+          position: absolute;
+          bottom: -40px;
+          animation: floatUp linear infinite;
+          opacity: 0.5;
+          filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+        }
+
+        @keyframes floatUp {
+          0% {
+            transform: translateY(0) rotate(0deg);
+            opacity: 0;
+          }
+          10% {
+            opacity: 0.5;
+          }
+          90% {
+            opacity: 0.5;
+          }
+          100% {
+            transform: translateY(-110vh) rotate(360deg);
+            opacity: 0;
+          }
         }
 
         @media (max-width: 980px) {
