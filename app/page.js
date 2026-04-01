@@ -30,6 +30,8 @@ const MODE_ICONS = {
   "Creeper": "/images/creeper.png",
   "DiaSMP": "/images/diasmp.png",
   "OGVanilla": "/images/ogvanilla.png",
+  "SpearMace": "/images/spear.png",
+  "SpearElytra": "/images/spear.png",
 };
 
 const MODE_DISPLAY_MAP = {
@@ -323,13 +325,12 @@ export default function Page() {
         /* ===== NAVBAR ===== */
         .navbar {
           max-width: 1352px; margin: 1rem auto 0; padding: 0 16px;
-          position: sticky; top: 0; z-index: 50;
         }
 
         .navInner {
           height: 56px; display: flex; align-items: center;
           gap: 12px; padding: 0 20px;
-          background: rgba(10,10,15,0.9); backdrop-filter: blur(12px);
+          background: rgba(10,10,15,0.9);
           border: 1px solid var(--border); border-radius: 12px;
         }
 
