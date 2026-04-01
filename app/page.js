@@ -321,7 +321,7 @@ export default function Page() {
                         key={`${r.gamemode}:${r.rank}`}
                         style={{ color }}
                       >
-                        <span style={{ opacity: 0.6 }}>{MODE_ABBR[displayMode(r.gamemode)] || displayMode(r.gamemode)}</span>
+                        <span style={{ opacity: 0.6 }}>{displayMode(r.gamemode)}</span>
                         {" "}{r.rank}
                       </span>
                     );
