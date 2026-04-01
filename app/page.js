@@ -402,7 +402,7 @@ export default function Page() {
 
                       // April Fools' funny rank display
                       const displayRank = APRIL_FOOLS_MODE ? getFunnyRank(r.rank) : r.rank;
-                      const displayMode = shouldGlitch() ? addGlitch(displayMode(r.gamemode)) : displayMode(r.gamemode);
+                      const displayModeText = shouldGlitch() ? addGlitch(displayMode(r.gamemode)) : displayMode(r.gamemode);
 
                       // ✅ IMPORTANT: whole pill text + border glow, including "Mace HT1"
                       const pillStyle = glow
@@ -415,7 +415,7 @@ export default function Page() {
 
                       return (
                         <span className="pill" key={`${r.gamemode}:${r.rank}`} style={pillStyle}>
-                          {displayMode} {displayRank}
+                          {displayModeText} {displayRank}
                         </span>
                       );
                     })}
