@@ -27,7 +27,9 @@ const MODE_ICONS = {
   "Axe": "/images/axe.png",
   "Mace": "/images/mace.png",
   "Cart": "/images/cart.png",
+  "Creeper": "/images/creeper.png",
   "DiaSMP": "/images/diasmp.png",
+  "OGVanilla": "/images/ogvanilla.png",
 };
 
 const MODE_DISPLAY_MAP = {
@@ -176,43 +178,39 @@ export default function Page() {
         </div>
       )}
 
-      <div style={{ paddingTop: "2rem" }} />
+      <div style={{ paddingTop: "1rem" }} />
 
-      {/* Navbar - mctiers.com style: rounded-xl, border, h-16 */}
+      {/* Navbar */}
       <header className="navbar">
         <nav className="navInner">
-          <div className="navLeft">
-            <a className="navLogo" href="/">
-              {EASTER_MODE ? "🐰 NeonTiers" : "NeonTiers"}
-            </a>
-          </div>
+          <a className="navLogo" href="/">
+            {EASTER_MODE ? "🐰 NeonTiers" : "NeonTiers"}
+          </a>
           <ul className="navLinks">
             <li>
               <a className="navLink active" href="/">
-                <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/></svg>
+                <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/></svg>
                 Főoldal
               </a>
             </li>
             <li>
               <a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-                <svg viewBox="0 0 16 16" width="20" height="20" fill="currentColor"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>
+                <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>
                 Discord
               </a>
             </li>
           </ul>
-          <div className="navRight">
-            <span className="searchWrap">
-              <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
-              <input
-                className="searchInput"
-                placeholder="Játékos keresése..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                spellCheck={false}
-              />
-              <kbd className="searchKbd">/</kbd>
-            </span>
-          </div>
+          <span className="searchWrap">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
+            <input
+              className="searchInput"
+              placeholder="Játékos keresése..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              spellCheck={false}
+            />
+            <kbd className="searchKbd">/</kbd>
+          </span>
         </nav>
       </header>
 
@@ -269,8 +267,8 @@ export default function Page() {
                   className="playerSkin"
                   src={skinUrl(p.username)}
                   alt={p.username}
-                  width={32}
-                  height={32}
+                  width={40}
+                  height={40}
                 />
                 <span className="playerName">{p.username}</span>
                 <span className="rowTiers">
@@ -324,57 +322,53 @@ export default function Page() {
 
         /* ===== NAVBAR ===== */
         .navbar {
-          max-width: 1352px; margin: 2rem auto 0; padding: 0 1rem;
+          max-width: 1352px; margin: 1rem auto 0; padding: 0 16px;
+          position: sticky; top: 0; z-index: 50;
         }
 
         .navInner {
-          height: 64px; display: flex; align-items: center;
-          justify-content: space-between; gap: 8px; padding: 0 16px;
-          background: var(--card); border: 2px solid var(--border);
-          border-radius: 12px;
+          height: 56px; display: flex; align-items: center;
+          gap: 12px; padding: 0 20px;
+          background: rgba(10,10,15,0.9); backdrop-filter: blur(12px);
+          border: 1px solid var(--border); border-radius: 12px;
         }
 
-        .navLeft { max-width: 160px; width: 100%; }
-
         .navLogo {
-          font-size: 20px; font-weight: 700; color: var(--text);
+          font-size: 18px; font-weight: 700; color: var(--text);
           text-decoration: none; letter-spacing: -0.02em;
+          margin-right: auto;
         }
 
         .navLinks {
-          display: flex; gap: 4px; list-style: none; margin: 0; padding: 0;
+          display: flex; gap: 2px; list-style: none; margin: 0; padding: 0;
         }
 
         .navLink {
-          display: flex; align-items: center; gap: 8px;
+          display: flex; align-items: center; gap: 6px;
           text-decoration: none; color: var(--muted);
-          font-size: 17px; font-weight: 500; padding: 8px 12px;
-          border-radius: 8px; transition: color 0.15s, background 0.15s;
+          font-size: 14px; font-weight: 500; padding: 6px 10px;
+          border-radius: 6px; transition: color 0.15s, background 0.15s;
         }
 
         .navLink:hover, .navLink.active {
           color: var(--text); background: rgba(255,255,255,0.06);
         }
 
-        .navRight {
-          max-width: 210px; width: 100%; display: flex; justify-content: flex-end;
-        }
-
         .searchWrap {
-          display: flex; align-items: center; gap: 8px;
-          background: rgba(255,255,255,0.04); border-radius: 999px;
-          padding: 0 12px; height: 40px; color: var(--muted);
+          display: flex; align-items: center; gap: 6px;
+          background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+          border-radius: 8px; padding: 0 10px; height: 36px; color: var(--muted);
         }
 
         .searchInput {
           background: transparent; border: none; outline: none;
-          color: var(--text); font-size: 14px; width: 140px;
+          color: var(--text); font-size: 13px; width: 140px;
         }
 
         .searchKbd {
           background: rgba(255,255,255,0.08); color: var(--muted);
-          font-size: 12px; font-family: inherit; padding: 2px 8px;
-          border-radius: 6px; font-weight: 600;
+          font-size: 11px; font-family: inherit; padding: 2px 6px;
+          border-radius: 4px; font-weight: 600;
         }
 
         /* ===== MAIN CARD ===== */
