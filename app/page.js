@@ -4,6 +4,65 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
+// =========================
+// APRIL FOOLS' DAY MODE 🎉
+// =========================
+const APRIL_FOOLS_MODE = true; // Set to false to disable April Fools' effects
+
+const APRIL_FOOLS_MESSAGES = [
+  "🤡 APRILIS BOLONDOK! 🤡",
+  "🎪 A tierlist ma egy cirkusz! 🎪",
+  "🎭 Ez csak egy vicc, ugye? 🎭",
+  "🃏 A rangod: ULTRA BOLOND! 🃏",
+  "🎪 Ma mindenki HT1! (nem) 🎪",
+  "🤡 A bot ma részeg! 🤡",
+  "🎭 Áprilisi tréfa! 🎭",
+  "🎪 A tierlist fordítva működik! 🎪",
+  "🃏 A tesztelők ma bolondok! 🃏",
+  "🤡 Ez nem valódi eredmény! 🤡",
+];
+
+const GLITCH_CHARS = ["̸", "̴", "̵", "̶", "̷", "̸", "̨", "̧", "̢", "̛", "̤", "̥", "̦", "̩", "̪", "̫", "̬", "̭", "̮", "̯", "̰", "̱", "̲", "̳", "̴", "̵", "̶", "̷", "̸", "̹", "̺", "̻", "̼", "̽", "̾", "̿", "̀", "́", "̓", "̈́", "ͅ", "͆", "͇", "͈", "͉", "͊", "͋", "͌", "͍", "͎", "͏", "͐", "͑", "͒", "͓", "͔", "͕", "͖", "͗", "͘", "͙", "͚", "͛", "͜", "͝", "͞", "͟", "͠", "͡", "͢", "ͣ", "ͤ", "ͥ", "ͦ", "ͧ", "ͨ", "ͩ", "ͪ", "ͫ", "ͬ", "ͭ", "ͮ", "ͯ"];
+
+function addGlitch(text, intensity = 0.3) {
+  if (!APRIL_FOOLS_MODE) return text;
+  let result = "";
+  for (let i = 0; i < text.length; i++) {
+    result += text[i];
+    if (Math.random() < intensity) {
+      result += GLITCH_CHARS[Math.floor(Math.random() * GLITCH_CHARS.length)];
+    }
+  }
+  return result;
+}
+
+function getAprilFoolsMessage() {
+  if (!APRIL_FOOLS_MODE) return "";
+  return APRIL_FOOLS_MESSAGES[Math.floor(Math.random() * APRIL_FOOLS_MESSAGES.length)];
+}
+
+function getFunnyRank(rank) {
+  if (!APRIL_FOOLS_MODE) return rank;
+  const funnyRanks = {
+    "Unranked": "🤡 BOLOND",
+    "LT5": "🎪 Cirkuszi bohóc",
+    "HT5": "🃏 Kártya trükk",
+    "LT4": "🎭 Színházi színész",
+    "HT4": "🤡 Profi bohóc",
+    "LT3": "🎪 Cirkuszi igazgató",
+    "HT3": "🃏 Mágus",
+    "LT2": "🎭 Rendező",
+    "HT2": "🤡 Főbohóc",
+    "LT1": "🎪 Cirkusz tulajdonos",
+    "HT1": "🃏 ULTRA BOLOND",
+  };
+  return funnyRanks[rank] || `🤡 ${rank} (ma bolond)`;
+}
+
+function shouldGlitch() {
+  return APRIL_FOOLS_MODE && Math.random() < 0.15; // 15% chance
+}
+
 // Gamemodes (buttons)
 const MODE_LIST = [
   "Összes",
@@ -233,22 +292,36 @@ export default function Page() {
     return searched;
   }, [tests, activeMode, query]);
 
+  // April Fools' banner message
+  const aprilFoolsBanner = APRIL_FOOLS_MODE ? getAprilFoolsMessage() : "";
+
   return (
     <div className="page">
       <div className="bg" />
+      
+      {/* April Fools' Banner */}
+      {APRIL_FOOLS_MODE && (
+        <div className="aprilFoolsBanner">
+          {aprilFoolsBanner}
+        </div>
+      )}
 
       <header className="topbar">
         <div className="brand">
           <span className="dot" />
-          <span className="brandText">NeonTiers</span>
+          <span className="brandText">
+            {APRIL_FOOLS_MODE ? "🎪 NeonCirkusz 🎪" : "NeonTiers"}
+          </span>
         </div>
 
         <div className="searchWrap">
           <div className="searchInner">
-            <span className="searchIcon">🔎</span>
+            <span className="searchIcon">
+              {APRIL_FOOLS_MODE ? "🎪" : "🔎"}
+            </span>
             <input
               className="search"
-              placeholder="Játékos keresése"
+              placeholder={APRIL_FOOLS_MODE ? "🎪 Bohóc keresése 🎪" : "Játékos keresése"}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               spellCheck={false}
@@ -258,10 +331,10 @@ export default function Page() {
 
         <div className="navButtons">
           <a className="navBtn navBtnPrimary" href="/">
-            Főoldal
+            {APRIL_FOOLS_MODE ? "🎪 Cirkusz" : "Főoldal"}
           </a>
           <a className="navBtn" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-            Discord
+            {APRIL_FOOLS_MODE ? "🤡 Bohóc" : "Discord"}
           </a>
         </div>
       </header>
@@ -276,42 +349,60 @@ export default function Page() {
                 onClick={() => setActiveMode(m)}
                 type="button"
               >
-                {m}
+                {APRIL_FOOLS_MODE && m !== "Összes" ? `🎪 ${m}` : m}
               </button>
             ))}
           </div>
         </section>
 
         <div className="sectionHead">
-          <h1 className="title">Ranglista</h1>
+          <h1 className="title">
+            {APRIL_FOOLS_MODE ? "🎪 Cirkuszi Ranglista 🎪" : "Ranglista"}
+          </h1>
           <div className="count">
-            {loading ? "Betöltés..." : `${leaderboard.length} játékos`}
+            {loading ? "Betöltés..." : APRIL_FOOLS_MODE ? `${leaderboard.length} bohóc` : `${leaderboard.length} játékos`}
           </div>
         </div>
 
         <section className="list">
           {loading ? (
             <div className="emptyCard">
-              <div className="emptyTitle">Betöltés...</div>
-              <div className="emptySub">Kérlek várj.</div>
+              <div className="emptyTitle">
+                {APRIL_FOOLS_MODE ? "🎪 A bohóc tölt... 🎪" : "Betöltés..."}
+              </div>
+              <div className="emptySub">
+                {APRIL_FOOLS_MODE ? "Kérlek várj, amíg a cirkusz feláll!" : "Kérlek várj."}
+              </div>
             </div>
           ) : leaderboard.length === 0 ? (
             <div className="emptyCard">
-              <div className="emptyTitle">Nincs adat</div>
-              <div className="emptySub">Még nincs mentett teszt eredmény.</div>
+              <div className="emptyTitle">
+                {APRIL_FOOLS_MODE ? "🎪 A cirkusz üres! 🎪" : "Nincs adat"}
+              </div>
+              <div className="emptySub">
+                {APRIL_FOOLS_MODE ? "A bohóc még nem jött dolgozni!" : "Még nincs mentett teszt eredmény."}
+              </div>
             </div>
           ) : (
             leaderboard.map((p, idx) => (
               <div className="playerCard" key={p.username}>
-                <div className="rankNum">{idx + 1}.</div>
+                <div className="rankNum">
+                  {APRIL_FOOLS_MODE ? `🎪` : `${idx + 1}.`}
+                </div>
 
                 <div className="playerMain">
-                  <div className="playerName">{p.username}</div>
+                  <div className="playerName">
+                    {shouldGlitch() ? addGlitch(p.username) : p.username}
+                  </div>
 
                   <div className="pillRow">
                     {p.entries.map((r) => {
                       const tier = tierFromRank(r.rank);
                       const glow = glowStyleForTier(tier);
+
+                      // April Fools' funny rank display
+                      const displayRank = APRIL_FOOLS_MODE ? getFunnyRank(r.rank) : r.rank;
+                      const displayMode = shouldGlitch() ? addGlitch(displayMode(r.gamemode)) : displayMode(r.gamemode);
 
                       // ✅ IMPORTANT: whole pill text + border glow, including "Mace HT1"
                       const pillStyle = glow
@@ -324,7 +415,7 @@ export default function Page() {
 
                       return (
                         <span className="pill" key={`${r.gamemode}:${r.rank}`} style={pillStyle}>
-                          {displayMode(r.gamemode)} {r.rank}
+                          {displayMode} {displayRank}
                         </span>
                       );
                     })}
@@ -333,7 +424,9 @@ export default function Page() {
 
                 <div className="points">
                   <div className="pointsNum">{p.total}</div>
-                  <div className="pointsLabel">PONT</div>
+                  <div className="pointsLabel">
+                    {APRIL_FOOLS_MODE ? "🎪 BOLOND" : "PONT"}
+                  </div>
                 </div>
               </div>
             ))
@@ -374,6 +467,7 @@ export default function Page() {
           min-height: 100vh;
           position: relative;
           overflow: hidden;
+          animation: ${APRIL_FOOLS_MODE ? "rainbow 3s infinite" : "none"};
         }
 
         .bg {
@@ -397,12 +491,14 @@ export default function Page() {
           padding: 26px 28px;
           max-width: 1200px;
           margin: 0 auto;
+          animation: ${APRIL_FOOLS_MODE ? "float 2s infinite" : "none"};
         }
 
         .brand {
           display: flex;
           align-items: center;
           gap: 12px;
+          animation: ${APRIL_FOOLS_MODE ? "shake 0.5s infinite" : "none"};
         }
 
         .dot {
@@ -411,17 +507,36 @@ export default function Page() {
           border-radius: 999px;
           background: linear-gradient(135deg, #a777ff, #35d0ff);
           box-shadow: 0 0 18px rgba(167, 119, 255, 0.5), 0 0 26px rgba(53, 208, 255, 0.28);
+          animation: ${APRIL_FOOLS_MODE ? "pulse 1s infinite" : "none"};
+        }
+
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.5); }
         }
 
         .brandText {
           font-size: 34px;
           font-weight: 900;
           letter-spacing: -0.02em;
+          animation: ${APRIL_FOOLS_MODE ? "shake 0.5s infinite" : "none"};
+        }
+
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
         }
 
         .searchWrap {
           display: flex;
           justify-content: center;
+          animation: ${APRIL_FOOLS_MODE ? "float 2s infinite" : "none"};
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
         }
 
         .searchInner {
@@ -434,11 +549,13 @@ export default function Page() {
           align-items: center;
           gap: 10px;
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+          animation: ${APRIL_FOOLS_MODE ? "pulse 1s infinite" : "none"};
         }
 
         .searchIcon {
           opacity: 0.7;
           font-size: 14px;
+          animation: ${APRIL_FOOLS_MODE ? "spin 1s infinite" : "none"};
         }
 
         .search {
@@ -448,6 +565,12 @@ export default function Page() {
           outline: none;
           color: var(--text);
           font-size: 14px;
+          animation: ${APRIL_FOOLS_MODE ? "glow 1s infinite" : "none"};
+        }
+
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+          50% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); }
         }
 
         .navButtons {
@@ -468,6 +591,7 @@ export default function Page() {
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
           transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
           user-select: none;
+          animation: ${APRIL_FOOLS_MODE ? "shake 0.5s infinite" : "none"};
         }
 
         .navBtn:hover {
@@ -516,6 +640,7 @@ export default function Page() {
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
           transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
           user-select: none;
+          animation: ${APRIL_FOOLS_MODE ? "pulse 1s infinite" : "none"};
         }
 
         .modeBtn:hover {
@@ -545,6 +670,17 @@ export default function Page() {
           font-weight: 1000;
           letter-spacing: -0.03em;
           text-shadow: 0 10px 60px rgba(0, 0, 0, 0.6);
+          animation: ${APRIL_FOOLS_MODE ? "rainbow 2s infinite" : "none"};
+        }
+
+        @keyframes rainbow {
+          0% { color: #ff6b6b; }
+          16% { color: #feca57; }
+          33% { color: #48dbfb; }
+          50% { color: #ff9ff3; }
+          66% { color: #54a0ff; }
+          83% { color: #5f27cd; }
+          100% { color: #ff6b6b; }
         }
 
         .count {
@@ -593,6 +729,12 @@ export default function Page() {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          animation: ${APRIL_FOOLS_MODE ? "bounce 0.5s infinite" : "none"};
+        }
+
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
         }
 
         .pillRow {
@@ -613,6 +755,13 @@ export default function Page() {
           font-weight: 1000;
           font-size: 13px;
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+          animation: ${APRIL_FOOLS_MODE ? "wiggle 0.3s infinite" : "none"};
+        }
+
+        @keyframes wiggle {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(5deg); }
+          75% { transform: rotate(-5deg); }
         }
 
         .points {
@@ -630,6 +779,12 @@ export default function Page() {
   color: #6fe3ff;
   text-shadow: 0 0 16px rgba(111, 227, 255, 0.25);
   line-height: 1;
+  animation: ${APRIL_FOOLS_MODE ? "spin 1s infinite" : "none"};
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 
@@ -659,6 +814,31 @@ export default function Page() {
           color: var(--muted);
           font-weight: 700;
           font-size: 13px;
+        }
+
+        /* April Fools' Banner */
+        .aprilFoolsBanner {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+          background-size: 400% 400%;
+          animation: gradient 3s ease infinite;
+          color: white;
+          text-align: center;
+          padding: 12px 20px;
+          font-weight: 900;
+          font-size: 18px;
+          text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
         }
 
         @media (max-width: 980px) {
