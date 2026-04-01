@@ -40,6 +40,20 @@ const MODE_LIST = [
   "SpearElytra",
 ];
 
+// Gamemode icons
+const MODE_ICONS = {
+  "Vanilla": "/images/vanilla.png",
+  "UHC": "/images/uhc.png",
+  "Pot": "/images/pot.png",
+  "NethPot": "/images/nethpot.png",
+  "SMP": "/images/smp.png",
+  "Sword": "/images/sword.png",
+  "Axe": "/images/axe.png",
+  "Mace": "/images/mace.png",
+  "Cart": "/images/cart.png",
+  "DiaSMP": "/images/diasmp.png",
+};
+
 // Gamemode abbreviations for compact display
 const MODE_ABBR = {
   "Összes": "All",
@@ -280,6 +294,7 @@ export default function Page() {
               role="button"
               tabIndex={0}
             >
+              {MODE_ICONS[m] && <img className="modeTabIcon" src={MODE_ICONS[m]} alt={m} width={20} height={20} />}
               <strong className="modeTabLabel">{MODE_ABBR[m] || m}</strong>
               {activeMode === m && <span className="modeTabIndicator" />}
             </a>
@@ -527,6 +542,12 @@ export default function Page() {
           right: 0;
           height: 2px;
           background: #a78bfa;
+        }
+
+        .modeTabIcon {
+          image-rendering: pixelated;
+          width: 20px;
+          height: 20px;
         }
 
         /* ===== MAIN CARD ===== */
