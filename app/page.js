@@ -230,7 +230,7 @@ export default function Page() {
                 tabIndex={0}
               >
                 {MODE_ICONS[m] && (
-                  <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={30} height={30} />
+                  <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={24} height={24} />
                 )}
                 <strong className="tabLabel">{m}</strong>
                 {activeMode === m && <span className="tabActiveLine" />}
@@ -386,20 +386,23 @@ export default function Page() {
 
         /* ===== MODE TABS ===== */
         .tabRow {
-          position: absolute; bottom: 100%; left: 0;
+          position: absolute; bottom: 100%; left: 0; right: 0;
           display: flex; gap: 4px; overflow-x: auto;
           overflow-y: hidden; padding-bottom: 0;
+          scrollbar-width: none;
         }
+
+        .tabRow::-webkit-scrollbar { display: none; }
 
         .tabBtn {
           display: flex; flex-direction: column; align-items: center;
-          justify-content: flex-end; gap: 4px; padding: 8px 16px;
-          min-width: 96px; text-decoration: none; cursor: pointer;
+          justify-content: flex-end; gap: 2px; padding: 6px 10px;
+          min-width: 76px; text-decoration: none; cursor: pointer;
           user-select: none; position: relative;
           border: 2px solid transparent; border-bottom: none;
-          border-radius: 24px 24px 0 0; background: transparent;
+          border-radius: 20px 20px 0 0; background: transparent;
           color: rgba(255,255,255,0.25); transition: all 0.15s;
-          transform: translateY(30px);
+          transform: translateY(30px); flex-shrink: 0;
         }
 
         .tabBtn:hover {
@@ -417,11 +420,11 @@ export default function Page() {
         }
 
         .tabIcon {
-          width: 30px; height: 30px; image-rendering: pixelated;
+          width: 24px; height: 24px; image-rendering: pixelated;
         }
 
         .tabLabel {
-          font-size: 12px; font-weight: 700; text-transform: capitalize;
+          font-size: 10px; font-weight: 700; text-transform: capitalize;
           white-space: nowrap;
         }
 
