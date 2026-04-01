@@ -399,7 +399,7 @@ export default function Page() {
           border: 2px solid transparent; border-bottom: none;
           border-radius: 24px 24px 0 0; background: transparent;
           color: rgba(255,255,255,0.25); transition: all 0.15s;
-          transform: translateY(50px);
+          transform: translateY(30px);
         }
 
         .tabBtn:hover {
