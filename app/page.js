@@ -40,6 +40,29 @@ const MODE_LIST = [
   "SpearElytra",
 ];
 
+// Minecraft item icons for each gamemode
+const MODE_ICONS = {
+  "Vanilla": "https://minecraft.wiki/images/thumb/Grass_Block_JE7_BE6.png/30px-Grass_Block_JE7_BE6.png",
+  "UHC": "https://minecraft.wiki/images/Golden_Apple_JE2_BE2.png",
+  "Pot": "https://minecraft.wiki/images/thumb/Splash_Potion_of_Healing_JE3_BE2.png/30px-Splash_Potion_of_Healing_JE3_BE2.png",
+  "NethPot": "https://minecraft.wiki/images/thumb/Splash_Potion_of_Fire_Resistance_JE3_BE2.png/30px-Splash_Potion_of_Fire_Resistance_JE3_BE2.png",
+  "SMP": "https://minecraft.wiki/images/thumb/Bed_JE3_BE2.png/30px-Bed_JE3_BE2.png",
+  "Sword": "https://minecraft.wiki/images/Diamond_Sword_JE3_BE3.png",
+  "Axe": "https://minecraft.wiki/images/Diamond_Axe_JE3_BE3.png",
+  "Mace": "https://minecraft.wiki/images/Mace_JE1.png",
+  "Cart": "https://minecraft.wiki/images/thumb/Minecart_JE2_BE2.png/30px-Minecart_JE2_BE2.png",
+  "Creeper": "https://minecraft.wiki/images/Creeper_Head_JE5.png",
+  "DiaSMP": "https://minecraft.wiki/images/Diamond_JE2_BE2.png",
+  "OGVanilla": "https://minecraft.wiki/images/thumb/Dirt_JE3_BE3.png/30px-Dirt_JE3_BE3.png",
+  "ShieldlessUHC": "https://minecraft.wiki/images/Enchanted_Golden_Apple_JE2_BE2.png",
+  "SpearMace": "https://minecraft.wiki/images/Trident_JE1_BE1.png",
+  "SpearElytra": "https://minecraft.wiki/images/Elytra_JE2_BE1.png",
+};
+
+function modeIcon(mode) {
+  return MODE_ICONS[mode] || MODE_ICONS[MODE_DISPLAY_MAP[mode?.toLowerCase()]] || null;
+}
+
 // Map lowercase mode keys to display names
 const MODE_DISPLAY_MAP = {
   "vanilla": "Vanilla",
@@ -320,6 +343,7 @@ export default function Page() {
                 onClick={() => setActiveMode(m)}
                 type="button"
               >
+                {modeIcon(m) && <img className="modeBtnIcon" src={modeIcon(m)} alt={m} width={16} height={16} />}
                 {m}
               </button>
             ))}
@@ -366,8 +390,11 @@ export default function Page() {
                           }
                         : undefined;
 
+                      const icon = modeIcon(displayMode(r.gamemode));
+
                       return (
                         <span className="pill" key={`${r.gamemode}:${r.rank}`} style={pillStyle}>
+                          {icon && <img className="pillIcon" src={icon} alt={r.gamemode} width={18} height={18} />}
                           {displayMode(r.gamemode)} {r.rank}
                         </span>
                       );
@@ -657,6 +684,16 @@ export default function Page() {
           font-weight: 1000;
           font-size: 13px;
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+        }
+
+        .pillIcon {
+          image-rendering: pixelated;
+          filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+        }
+
+        .modeBtnIcon {
+          image-rendering: pixelated;
+          filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
         }
 
         .points {
