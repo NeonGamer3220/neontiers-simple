@@ -72,7 +72,7 @@ function safeInt(n, fallback = 0) {
 }
 
 function skinUrl(username) {
-  return `https://mc-heads.net/avatar/${encodeURIComponent(username)}/32`;
+  return `https://mc-heads.net/avatar/${encodeURIComponent(username)}/48`;
 }
 
 export default function Page() {
@@ -442,8 +442,8 @@ export default function Page() {
 
         /* ===== COLUMN HEADERS ===== */
         .colHead {
-          display: grid; grid-template-columns: 40px 36px 1fr auto;
-          gap: 12px; padding: 8px 12px;
+          display: grid; grid-template-columns: 40px 44px 1fr auto;
+          gap: 14px; padding: 8px 16px;
           font-size: 11px; font-weight: 700; text-transform: uppercase;
           letter-spacing: 0.08em; color: var(--muted);
         }
@@ -454,28 +454,28 @@ export default function Page() {
 
         /* ===== PLAYER ROWS ===== */
         .playerRow {
-          display: grid; grid-template-columns: 40px 36px 1fr auto;
-          gap: 12px; align-items: center;
-          padding: 10px 12px; border-radius: 8px;
+          display: grid; grid-template-columns: 40px 44px 1fr auto;
+          gap: 14px; align-items: center;
+          padding: 14px 16px; border-radius: 8px;
           transition: background 0.1s;
         }
 
         .playerRow:hover { background: rgba(255,255,255,0.03); }
 
         .rowNum {
-          text-align: center; font-size: 14px; font-weight: 700;
+          text-align: center; font-size: 16px; font-weight: 700;
           color: var(--muted);
         }
 
         .playerSkin {
-          width: 32px; height: 32px; border-radius: 4px;
+          width: 40px; height: 40px; border-radius: 6px;
           image-rendering: pixelated;
           background: rgba(255,255,255,0.06);
         }
 
         .playerName {
-          font-size: 15px; font-weight: 600; color: var(--text);
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+          font-size: 18px; font-weight: 600; color: var(--text);
+          overflow: visible; white-space: nowrap;
         }
 
         .rowTiers {
@@ -485,7 +485,7 @@ export default function Page() {
 
         .tierBadge {
           display: inline-flex; align-items: center; gap: 5px;
-          font-size: 12px; font-weight: 700; padding: 3px 10px;
+          font-size: 13px; font-weight: 700; padding: 4px 12px;
           border-radius: 6px; background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.08);
         }
