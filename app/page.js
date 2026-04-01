@@ -60,6 +60,29 @@ const MODE_ABBR = {
   "SpearElytra": "SpEly",
 };
 
+// Map lowercase mode keys to display names
+const MODE_DISPLAY_MAP = {
+  "vanilla": "Vanilla",
+  "uhc": "UHC",
+  "pot": "Pot",
+  "nethpot": "NethPot",
+  "smp": "SMP",
+  "sword": "Sword",
+  "axe": "Axe",
+  "mace": "Mace",
+  "cart": "Cart",
+  "creeper": "Creeper",
+  "diasmp": "DiaSMP",
+  "ogvanilla": "OGVanilla",
+  "shieldlessuhc": "ShieldlessUHC",
+  "spearmace": "SpearMace",
+  "spearelytra": "SpearElytra",
+};
+
+function displayMode(mode) {
+  return MODE_DISPLAY_MAP[mode?.toLowerCase()] || mode || "";
+}
+
 // Rank -> tier number + points
 const RANK_POINTS = {
   LT5: 1, HT5: 2, LT4: 3, HT4: 4,
