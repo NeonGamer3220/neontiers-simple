@@ -467,7 +467,7 @@ export default function Page() {
           min-height: 100vh;
           position: relative;
           overflow: hidden;
-          animation: ${APRIL_FOOLS_MODE ? "rainbow 3s infinite" : "none"};
+          animation: rainbow 3s infinite;
         }
 
         .bg {
@@ -491,14 +491,14 @@ export default function Page() {
           padding: 26px 28px;
           max-width: 1200px;
           margin: 0 auto;
-          animation: ${APRIL_FOOLS_MODE ? "float 2s infinite" : "none"};
+          animation: float 2s infinite;
         }
 
         .brand {
           display: flex;
           align-items: center;
           gap: 12px;
-          animation: ${APRIL_FOOLS_MODE ? "shake 0.5s infinite" : "none"};
+          animation: shake 0.5s infinite;
         }
 
         .dot {
@@ -519,7 +519,7 @@ export default function Page() {
           font-size: 34px;
           font-weight: 900;
           letter-spacing: -0.02em;
-          animation: ${APRIL_FOOLS_MODE ? "shake 0.5s infinite" : "none"};
+          animation: shake 0.5s infinite;
         }
 
         @keyframes shake {
@@ -531,7 +531,7 @@ export default function Page() {
         .searchWrap {
           display: flex;
           justify-content: center;
-          animation: ${APRIL_FOOLS_MODE ? "float 2s infinite" : "none"};
+          animation: float 2s infinite;
         }
 
         @keyframes float {
@@ -549,13 +549,13 @@ export default function Page() {
           align-items: center;
           gap: 10px;
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
-          animation: ${APRIL_FOOLS_MODE ? "pulse 1s infinite" : "none"};
+          animation: pulse 1s infinite;
         }
 
         .searchIcon {
           opacity: 0.7;
           font-size: 14px;
-          animation: ${APRIL_FOOLS_MODE ? "spin 1s infinite" : "none"};
+          animation: spin 1s infinite;
         }
 
         .search {
@@ -565,7 +565,7 @@ export default function Page() {
           outline: none;
           color: var(--text);
           font-size: 14px;
-          animation: ${APRIL_FOOLS_MODE ? "glow 1s infinite" : "none"};
+          animation: glow 1s infinite;
         }
 
         @keyframes glow {
@@ -591,7 +591,7 @@ export default function Page() {
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
           transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
           user-select: none;
-          animation: ${APRIL_FOOLS_MODE ? "shake 0.5s infinite" : "none"};
+          animation: shake 0.5s infinite;
         }
 
         .navBtn:hover {
@@ -640,7 +640,7 @@ export default function Page() {
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
           transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
           user-select: none;
-          animation: ${APRIL_FOOLS_MODE ? "pulse 1s infinite" : "none"};
+          animation: pulse 1s infinite;
         }
 
         .modeBtn:hover {
@@ -670,7 +670,7 @@ export default function Page() {
           font-weight: 1000;
           letter-spacing: -0.03em;
           text-shadow: 0 10px 60px rgba(0, 0, 0, 0.6);
-          animation: ${APRIL_FOOLS_MODE ? "rainbow 2s infinite" : "none"};
+          animation: rainbow 2s infinite;
         }
 
         @keyframes rainbow {
@@ -729,7 +729,7 @@ export default function Page() {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-          animation: ${APRIL_FOOLS_MODE ? "bounce 0.5s infinite" : "none"};
+          animation: bounce 0.5s infinite;
         }
 
         @keyframes bounce {
@@ -755,7 +755,7 @@ export default function Page() {
           font-weight: 1000;
           font-size: 13px;
           box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
-          animation: ${APRIL_FOOLS_MODE ? "wiggle 0.3s infinite" : "none"};
+          animation: wiggle 0.3s infinite;
         }
 
         @keyframes wiggle {
@@ -779,7 +779,7 @@ export default function Page() {
   color: #6fe3ff;
   text-shadow: 0 0 16px rgba(111, 227, 255, 0.25);
   line-height: 1;
-  animation: ${APRIL_FOOLS_MODE ? "spin 1s infinite" : "none"};
+  animation: spin 1s infinite;
 }
 
 @keyframes spin {
@@ -839,6 +839,20 @@ export default function Page() {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
+        }
+
+        .dot {
+          width: 12px;
+          height: 12px;
+          border-radius: 999px;
+          background: linear-gradient(135deg, #a777ff, #35d0ff);
+          box-shadow: 0 0 18px rgba(167, 119, 255, 0.5), 0 0 26px rgba(53, 208, 255, 0.28);
+          animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.5); }
         }
 
         @media (max-width: 980px) {
