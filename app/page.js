@@ -40,51 +40,25 @@ const MODE_LIST = [
   "SpearElytra",
 ];
 
-// Minecraft item icons for each gamemode
-const MODE_ICONS = {
-  "Vanilla": "https://minecraft.wiki/images/thumb/Grass_Block_JE7_BE6.png/30px-Grass_Block_JE7_BE6.png",
-  "UHC": "https://minecraft.wiki/images/Golden_Apple_JE2_BE2.png",
-  "Pot": "https://minecraft.wiki/images/thumb/Splash_Potion_of_Healing_JE3_BE2.png/30px-Splash_Potion_of_Healing_JE3_BE2.png",
-  "NethPot": "https://minecraft.wiki/images/thumb/Splash_Potion_of_Fire_Resistance_JE3_BE2.png/30px-Splash_Potion_of_Fire_Resistance_JE3_BE2.png",
-  "SMP": "https://minecraft.wiki/images/thumb/Bed_JE3_BE2.png/30px-Bed_JE3_BE2.png",
-  "Sword": "https://minecraft.wiki/images/Diamond_Sword_JE3_BE3.png",
-  "Axe": "https://minecraft.wiki/images/Diamond_Axe_JE3_BE3.png",
-  "Mace": "https://minecraft.wiki/images/Mace_JE1.png",
-  "Cart": "https://minecraft.wiki/images/thumb/Minecart_JE2_BE2.png/30px-Minecart_JE2_BE2.png",
-  "Creeper": "https://minecraft.wiki/images/Creeper_Head_JE5.png",
-  "DiaSMP": "https://minecraft.wiki/images/Diamond_JE2_BE2.png",
-  "OGVanilla": "https://minecraft.wiki/images/thumb/Dirt_JE3_BE3.png/30px-Dirt_JE3_BE3.png",
-  "ShieldlessUHC": "https://minecraft.wiki/images/Enchanted_Golden_Apple_JE2_BE2.png",
-  "SpearMace": "https://minecraft.wiki/images/Trident_JE1_BE1.png",
-  "SpearElytra": "https://minecraft.wiki/images/Elytra_JE2_BE1.png",
+// Gamemode abbreviations for compact display
+const MODE_ABBR = {
+  "Összes": "All",
+  "Vanilla": "Van",
+  "UHC": "UHC",
+  "Pot": "Pot",
+  "NethPot": "Neth",
+  "SMP": "SMP",
+  "Sword": "Swd",
+  "Axe": "Axe",
+  "Mace": "Mce",
+  "Cart": "Cart",
+  "Creeper": "Creep",
+  "DiaSMP": "Dia",
+  "OGVanilla": "OG",
+  "ShieldlessUHC": "sUHC",
+  "SpearMace": "SpMce",
+  "SpearElytra": "SpEly",
 };
-
-// Map lowercase mode keys to display names
-const MODE_DISPLAY_MAP = {
-  "vanilla": "Vanilla",
-  "uhc": "UHC",
-  "pot": "Pot",
-  "nethpot": "NethPot",
-  "smp": "SMP",
-  "sword": "Sword",
-  "axe": "Axe",
-  "mace": "Mace",
-  "cart": "Cart",
-  "creeper": "Creeper",
-  "diasmp": "DiaSMP",
-  "ogvanilla": "OGVanilla",
-  "shieldlessuhc": "ShieldlessUHC",
-  "spearmace": "SpearMace",
-  "spearelytra": "SpearElytra",
-};
-
-function displayMode(mode) {
-  return MODE_DISPLAY_MAP[mode?.toLowerCase()] || mode || "";
-}
-
-function modeIcon(mode) {
-  return MODE_ICONS[mode] || MODE_ICONS[MODE_DISPLAY_MAP[mode?.toLowerCase()]] || null;
-}
 
 // Rank -> tier number + points
 const RANK_POINTS = {
@@ -283,10 +257,7 @@ export default function Page() {
               role="button"
               tabIndex={0}
             >
-              {modeIcon(m) && (
-                <img className="modeTabIcon" src={modeIcon(m)} alt={m} width={24} height={24} />
-              )}
-              <strong className="modeTabLabel">{m}</strong>
+              <strong className="modeTabLabel">{MODE_ABBR[m] || m}</strong>
               {activeMode === m && <span className="modeTabIndicator" />}
             </a>
           ))}
@@ -321,15 +292,14 @@ export default function Page() {
                   {p.entries.map((r) => {
                     const tier = tierFromRank(r.rank);
                     const color = tierColor(tier);
-                    const icon = modeIcon(displayMode(r.gamemode));
                     return (
                       <span
                         className="tierBadge"
                         key={`${r.gamemode}:${r.rank}`}
                         style={{ color }}
                       >
-                        {icon && <img className="tierBadgeIcon" src={icon} alt={r.gamemode} width={16} height={16} />}
-                        {r.rank}
+                        <span style={{ opacity: 0.6 }}>{MODE_ABBR[displayMode(r.gamemode)] || displayMode(r.gamemode)}</span>
+                        {" "}{r.rank}
                       </span>
                     );
                   })}
@@ -500,18 +470,16 @@ export default function Page() {
 
         .modeTab {
           display: flex;
-          flex-direction: column;
           align-items: center;
           gap: 4px;
-          padding: 8px 16px 6px;
-          min-width: 80px;
+          padding: 8px 14px;
           text-decoration: none;
           cursor: pointer;
           user-select: none;
           position: relative;
           border: 2px solid transparent;
           border-bottom: none;
-          border-radius: 16px 16px 0 0;
+          border-radius: 12px 12px 0 0;
           background: transparent;
           color: var(--muted);
           transition: color 0.15s, background 0.15s;
@@ -538,33 +506,18 @@ export default function Page() {
           background: #a78bfa;
         }
 
-        .modeTabIcon {
-          image-rendering: pixelated;
-          width: 24px;
-          height: 24px;
-        }
-
-        .modeTabLabel {
-          font-size: 11px;
-          font-weight: 700;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          white-space: nowrap;
-        }
-
         /* ===== MAIN CARD ===== */
         .mainCard {
           background: var(--card);
           border: 2px solid var(--border);
           border-radius: 0 12px 12px 12px;
-          padding: 16px 24px;
-          min-height: 400px;
+          padding: 0 24px;
         }
 
         /* Column headers */
         .colHeaders {
           display: grid;
-          grid-template-columns: 40px 1fr 100px;
+          grid-template-columns: 40px 1fr auto;
           gap: 16px;
           padding: 8px 16px;
           font-size: 11px;
@@ -577,12 +530,12 @@ export default function Page() {
 
         .colHash { text-align: center; }
         .colPlayer { text-align: left; }
-        .colTiers { text-align: right; }
+        .colTiers { text-align: right; min-width: 200px; }
 
         /* Player rows */
         .playerRow {
           display: grid;
-          grid-template-columns: 40px 1fr 100px;
+          grid-template-columns: 40px 1fr auto;
           gap: 16px;
           align-items: center;
           padding: 12px 16px;
@@ -631,12 +584,6 @@ export default function Page() {
           border-radius: 4px;
           background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        .tierBadgeIcon {
-          image-rendering: pixelated;
-          width: 14px;
-          height: 14px;
         }
 
         .rowPoints {
@@ -704,13 +651,9 @@ export default function Page() {
         @media (max-width: 768px) {
           .navLinks { display: none; }
           .navSearchInput { width: 120px; }
-          .colHeaders { grid-template-columns: 30px 1fr; }
+          .modeTab { padding: 6px 10px; }
           .colTiers { display: none; }
-          .playerRow { grid-template-columns: 30px 1fr; }
           .rowTiers { display: none; }
-          .modeTab { min-width: 64px; padding: 6px 10px 4px; }
-          .modeTabIcon { width: 20px; height: 20px; }
-          .modeTabLabel { font-size: 10px; }
         }
       `}</style>
     </div>
