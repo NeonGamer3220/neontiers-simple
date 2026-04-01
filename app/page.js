@@ -20,7 +20,7 @@ const EASTER_EGGS = [
   { emoji: "🌸", color: "#FFB7C5" },
 ];
 
-// Gamemodes (buttons)
+// Gamemodes
 const MODE_LIST = [
   "Összes",
   "Vanilla",
@@ -59,10 +59,6 @@ const MODE_ICONS = {
   "SpearElytra": "https://minecraft.wiki/images/Elytra_JE2_BE1.png",
 };
 
-function modeIcon(mode) {
-  return MODE_ICONS[mode] || MODE_ICONS[MODE_DISPLAY_MAP[mode?.toLowerCase()]] || null;
-}
-
 // Map lowercase mode keys to display names
 const MODE_DISPLAY_MAP = {
   "vanilla": "Vanilla",
@@ -86,21 +82,17 @@ function displayMode(mode) {
   return MODE_DISPLAY_MAP[mode?.toLowerCase()] || mode || "";
 }
 
-// Rank -> tier number (for glow) + points (for fallback)
+function modeIcon(mode) {
+  return MODE_ICONS[mode] || MODE_ICONS[MODE_DISPLAY_MAP[mode?.toLowerCase()]] || null;
+}
+
+// Rank -> tier number + points
 const RANK_POINTS = {
-  LT5: 1,
-  HT5: 2,
-  LT4: 3,
-  HT4: 4,
-  LT3: 6,
-  HT3: 8,
-  LT2: 10,
-  HT2: 12,
-  LT1: 14,
-  HT1: 18,
+  LT5: 1, HT5: 2, LT4: 3, HT4: 4,
+  LT3: 6, HT3: 8, LT2: 10, HT2: 12,
+  LT1: 14, HT1: 18,
 };
 
-// Tier glow styles
 function tierFromRank(rank) {
   if (!rank || typeof rank !== "string") return null;
   const m = rank.match(/([LH]T)([1-5])/i);
@@ -108,47 +100,15 @@ function tierFromRank(rank) {
   return Number(m[2]);
 }
 
-function glowStyleForTier(tier) {
-  // text color + border + glow
-  // 1: yellow, 2: silver, 3: bronze, 4: neon purple, 5: blue
+// Tier colors matching mctiers.com style
+function tierColor(tier) {
   switch (tier) {
-    case 1:
-      return {
-        color: "#FFD86B",
-        borderColor: "rgba(255, 216, 107, 0.85)",
-        boxShadow:
-          "0 0 10px rgba(255, 216, 107, 0.55), 0 0 22px rgba(255, 216, 107, 0.25)",
-      };
-    case 2:
-      return {
-        color: "#E7EEF8",
-        borderColor: "rgba(231, 238, 248, 0.85)",
-        boxShadow:
-          "0 0 10px rgba(231, 238, 248, 0.45), 0 0 22px rgba(231, 238, 248, 0.22)",
-      };
-    case 3:
-      return {
-        color: "#D7A67A",
-        borderColor: "rgba(215, 166, 122, 0.85)",
-        boxShadow:
-          "0 0 10px rgba(215, 166, 122, 0.45), 0 0 22px rgba(215, 166, 122, 0.22)",
-      };
-    case 4:
-      return {
-        color: "#B58CFF",
-        borderColor: "rgba(181, 140, 255, 0.9)",
-        boxShadow:
-          "0 0 10px rgba(181, 140, 255, 0.55), 0 0 24px rgba(181, 140, 255, 0.28)",
-      };
-    case 5:
-      return {
-        color: "#63B6FF",
-        borderColor: "rgba(99, 182, 255, 0.9)",
-        boxShadow:
-          "0 0 10px rgba(99, 182, 255, 0.55), 0 0 24px rgba(99, 182, 255, 0.28)",
-      };
-    default:
-      return null;
+    case 1: return "#FFD86B";
+    case 2: return "#E7EEF8";
+    case 3: return "#D7A67A";
+    case 4: return "#B58CFF";
+    case 5: return "#63B6FF";
+    default: return "rgba(255,255,255,0.7)";
   }
 }
 
@@ -163,20 +123,15 @@ export default function Page() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch tests from your API
+  // Fetch tests from API
   useEffect(() => {
     let alive = true;
-
     async function load() {
       try {
         setLoading(true);
-
-        // ✅ RELATIVE URL (NO undefined)
         const res = await fetch("/api/tests", { cache: "no-store" });
         const data = await res.json();
-
         if (!alive) return;
-
         const list = Array.isArray(data?.tests) ? data.tests : [];
         setTests(list);
       } catch (e) {
@@ -187,20 +142,13 @@ export default function Page() {
         setLoading(false);
       }
     }
-
     load();
-
-    // Optional: auto refresh every 10s (remove if you don’t want)
     const t = setInterval(load, 60000);
-    return () => {
-      alive = false;
-      clearInterval(t);
-    };
+    return () => { alive = false; clearInterval(t); };
   }, []);
 
-  // Build leaderboard: latest per (username+gamemode) AND total points per user
+  // Build leaderboard
   const leaderboard = useMemo(() => {
-    // Normalize incoming rows
     const rows = tests
       .map((r) => ({
         id: r?.id,
@@ -215,17 +163,11 @@ export default function Page() {
       }))
       .filter((r) => r.username && r.gamemode && r.rank);
 
-    // If DB already enforces unique(username,gamemode) you’ll still be fine,
-    // but this also guards duplicates by keeping the newest.
     const latestByUserMode = new Map();
     for (const r of rows) {
       const key = `${r.username}__${r.gamemode}`;
       const prev = latestByUserMode.get(key);
-      if (!prev) {
-        latestByUserMode.set(key, r);
-        continue;
-      }
-      // Compare by created_at then id
+      if (!prev) { latestByUserMode.set(key, r); continue; }
       const prevTime = prev.created_at ? Date.parse(prev.created_at) : 0;
       const curTime = r.created_at ? Date.parse(r.created_at) : 0;
       if (curTime > prevTime) latestByUserMode.set(key, r);
@@ -234,36 +176,28 @@ export default function Page() {
     }
 
     const latestRows = Array.from(latestByUserMode.values());
-
-    // Filter by mode (case-insensitive)
     const filteredByMode =
       activeMode === "Összes"
         ? latestRows
         : latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
 
-    // Group by username
     const byUser = new Map();
     for (const r of filteredByMode) {
       if (!byUser.has(r.username)) byUser.set(r.username, []);
       byUser.get(r.username).push(r);
     }
 
-    // Build player entries
     const players = Array.from(byUser.entries()).map(([username, entries]) => {
-      // Sort ranks by gamemode name for consistent pill order
       entries.sort((a, b) => a.gamemode.localeCompare(b.gamemode));
-
       const total = entries.reduce((sum, e) => sum + safeInt(e.points, 0), 0);
       return { username, entries, total };
     });
 
-    // Search filter
     const q = query.trim().toLowerCase();
     const searched = !q
       ? players
       : players.filter((p) => p.username.toLowerCase().includes(q));
 
-    // Sort by points desc, then username
     searched.sort((a, b) => {
       if (b.total !== a.total) return b.total - a.total;
       return a.username.localeCompare(b.username);
@@ -272,13 +206,12 @@ export default function Page() {
     return searched;
   }, [tests, activeMode, query]);
 
-  // Generate floating Easter eggs
+  // Easter floating eggs
   const floatingEggs = EASTER_MODE
     ? Array.from({ length: 18 }, (_, i) => {
         const egg = EASTER_EGGS[i % EASTER_EGGS.length];
         return {
-          key: i,
-          emoji: egg.emoji,
+          key: i, emoji: egg.emoji,
           style: {
             left: `${5 + (i * 5.2) % 90}%`,
             animationDelay: `${(i * 0.7) % 6}s`,
@@ -304,445 +237,447 @@ export default function Page() {
         </div>
       )}
 
-      <header className="topbar">
-        <div className="brand">
-          <span className="dot" />
-          <span className="brandText">{EASTER_MODE ? "🐰 NeonTiers" : "NeonTiers"}</span>
-        </div>
+      {/* Top spacer */}
+      <div style={{ paddingTop: "2rem" }} />
 
-        <div className="searchWrap">
-          <div className="searchInner">
-            <span className="searchIcon">🔎</span>
+      {/* Header / Nav bar */}
+      <header className="navbar">
+        <div className="navInner">
+          <a className="navLogo" href="/">
+            <span className="dot" />
+            <span className="logoText">{EASTER_MODE ? "🐰 NeonTiers" : "NeonTiers"}</span>
+          </a>
+          <nav className="navLinks">
+            <a className="navLink active" href="/">
+              <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/></svg>
+              Főoldal
+            </a>
+            <a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
+              <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>
+              Discord
+            </a>
+          </nav>
+          <div className="navSearch">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
             <input
-              className="search"
-              placeholder="Játékos keresése"
+              className="navSearchInput"
+              placeholder="Játékos keresése..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               spellCheck={false}
             />
+            <kbd className="navSearchKbd">/</kbd>
           </div>
-        </div>
-
-        <div className="navButtons">
-          <a className="navBtn navBtnPrimary" href="/">
-            Főoldal
-          </a>
-          <a className="navBtn" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-            Discord
-          </a>
         </div>
       </header>
 
-      <main className="container">
-        <section className="modes">
-          <div className="modesInner">
-            {MODE_LIST.map((m) => (
-              <button
-                key={m}
-                className={`modeBtn ${activeMode === m ? "active" : ""}`}
-                onClick={() => setActiveMode(m)}
-                type="button"
-              >
-                {modeIcon(m) && <img className="modeBtnIcon" src={modeIcon(m)} alt={m} width={16} height={16} />}
-                {m}
-              </button>
-            ))}
-          </div>
+      {/* Main content */}
+      <main className="mainContent">
+        {/* Mode tabs - overlapping the card like mctiers.com */}
+        <section className="modeTabs">
+          {MODE_LIST.map((m) => (
+            <a
+              key={m}
+              className={`modeTab ${activeMode === m ? "active" : ""}`}
+              onClick={() => setActiveMode(m)}
+              role="button"
+              tabIndex={0}
+            >
+              {modeIcon(m) && (
+                <img className="modeTabIcon" src={modeIcon(m)} alt={m} width={24} height={24} />
+              )}
+              <strong className="modeTabLabel">{m}</strong>
+              {activeMode === m && <span className="modeTabIndicator" />}
+            </a>
+          ))}
         </section>
 
-        <div className="sectionHead">
-          <h1 className="title">{EASTER_MODE ? "🌸 Ranglista 🌸" : "Ranglista"}</h1>
-          <div className="count">
-            {loading ? "Betöltés..." : `${leaderboard.length} játékos`}
+        {/* Main card */}
+        <div className="mainCard">
+          {/* Column headers */}
+          <div className="colHeaders">
+            <span className="colHash">#</span>
+            <span className="colPlayer">Játékos</span>
+            <span className="colTiers">Rangok</span>
           </div>
-        </div>
 
-        <section className="list">
+          {/* Player list */}
           {loading ? (
-            <div className="emptyCard">
+            <div className="emptyState">
               <div className="emptyTitle">Betöltés...</div>
               <div className="emptySub">Kérlek várj.</div>
             </div>
           ) : leaderboard.length === 0 ? (
-            <div className="emptyCard">
+            <div className="emptyState">
               <div className="emptyTitle">Nincs adat</div>
               <div className="emptySub">Még nincs mentett teszt eredmény.</div>
             </div>
           ) : (
             leaderboard.map((p, idx) => (
-              <div className="playerCard" key={p.username}>
-                <div className="rankNum">{idx + 1}.</div>
-
-                <div className="playerMain">
-                  <div className="playerName">{p.username}</div>
-
-                  <div className="pillRow">
-                    {p.entries.map((r) => {
-                      const tier = tierFromRank(r.rank);
-                      const glow = glowStyleForTier(tier);
-
-                      // ✅ IMPORTANT: whole pill text + border glow, including "Mace HT1"
-                      const pillStyle = glow
-                        ? {
-                            borderColor: glow.borderColor,
-                            boxShadow: glow.boxShadow,
-                            color: glow.color,
-                          }
-                        : undefined;
-
-                      const icon = modeIcon(displayMode(r.gamemode));
-
-                      return (
-                        <span className="pill" key={`${r.gamemode}:${r.rank}`} style={pillStyle}>
-                          {icon && <img className="pillIcon" src={icon} alt={r.gamemode} width={18} height={18} />}
-                          {displayMode(r.gamemode)} {r.rank}
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="points">
-                  <div className="pointsNum">{p.total}</div>
-                  <div className="pointsLabel">PONT</div>
-                </div>
+              <div className="playerRow" key={p.username}>
+                <span className="rowHash">{idx + 1}</span>
+                <span className="rowName">{p.username}</span>
+                <span className="rowTiers">
+                  {p.entries.map((r) => {
+                    const tier = tierFromRank(r.rank);
+                    const color = tierColor(tier);
+                    const icon = modeIcon(displayMode(r.gamemode));
+                    return (
+                      <span
+                        className="tierBadge"
+                        key={`${r.gamemode}:${r.rank}`}
+                        style={{ color }}
+                      >
+                        {icon && <img className="tierBadgeIcon" src={icon} alt={r.gamemode} width={16} height={16} />}
+                        {r.rank}
+                      </span>
+                    );
+                  })}
+                </span>
+                <span className="rowPoints">{p.total}</span>
               </div>
             ))
           )}
-        </section>
+        </div>
       </main>
+
+      {/* Footer */}
+      <footer className="pageFooter">
+        <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
+      </footer>
 
       <style jsx global>{`
         :root {
-          --bg1: #060a1a;
-          --bg2: #07122a;
-          --card: rgba(255, 255, 255, 0.06);
-          --card2: rgba(255, 255, 255, 0.075);
-          --border: rgba(255, 255, 255, 0.12);
-          --border2: rgba(255, 255, 255, 0.16);
-          --text: rgba(255, 255, 255, 0.92);
-          --muted: rgba(255, 255, 255, 0.65);
-          --muted2: rgba(255, 255, 255, 0.5);
-          --shadow: 0 20px 70px rgba(0, 0, 0, 0.55);
+          --bg: #09090b;
+          --card: #0c0c10;
+          --border: rgba(255, 255, 255, 0.08);
+          --text: rgba(255, 255, 255, 0.87);
+          --muted: rgba(255, 255, 255, 0.45);
+          --accent: rgba(139, 92, 246, 0.5);
+          --accent-border: rgba(139, 92, 246, 0.4);
+          --tab-bg: rgba(12, 12, 16, 0.95);
         }
 
-        * {
-          box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
-        html,
-        body {
+        html, body {
           height: 100%;
           margin: 0;
           padding: 0;
-          background: var(--bg1);
+          background: var(--bg);
           color: var(--text);
-          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans",
-            "Apple Color Emoji", "Segoe UI Emoji";
+          font-family: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
         }
 
         .page {
           min-height: 100vh;
           position: relative;
-          overflow: hidden;
         }
 
         .bg {
-          position: absolute;
+          position: fixed;
           inset: 0;
-          background: radial-gradient(900px 600px at 10% 20%, rgba(255, 182, 193, 0.25), transparent 60%),
-            radial-gradient(1000px 700px at 70% 40%, rgba(221, 160, 221, 0.2), transparent 60%),
-            radial-gradient(900px 700px at 60% 100%, rgba(135, 206, 235, 0.18), transparent 70%),
-            linear-gradient(180deg, #0f0a1a, #0a0816);
-          filter: saturate(1.05);
-          transform: scale(1.05);
+          background: var(--bg);
+          z-index: -1;
         }
 
-        .topbar {
-          position: relative;
-          z-index: 2;
-          display: grid;
-          grid-template-columns: 1fr minmax(260px, 520px) 1fr;
-          gap: 16px;
-          align-items: center;
-          padding: 26px 28px;
-          max-width: 1200px;
+        /* ===== NAVBAR ===== */
+        .navbar {
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          background: rgba(9, 9, 11, 0.85);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .navInner {
+          max-width: 1352px;
           margin: 0 auto;
-        }
-
-        .brand {
+          height: 56px;
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 24px;
+          padding: 0 16px;
         }
 
-        .dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 999px;
-          background: linear-gradient(135deg, #a777ff, #35d0ff);
-          box-shadow: 0 0 18px rgba(167, 119, 255, 0.5), 0 0 26px rgba(53, 208, 255, 0.28);
-        }
-
-        .brandText {
-          font-size: 34px;
-          font-weight: 900;
-          letter-spacing: -0.02em;
-        }
-
-        .searchWrap {
-          display: flex;
-          justify-content: center;
-        }
-
-        .searchInner {
-          width: 100%;
-          border-radius: 999px;
-          background: rgba(0, 0, 0, 0.25);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          padding: 10px 14px;
+        .navLogo {
           display: flex;
           align-items: center;
           gap: 10px;
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+          text-decoration: none;
+          color: var(--text);
+          margin-right: auto;
         }
 
-        .searchIcon {
-          opacity: 0.7;
+        .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #a777ff, #35d0ff);
+          box-shadow: 0 0 10px rgba(167, 119, 255, 0.5);
+          flex-shrink: 0;
+        }
+
+        .logoText {
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+        }
+
+        .navLinks {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .navLink {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          text-decoration: none;
+          color: var(--muted);
           font-size: 14px;
+          font-weight: 500;
+          padding: 6px 12px;
+          border-radius: 6px;
+          transition: color 0.15s, background 0.15s;
         }
 
-        .search {
-          width: 100%;
+        .navLink:hover, .navLink.active {
+          color: var(--text);
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .navSearch {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 6px 10px;
+          color: var(--muted);
+        }
+
+        .navSearchInput {
           background: transparent;
           border: none;
           outline: none;
           color: var(--text);
-          font-size: 14px;
-        }
-
-        .navButtons {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-        }
-
-        .navBtn {
-          text-decoration: none;
-          color: var(--text);
-          font-weight: 800;
-          font-size: 14px;
-          padding: 10px 14px;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: rgba(255, 255, 255, 0.06);
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
-          transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
-          user-select: none;
-        }
-
-        .navBtn:hover {
-          transform: translateY(-1px);
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.18);
-        }
-
-        .navBtnPrimary {
-          background: rgba(125, 160, 255, 0.18);
-          border-color: rgba(160, 190, 255, 0.32);
-        }
-
-        .container {
-          position: relative;
-          z-index: 2;
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 0 28px 48px;
-        }
-
-        .modes {
-          border-radius: 22px;
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          box-shadow: var(--shadow);
-          padding: 16px;
-          backdrop-filter: blur(10px);
-        }
-
-        .modesInner {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        .modeBtn {
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: rgba(0, 0, 0, 0.22);
-          color: rgba(255, 255, 255, 0.9);
-          padding: 10px 14px;
-          border-radius: 999px;
-          font-weight: 900;
           font-size: 13px;
-          cursor: pointer;
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
-          transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
-          user-select: none;
+          width: 180px;
         }
 
-        .modeBtn:hover {
-          transform: translateY(-1px);
-          background: rgba(0, 0, 0, 0.28);
-          border-color: rgba(255, 255, 255, 0.18);
-        }
-
-        .modeBtn.active {
-          background: rgba(130, 160, 255, 0.16);
-          border-color: rgba(160, 190, 255, 0.32);
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-            0 0 18px rgba(120, 170, 255, 0.18);
-        }
-
-        .sectionHead {
-          display: flex;
-          align-items: baseline;
-          justify-content: space-between;
-          margin-top: 26px;
-          margin-bottom: 12px;
-        }
-
-        .title {
-          font-size: 46px;
-          margin: 0;
-          font-weight: 1000;
-          letter-spacing: -0.03em;
-          text-shadow: 0 10px 60px rgba(0, 0, 0, 0.6);
-        }
-
-        .count {
+        .navSearchKbd {
+          background: rgba(255, 255, 255, 0.08);
           color: var(--muted);
-          font-weight: 800;
-          font-size: 14px;
+          font-size: 11px;
+          font-family: inherit;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 600;
         }
 
-        .list {
+        /* ===== MODE TABS ===== */
+        .mainContent {
+          max-width: 1352px;
+          margin: 0 auto;
+          padding: 0 16px;
+          position: relative;
+        }
+
+        .modeTabs {
+          display: flex;
+          gap: 2px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding-bottom: 0;
+          position: relative;
+          z-index: 10;
+        }
+
+        .modeTab {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          align-items: center;
+          gap: 4px;
+          padding: 8px 16px 6px;
+          min-width: 80px;
+          text-decoration: none;
+          cursor: pointer;
+          user-select: none;
+          position: relative;
+          border: 2px solid transparent;
+          border-bottom: none;
+          border-radius: 16px 16px 0 0;
+          background: transparent;
+          color: var(--muted);
+          transition: color 0.15s, background 0.15s;
+          transform: translateY(2px);
         }
 
-        .playerCard {
+        .modeTab:hover {
+          color: var(--text);
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .modeTab.active {
+          background: rgba(139, 92, 246, 0.12);
+          color: var(--text);
+          border-color: var(--border);
+        }
+
+        .modeTabIndicator {
+          position: absolute;
+          bottom: -1px;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: #a78bfa;
+        }
+
+        .modeTabIcon {
+          image-rendering: pixelated;
+          width: 24px;
+          height: 24px;
+        }
+
+        .modeTabLabel {
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          white-space: nowrap;
+        }
+
+        /* ===== MAIN CARD ===== */
+        .mainCard {
+          background: var(--card);
+          border: 2px solid var(--border);
+          border-radius: 0 12px 12px 12px;
+          padding: 16px 24px;
+          min-height: 400px;
+        }
+
+        /* Column headers */
+        .colHeaders {
           display: grid;
-          grid-template-columns: 42px 1fr 130px;
+          grid-template-columns: 40px 1fr 100px;
+          gap: 16px;
+          padding: 8px 16px;
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--muted);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .colHash { text-align: center; }
+        .colPlayer { text-align: left; }
+        .colTiers { text-align: right; }
+
+        /* Player rows */
+        .playerRow {
+          display: grid;
+          grid-template-columns: 40px 1fr 100px;
           gap: 16px;
           align-items: center;
-          padding: 20px 22px;
-          border-radius: 22px;
-          background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.04));
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          box-shadow: var(--shadow);
-          backdrop-filter: blur(10px);
+          padding: 12px 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+          transition: background 0.1s;
         }
 
-        .rankNum {
-          font-weight: 1000;
-          font-size: 18px;
-          color: rgba(255, 255, 255, 0.78);
-          text-align: right;
+        .playerRow:hover {
+          background: rgba(255, 255, 255, 0.02);
         }
 
-        .playerMain {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          min-width: 0;
+        .playerRow:last-child {
+          border-bottom: none;
         }
 
-        .playerName {
-          font-size: 28px;
-          font-weight: 1000;
-          letter-spacing: -0.02em;
+        .rowHash {
+          text-align: center;
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--muted);
+        }
+
+        .rowName {
+          font-size: 15px;
+          font-weight: 600;
+          color: var(--text);
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
 
-        .pillRow {
+        .rowTiers {
           display: flex;
           flex-wrap: wrap;
-          gap: 10px;
+          gap: 6px;
+          justify-content: flex-end;
         }
 
-        .pill {
+        .tierBadge {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 7px 12px;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: rgba(0, 0, 0, 0.22);
-          color: rgba(255, 255, 255, 0.9);
-          font-weight: 1000;
-          font-size: 13px;
-          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+          gap: 4px;
+          font-size: 12px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 4px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .pillIcon {
+        .tierBadgeIcon {
           image-rendering: pixelated;
-          filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+          width: 14px;
+          height: 14px;
         }
 
-        .modeBtnIcon {
-          image-rendering: pixelated;
-          filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.2));
-        }
-
-        .points {
+        .rowPoints {
           text-align: right;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          justify-content: center;
-          gap: 2px;
+          font-size: 15px;
+          font-weight: 800;
+          color: #a78bfa;
         }
 
-        .pointsNum {
-  font-size: 42px;
-  font-weight: 900; /* ← ez a lényeg */
-  color: #6fe3ff;
-  text-shadow: 0 0 16px rgba(111, 227, 255, 0.25);
-  line-height: 1;
-}
-
-
-        .pointsLabel {
-          font-weight: 1000;
-          font-size: 14px;
-          letter-spacing: 0.08em;
-          color: rgba(255, 255, 255, 0.75);
-        }
-
-        .emptyCard {
-          padding: 26px 22px;
-          border-radius: 22px;
-          background: rgba(255, 255, 255, 0.055);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          box-shadow: var(--shadow);
-          backdrop-filter: blur(10px);
+        /* Empty state */
+        .emptyState {
+          padding: 48px 24px;
+          text-align: center;
         }
 
         .emptyTitle {
-          font-weight: 1000;
-          font-size: 18px;
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text);
         }
 
         .emptySub {
           margin-top: 6px;
-          color: var(--muted);
-          font-weight: 700;
           font-size: 13px;
+          color: var(--muted);
         }
 
-        /* Easter floating eggs */
+        /* Footer */
+        .pageFooter {
+          max-width: 1352px;
+          margin: 80px auto 0;
+          padding: 32px 16px;
+          text-align: center;
+        }
+
+        .footerText {
+          font-size: 14px;
+          color: var(--muted);
+        }
+
+        /* Easter eggs */
         .easterEggsContainer {
           position: fixed;
           inset: 0;
@@ -755,44 +690,27 @@ export default function Page() {
           position: absolute;
           bottom: -40px;
           animation: floatUp linear infinite;
-          opacity: 0.5;
-          filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
+          opacity: 0.3;
         }
 
         @keyframes floatUp {
-          0% {
-            transform: translateY(0) rotate(0deg);
-            opacity: 0;
-          }
-          10% {
-            opacity: 0.5;
-          }
-          90% {
-            opacity: 0.5;
-          }
-          100% {
-            transform: translateY(-110vh) rotate(360deg);
-            opacity: 0;
-          }
+          0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.3; }
+          90% { opacity: 0.3; }
+          100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
         }
 
-        @media (max-width: 980px) {
-          .topbar {
-            grid-template-columns: 1fr;
-            gap: 12px;
-          }
-          .navButtons {
-            justify-content: flex-start;
-          }
-          .playerCard {
-            grid-template-columns: 34px 1fr;
-            grid-template-rows: auto auto;
-          }
-          .points {
-            grid-column: 2;
-            align-items: flex-start;
-            text-align: left;
-          }
+        /* Responsive */
+        @media (max-width: 768px) {
+          .navLinks { display: none; }
+          .navSearchInput { width: 120px; }
+          .colHeaders { grid-template-columns: 30px 1fr; }
+          .colTiers { display: none; }
+          .playerRow { grid-template-columns: 30px 1fr; }
+          .rowTiers { display: none; }
+          .modeTab { min-width: 64px; padding: 6px 10px 4px; }
+          .modeTabIcon { width: 20px; height: 20px; }
+          .modeTabLabel { font-size: 10px; }
         }
       `}</style>
     </div>
