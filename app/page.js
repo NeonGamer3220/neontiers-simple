@@ -232,7 +232,7 @@ export default function Page() {
                 tabIndex={0}
               >
                 {MODE_ICONS[m] && (
-                  <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={28} height={28} />
+                  <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={24} height={24} />
                 )}
                 <strong className="tabLabel">{m}</strong>
                 {activeMode === m && <span className="tabActiveLine" />}
@@ -249,7 +249,7 @@ export default function Page() {
           <div className="colHead">
             <span className="colHash">#</span>
             <span className="colPlayer">Játékos</span>
-            <span className="colTiers">Rangok</span>
+            <span className="colTiers">Tierek</span>
           </div>
 
           {/* Player rows */}
@@ -447,7 +447,7 @@ export default function Page() {
         /* ===== MODE TABS ===== */
         .tabRow {
           position: absolute; bottom: 100%; left: 0; right: 0;
-          display: flex; gap: 4px; overflow-x: auto;
+          display: flex; gap: 2px; overflow-x: auto;
           overflow-y: hidden; padding-bottom: 0;
           scrollbar-width: none;
         }
@@ -456,11 +456,11 @@ export default function Page() {
 
         .tabBtn {
           display: flex; flex-direction: column; align-items: center;
-          justify-content: flex-end; gap: 4px; padding: 8px 14px;
-          min-width: 84px; text-decoration: none; cursor: pointer;
+          justify-content: flex-end; gap: 3px; padding: 6px 8px;
+          min-width: 72px; text-decoration: none; cursor: pointer;
           user-select: none; position: relative;
           border: 2px solid transparent; border-bottom: none;
-          border-radius: 20px 20px 0 0; background: transparent;
+          border-radius: 18px 18px 0 0; background: transparent;
           color: rgba(255,255,255,0.25); transition: all 0.15s;
           transform: translateY(0px); flex-shrink: 0;
         }
@@ -480,11 +480,11 @@ export default function Page() {
         }
 
         .tabIcon {
-          width: 28px; height: 28px;
+          width: 24px; height: 24px;
         }
 
         .tabLabel {
-          font-size: 11px; font-weight: 700; text-transform: capitalize;
+          font-size: 10px; font-weight: 700; text-transform: capitalize;
           white-space: nowrap;
         }
 
