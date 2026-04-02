@@ -284,12 +284,17 @@ export default function Page() {
                     {p.entries.map((r) => {
                       const tier = tierFromRank(r.rank);
                       const color = tierColor(tier);
+                      const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
                       return (
-                        <span className="tierBadge" key={`${r.gamemode}:${r.rank}`} style={{ color }}>
+                        <span className="tierBadge" key={`${r.gamemode}:${r.rank}`} style={{ color }} title={`${displayMode(r.gamemode)} ${r.rank} — ${pts} pont`}>
                           {MODE_ICONS[displayMode(r.gamemode)] && (
                             <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={28} height={28} />
                           )}
                           <span className="tierLabel">{r.rank}</span>
+                          <span className="tierTooltip">
+                            {displayMode(r.gamemode)} {r.rank}
+                            <span className="tierTooltipPts">{pts} pont</span>
+                          </span>
                         </span>
                       );
                     })}
@@ -617,7 +622,7 @@ export default function Page() {
           gap: 4px; padding: 8px 12px;
           border-radius: 10px; background: rgba(255,255,255,0.06);
           border: 1px solid rgba(255,255,255,0.1);
-          min-width: 52px;
+          min-width: 52px; position: relative; cursor: default;
         }
 
         .tierIcon {
@@ -626,6 +631,25 @@ export default function Page() {
 
         .tierLabel {
           font-size: 12px; font-weight: 800; text-transform: uppercase;
+        }
+
+        .tierTooltip {
+          display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+          transform: translateX(-50%); white-space: nowrap;
+          background: rgba(20,20,30,0.95); border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 8px; padding: 8px 12px;
+          font-size: 12px; font-weight: 600; color: var(--text);
+          flex-direction: column; align-items: center; gap: 4px;
+          z-index: 100; pointer-events: none;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .tierTooltipPts {
+          font-size: 11px; color: var(--muted); font-weight: 700;
+        }
+
+        .tierBadge:hover .tierTooltip {
+          display: flex;
         }
 
         /* ===== EMPTY ===== */
