@@ -32,6 +32,7 @@ const MODE_ICONS = {
   "OGVanilla": "/images/ogvanilla.png",
   "SpearMace": "/images/spear.png",
   "SpearElytra": "/images/spear.png",
+  "ShieldlessUHC": "/images/shieldlessuhc.png",
 };
 
 const MODE_DISPLAY_MAP = {
@@ -420,7 +421,7 @@ export default function Page() {
         }
 
         .tabIcon {
-          width: 24px; height: 24px; image-rendering: pixelated;
+          width: 24px; height: 24px;
         }
 
         .tabLabel {
