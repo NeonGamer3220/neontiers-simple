@@ -515,14 +515,22 @@ export default function Page() {
           display: grid; grid-template-columns: 50px 48px 1fr auto;
           gap: 16px; align-items: center;
           padding: 16px 20px; border-radius: 10px;
-          transition: background 0.1s;
+          border: 1px solid rgba(255,255,255,0.06);
+          margin-bottom: 6px;
+          transition: all 0.2s ease;
         }
 
-        .playerRow:hover { background: rgba(255,255,255,0.03); }
+        .playerRow:hover {
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(255,255,255,0.14);
+          transform: scale(1.01);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,92,246,0.15);
+        }
 
         .playerRowSelected {
           background: rgba(139,92,246,0.08);
-          border-bottom: none;
+          border-color: rgba(139,92,246,0.25);
+          margin-bottom: 0;
         }
 
         /* ===== PLAYER DETAIL ===== */
