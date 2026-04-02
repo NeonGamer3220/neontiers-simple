@@ -85,6 +85,7 @@ export default function Page() {
   const [query, setQuery] = useState("");
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -264,31 +265,84 @@ export default function Page() {
             </div>
           ) : (
             leaderboard.map((p, idx) => (
-              <div className="playerRow" key={p.username}>
-                <span className="rowNum">{idx + 1}</span>
-                <img
-                  className="playerSkin"
-                  src={skinUrl(p.username)}
-                  alt={p.username}
-                  width={44}
-                  height={44}
-                />
-                <span className="playerName">{p.username}</span>
-                <span className="rowTiers">
-                  {p.entries.map((r) => {
-                    const tier = tierFromRank(r.rank);
-                    const color = tierColor(tier);
-                    return (
-                      <span className="tierBadge" key={`${r.gamemode}:${r.rank}`} style={{ color }}>
-                        {MODE_ICONS[displayMode(r.gamemode)] && (
-                          <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={28} height={28} />
-                        )}
-                        <span className="tierLabel">{r.rank}</span>
-                      </span>
-                    );
-                  })}
-                </span>
-              </div>
+              <React.Fragment key={p.username}>
+                <div
+                  className={`playerRow ${selectedPlayer === p.username ? "playerRowSelected" : ""}`}
+                  onClick={() => setSelectedPlayer(selectedPlayer === p.username ? null : p.username)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <span className="rowNum">{idx + 1}</span>
+                  <img
+                    className="playerSkin"
+                    src={skinUrl(p.username)}
+                    alt={p.username}
+                    width={44}
+                    height={44}
+                  />
+                  <span className="playerName">{p.username}</span>
+                  <span className="rowTiers">
+                    {p.entries.map((r) => {
+                      const tier = tierFromRank(r.rank);
+                      const color = tierColor(tier);
+                      return (
+                        <span className="tierBadge" key={`${r.gamemode}:${r.rank}`} style={{ color }}>
+                          {MODE_ICONS[displayMode(r.gamemode)] && (
+                            <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={28} height={28} />
+                          )}
+                          <span className="tierLabel">{r.rank}</span>
+                        </span>
+                      );
+                    })}
+                  </span>
+                </div>
+
+                {/* Expanded player detail */}
+                {selectedPlayer === p.username && (
+                  <div className="playerDetail">
+                    <div className="detailLeft">
+                      <img
+                        className="detailSkin"
+                        src={`https://mc-heads.net/body/${encodeURIComponent(p.username)}/80`}
+                        alt={p.username}
+                        width={50}
+                        height={100}
+                      />
+                    </div>
+                    <div className="detailRight">
+                      <div className="detailUsername">{p.username}</div>
+                      <div className="detailStats">
+                        <div className="detailStat">
+                          <span className="detailStatValue">{p.total}</span>
+                          <span className="detailStatLabel">Pont</span>
+                        </div>
+                        <div className="detailStat">
+                          <span className="detailStatValue">{p.entries.length}</span>
+                          <span className="detailStatLabel">Rang</span>
+                        </div>
+                        <div className="detailStat">
+                          <span className="detailStatValue">#{idx + 1}</span>
+                          <span className="detailStatLabel">Helyezés</span>
+                        </div>
+                      </div>
+                      <div className="detailTiers">
+                        {p.entries.map((r) => {
+                          const tier = tierFromRank(r.rank);
+                          const color = tierColor(tier);
+                          return (
+                            <div className="detailTier" key={`${r.gamemode}:${r.rank}`}>
+                              {MODE_ICONS[displayMode(r.gamemode)] && (
+                                <img className="detailTierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={24} height={24} />
+                              )}
+                              <span className="detailTierMode">{displayMode(r.gamemode)}</span>
+                              <span className="detailTierRank" style={{ color }}>{r.rank}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </React.Fragment>
             ))
           )}
         </div>
@@ -460,6 +514,82 @@ export default function Page() {
         }
 
         .playerRow:hover { background: rgba(255,255,255,0.03); }
+
+        .playerRowSelected {
+          background: rgba(139,92,246,0.08);
+          border-bottom: none;
+        }
+
+        /* ===== PLAYER DETAIL ===== */
+        .playerDetail {
+          display: flex; gap: 20px; padding: 16px 20px 20px 134px;
+          background: rgba(139,92,246,0.05);
+          border-bottom: 1px solid rgba(255,255,255,0.04);
+          border-radius: 0 0 10px 10px;
+          animation: slideDown 0.15s ease;
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detailLeft {
+          flex-shrink: 0;
+        }
+
+        .detailSkin {
+          image-rendering: pixelated;
+          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+        }
+
+        .detailRight {
+          display: flex; flex-direction: column; gap: 12px; min-width: 0;
+        }
+
+        .detailUsername {
+          font-size: 22px; font-weight: 700; color: var(--text);
+        }
+
+        .detailStats {
+          display: flex; gap: 24px;
+        }
+
+        .detailStat {
+          display: flex; flex-direction: column; gap: 2px;
+        }
+
+        .detailStatValue {
+          font-size: 20px; font-weight: 800; color: var(--text);
+        }
+
+        .detailStatLabel {
+          font-size: 11px; font-weight: 600; color: var(--muted);
+          text-transform: uppercase; letter-spacing: 0.06em;
+        }
+
+        .detailTiers {
+          display: flex; flex-wrap: wrap; gap: 8px;
+        }
+
+        .detailTier {
+          display: flex; align-items: center; gap: 8px;
+          padding: 6px 12px; border-radius: 8px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .detailTierIcon {
+          width: 24px; height: 24px;
+        }
+
+        .detailTierMode {
+          font-size: 13px; font-weight: 600; color: var(--muted);
+        }
+
+        .detailTierRank {
+          font-size: 13px; font-weight: 800;
+        }
 
         .rowNum {
           text-align: center; font-size: 18px; font-weight: 700;
