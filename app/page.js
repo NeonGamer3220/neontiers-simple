@@ -77,7 +77,7 @@ function safeInt(n, fallback = 0) {
 }
 
 function skinUrl(username) {
-  return `https://mc-heads.net/avatar/${encodeURIComponent(username)}/48`;
+  return `https://mc-heads.net/avatar/${encodeURIComponent(username)}/56`;
 }
 
 export default function Page() {
@@ -231,7 +231,7 @@ export default function Page() {
                 tabIndex={0}
               >
                 {MODE_ICONS[m] && (
-                  <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={24} height={24} />
+                  <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={28} height={28} />
                 )}
                 <strong className="tabLabel">{m}</strong>
                 {activeMode === m && <span className="tabActiveLine" />}
@@ -270,8 +270,8 @@ export default function Page() {
                   className="playerSkin"
                   src={skinUrl(p.username)}
                   alt={p.username}
-                  width={40}
-                  height={40}
+                  width={44}
+                  height={44}
                 />
                 <span className="playerName">{p.username}</span>
                 <span className="rowTiers">
@@ -381,7 +381,7 @@ export default function Page() {
 
         .mainCard {
           background: var(--card); border: 2px solid var(--border);
-          border-radius: 12px; padding: 8px 32px 16px;
+          border-radius: 12px; padding: 12px 32px 20px;
           margin-top: 112px; position: relative;
         }
 
@@ -397,8 +397,8 @@ export default function Page() {
 
         .tabBtn {
           display: flex; flex-direction: column; align-items: center;
-          justify-content: flex-end; gap: 2px; padding: 6px 10px;
-          min-width: 76px; text-decoration: none; cursor: pointer;
+          justify-content: flex-end; gap: 4px; padding: 8px 14px;
+          min-width: 84px; text-decoration: none; cursor: pointer;
           user-select: none; position: relative;
           border: 2px solid transparent; border-bottom: none;
           border-radius: 20px 20px 0 0; background: transparent;
@@ -421,11 +421,11 @@ export default function Page() {
         }
 
         .tabIcon {
-          width: 24px; height: 24px;
+          width: 28px; height: 28px;
         }
 
         .tabLabel {
-          font-size: 10px; font-weight: 700; text-transform: capitalize;
+          font-size: 11px; font-weight: 700; text-transform: capitalize;
           white-space: nowrap;
         }
 
@@ -441,56 +441,56 @@ export default function Page() {
 
         /* ===== COLUMN HEADERS ===== */
         .colHead {
-          display: grid; grid-template-columns: 40px 44px 1fr auto;
-          gap: 14px; padding: 8px 16px;
-          font-size: 11px; font-weight: 700; text-transform: uppercase;
+          display: grid; grid-template-columns: 50px 48px 1fr auto;
+          gap: 16px; padding: 10px 20px;
+          font-size: 12px; font-weight: 700; text-transform: uppercase;
           letter-spacing: 0.08em; color: var(--muted);
         }
 
         .colHash { text-align: center; }
         .colPlayer { grid-column: 3; text-align: left; }
-        .colTiers { text-align: right; min-width: 200px; }
+        .colTiers { text-align: right; min-width: 240px; }
 
         /* ===== PLAYER ROWS ===== */
         .playerRow {
-          display: grid; grid-template-columns: 40px 44px 1fr auto;
-          gap: 14px; align-items: center;
-          padding: 14px 16px; border-radius: 8px;
+          display: grid; grid-template-columns: 50px 48px 1fr auto;
+          gap: 16px; align-items: center;
+          padding: 16px 20px; border-radius: 10px;
           transition: background 0.1s;
         }
 
         .playerRow:hover { background: rgba(255,255,255,0.03); }
 
         .rowNum {
-          text-align: center; font-size: 16px; font-weight: 700;
+          text-align: center; font-size: 18px; font-weight: 700;
           color: var(--muted);
         }
 
         .playerSkin {
-          width: 40px; height: 40px; border-radius: 6px;
+          width: 44px; height: 44px; border-radius: 8px;
           image-rendering: pixelated;
           background: rgba(255,255,255,0.06);
         }
 
         .playerName {
-          font-size: 18px; font-weight: 600; color: var(--text);
+          font-size: 20px; font-weight: 600; color: var(--text);
           overflow: visible; white-space: nowrap;
         }
 
         .rowTiers {
-          display: flex; flex-wrap: wrap; gap: 6px;
+          display: flex; flex-wrap: wrap; gap: 8px;
           justify-content: flex-end; align-items: center;
         }
 
         .tierBadge {
-          display: inline-flex; align-items: center; gap: 5px;
-          font-size: 13px; font-weight: 700; padding: 4px 12px;
-          border-radius: 6px; background: rgba(255,255,255,0.05);
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 14px; font-weight: 700; padding: 5px 14px;
+          border-radius: 8px; background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.08);
         }
 
         .tierIcon {
-          width: 16px; height: 16px; image-rendering: pixelated;
+          width: 18px; height: 18px; image-rendering: pixelated;
         }
 
         /* ===== EMPTY ===== */
