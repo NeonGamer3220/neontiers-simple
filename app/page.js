@@ -281,9 +281,9 @@ export default function Page() {
                     return (
                       <span className="tierBadge" key={`${r.gamemode}:${r.rank}`} style={{ color }}>
                         {MODE_ICONS[displayMode(r.gamemode)] && (
-                          <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={16} height={16} />
+                          <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={28} height={28} />
                         )}
-                        {displayMode(r.gamemode)} {r.rank}
+                        <span className="tierLabel">{r.rank}</span>
                       </span>
                     );
                   })}
@@ -483,14 +483,19 @@ export default function Page() {
         }
 
         .tierBadge {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 14px; font-weight: 700; padding: 5px 14px;
-          border-radius: 8px; background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.08);
+          display: inline-flex; flex-direction: column; align-items: center;
+          gap: 4px; padding: 8px 12px;
+          border-radius: 10px; background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          min-width: 52px;
         }
 
         .tierIcon {
-          width: 18px; height: 18px; image-rendering: pixelated;
+          width: 28px; height: 28px;
+        }
+
+        .tierLabel {
+          font-size: 12px; font-weight: 800; text-transform: uppercase;
         }
 
         /* ===== EMPTY ===== */
