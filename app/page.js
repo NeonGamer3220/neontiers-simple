@@ -403,7 +403,7 @@ export default function Page() {
           border: 2px solid transparent; border-bottom: none;
           border-radius: 20px 20px 0 0; background: transparent;
           color: rgba(255,255,255,0.25); transition: all 0.15s;
-          transform: translateY(10px); flex-shrink: 0;
+          transform: translateY(0px); flex-shrink: 0;
         }
 
         .tabBtn:hover {
