@@ -17,7 +17,7 @@ const MODE_LIST = [
 ];
 
 const MODE_ICONS = {
-  "Összes": "/images/vanilla.png",
+  "Összes": "/images/overall.png",
   "Vanilla": "/images/vanilla.png",
   "UHC": "/images/uhc.png",
   "Pot": "/images/pot.png",
