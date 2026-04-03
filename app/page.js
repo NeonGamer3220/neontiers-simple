@@ -384,12 +384,13 @@ export default function Page() {
 
         /* ===== NAVBAR ===== */
         .navbar {
-          max-width: 1352px; margin: 1rem auto 0; padding: 0 16px;
+          width: 100%; max-width: 1352px; margin: 1rem auto 0; padding: 0 16px;
         }
 
         .navInner {
           height: 56px; display: flex; align-items: center;
-          gap: 12px; padding: 0 20px;
+          justify-content: space-between; gap: 16px;
+          padding: 0 20px;
           background: rgba(10,10,15,0.9);
           border: 1px solid var(--border); border-radius: 12px;
         }
@@ -397,11 +398,12 @@ export default function Page() {
         .navLogo {
           font-size: 18px; font-weight: 700; color: var(--text);
           text-decoration: none; letter-spacing: -0.02em;
-          margin-right: auto;
+          flex-shrink: 0;
         }
 
         .navLinks {
           display: flex; gap: 2px; list-style: none; margin: 0; padding: 0;
+          flex-shrink: 0;
         }
 
         .navLink {
@@ -419,11 +421,13 @@ export default function Page() {
           display: flex; align-items: center; gap: 6px;
           background: rgba(255,255,255,0.04); border: 1px solid var(--border);
           border-radius: 8px; padding: 0 10px; height: 36px; color: var(--muted);
+          flex-shrink: 0;
         }
 
         .searchInput {
           background: transparent; border: none; outline: none;
           color: var(--text); font-size: 13px; width: 140px;
+          flex: 1; min-width: 0;
         }
 
         .searchKbd {
