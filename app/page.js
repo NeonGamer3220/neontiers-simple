@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
-const EASTER_MODE = true;
+const EASTER_MODE = false;
 const EASTER_EGGS = [
   { emoji: "🥚" }, { emoji: "🐣" }, { emoji: "🐰" }, { emoji: "🌷" },
   { emoji: "🦋" }, { emoji: "🌼" }, { emoji: "🐇" }, { emoji: "🌸" },
