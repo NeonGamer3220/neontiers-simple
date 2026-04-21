@@ -388,7 +388,7 @@ export default function Page() {
         }
 
         .navInner {
-          height: 64px; display: flex; align-items: center;
+         height: 64px; display: flex; align-items: center;
           justify-content: space-between; gap: 24px;
           padding: 0 28px;
           background: rgba(10,10,15,0.9);
@@ -396,18 +396,18 @@ export default function Page() {
         }
 
         .navLogo {
-          font-size: 20px; font-weight: 700; color: var(--text);
+        font-size: 20px; font-weight: 700; color: var(--text);
           text-decoration: none; letter-spacing: -0.02em;
           flex-shrink: 0;
         }
 
         .navLinks {
-          display: flex; gap: 4px; list-style: none; margin: 0; padding: 0;
+        display: flex; gap: 4px; list-style: none; margin: 0; padding: 0;
           flex-shrink: 0;
         }
 
         .navLink {
-          display: flex; align-items: center; gap: 8px;
+        display: flex; align-items: center; gap: 8px;
           text-decoration: none; color: var(--muted);
           font-size: 15px; font-weight: 500; padding: 8px 14px;
           border-radius: 6px; transition: color 0.15s, background 0.15s;
@@ -418,7 +418,7 @@ export default function Page() {
         }
 
         .searchWrap {
-          display: flex; align-items: center; gap: 8px;
+        display: flex; align-items: center; gap: 8px;
           background: rgba(255,255,255,0.04); border: 1px solid var(--border);
           border-radius: 8px; padding: 0 12px; height: 40px; color: var(--muted);
           flex-shrink: 0;
@@ -426,7 +426,7 @@ export default function Page() {
 
         .searchInput {
           background: transparent; border: none; outline: none;
-          color: var(--text); font-size: 14px; width: 180px;
+           color: var(--text); font-size: 14px; width: 180px;
           flex: 1; min-width: 0;
         }
 
