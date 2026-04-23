@@ -47,11 +47,11 @@ function displayMode(mode) {
   return MODE_DISPLAY_MAP[mode?.toLowerCase()] || mode || "";
 }
 
-const RANK_POINTS = {
-  LT5: 1, HT5: 2, LT4: 3, HT4: 4,
-  LT3: 6, HT3: 8, LT2: 10, HT2: 12,
-  LT1: 14, HT1: 18,
-};
+  const RANK_POINTS = {
+    LT5: 1, HT5: 2, LT4: 3, HT4: 4,
+    LT3: 6, HT3: 10, LT2: 16, HT2: 28,
+    LT1: 40, HT1: 60,
+  };
 
 function tierFromRank(rank) {
   if (!rank || typeof rank !== "string") return null;
