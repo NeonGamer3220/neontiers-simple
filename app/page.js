@@ -1,3 +1,7 @@
+'use client';
+
+import { useEffect } from 'react';
+
 // Browser-compatible version (no React/JSX needed)
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
@@ -62,21 +66,9 @@ function skinUrl(username) {
   return `https://mc-heads.net/avatar/${encodeURIComponent(username)}/56`;
 }
 
-// State
+// Global state and DOM refs (set in useEffect)
 let tests = [], activeMode = "Összes", query = "", loading = true;
-
-// DOM refs (client-side only)
 let tabRow, leaderboard, searchInput, yearEl;
-
-if (typeof document !== 'undefined') {
-  tabRow = document.getElementById("tabRow");
-  leaderboard = document.getElementById("leaderboard");
-  searchInput = document.getElementById("searchInput");
-  yearEl = document.getElementById("year");
-
-  document.documentElement.lang = "hu";
-  yearEl.textContent = new Date().getFullYear();
-}
 
 // Render tabs
 function renderTabs() {
@@ -191,15 +183,37 @@ async function fetchData() {
   renderLeaderboard();
 }
 
-// Search handler and init (client-side only)
-if (typeof document !== 'undefined') {
-  searchInput.addEventListener("input", (e) => {
-    query = e.target.value;
-    renderLeaderboard();
-  });
+export default function Page() {
+  useEffect(() => {
+    // DOM refs
+    tabRow = document.getElementById("tabRow");
+    leaderboard = document.getElementById("leaderboard");
+    searchInput = document.getElementById("searchInput");
+    yearEl = document.getElementById("year");
 
-  // Init
-  renderTabs();
-  fetchData();
-  setInterval(fetchData, 60000);
+    document.documentElement.lang = "hu";
+    yearEl.textContent = new Date().getFullYear();
+
+    // Search handler
+    searchInput.addEventListener("input", (e) => {
+      query = e.target.value;
+      renderLeaderboard();
+    });
+
+    // Init
+    renderTabs();
+    fetchData();
+    const interval = setInterval(fetchData, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <>
+      <div id="tabRow"></div>
+      <div id="leaderboard"></div>
+      <input id="searchInput" type="text" placeholder="Keresés..." />
+      <div id="year"></div>
+    </>
+  );
 }
