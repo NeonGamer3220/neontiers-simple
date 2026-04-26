@@ -156,14 +156,17 @@ function renderLeaderboard() {
        <span class="rowNum">${idx + 1}</span>
        <img class="playerSkin" src="${skinUrl(p.username)}" alt="${p.username}" width="44" height="44">
        <span class="playerName">${p.username}</span>
-       <span class="rowTiers">
-         ${p.entries.map(r => `
-           <span class="tierBadge" title="${displayMode(r.gamemode)} ${r.rank} — ${safeInt(RANK_POINTS[r.rank] || r.points, 0)} pont">
-             ${MODE_ICONS[displayMode(r.gamemode)] ? `<img class="tierIcon" src="${MODE_ICONS[displayMode(r.gamemode)]}" alt="" width="28" height="28">` : ""}
-             <span class="tierLabel">${r.rank}</span>
-           </span>
-         `).join("")}
-       </span>
+        <span class="rowTiers">
+          ${p.entries.map(r => {
+            const tier = tierFromRank(r.rank);
+            return `
+            <span class="tierBadge${tier ? ` tier-${tier}` : ''}" title="${displayMode(r.gamemode)} ${r.rank} — ${safeInt(RANK_POINTS[r.rank] || r.points, 0)} pont">
+              ${MODE_ICONS[displayMode(r.gamemode)] ? `<img class="tierIcon" src="${MODE_ICONS[displayMode(r.gamemode)]}" alt="" width="28" height="28">` : ""}
+              <span class="tierLabel">${r.rank}</span>
+            </span>
+          `;
+          }).join("")}
+        </span>
      </div>
    `).join("");
 }
@@ -198,6 +201,14 @@ export default function Page() {
     searchInput.addEventListener("input", (e) => {
       query = e.target.value;
       renderLeaderboard();
+    });
+
+    // Keyboard shortcut for search
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "/" && document.activeElement !== searchInput) {
+        e.preventDefault();
+        searchInput.focus();
+      }
     });
 
     // Init
