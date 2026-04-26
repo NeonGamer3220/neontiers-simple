@@ -152,7 +152,7 @@ function renderLeaderboard() {
   }
 
    leaderboard.innerHTML = searched.map((p, idx) => `
-     <div class="playerRow"${isFullyRetired(p.entries) ? ' style="background-color: #800080;"' : ''}>
+     <div class="playerRow"${isFullyRetired(p.entries) ? ' style="background-color: #800080;"' : ''} onclick="alert('Player: ${p.username}')">
        <span class="rowNum">${idx + 1}</span>
        <img class="playerSkin" src="${skinUrl(p.username)}" alt="${p.username}" width="44" height="44">
        <span class="playerName">${p.username}</span>

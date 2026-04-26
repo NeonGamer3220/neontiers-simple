@@ -150,13 +150,14 @@ body {
 .infoBar { display: flex; justify-content: flex-end; margin-bottom: 16px; padding-top: 4px; }
 .infoText { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.45); }
 .colHead { display: grid; grid-template-columns: 50px 48px 1fr auto; gap: 16px; padding: 10px 20px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.45); }
-.playerRow { display: grid; grid-template-columns: 50px 48px 1fr auto; gap: 16px; align-items: center; padding: 16px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 6px; cursor: pointer; }
-.playerRow:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); }
+.playerRow { display: grid; grid-template-columns: 50px 48px 1fr auto; gap: 16px; align-items: center; padding: 16px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 6px; cursor: pointer; transition: all 0.2s ease; }
+.playerRow:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); transform: translateY(-2px); }
 .rowNum { text-align: center; font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.45); }
 .playerSkin { width: 44px; height: 44px; border-radius: 8px; }
 .playerName { font-size: 20px; font-weight: 600; color: white; }
 .rowTiers { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.tierBadge { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); min-width: 52px; }
+.tierBadge { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); min-width: 52px; transition: transform 0.2s ease; }
+.tierBadge:hover { transform: scale(1.05); }
 .tierIcon { width: 28px; height: 28px; }
 .tierLabel { font-size: 12px; font-weight: 800; text-transform: uppercase; }
 .emptyState { padding: 48px 24px; text-align: center; }
