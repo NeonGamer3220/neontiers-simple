@@ -152,7 +152,7 @@ function renderLeaderboard() {
   }
 
    leaderboard.innerHTML = searched.map((p, idx) => `
-     <div class="playerRow"${isFullyRetired(p.entries) ? ' style="background-color: #800080;"' : ''} onclick="alert('Player: ${p.username}')">
+     <div class="playerRow"${isFullyRetired(p.entries) ? ' style="background-color: #800080;"' : ''}>
        <span class="rowNum">${idx + 1}</span>
        <img class="playerSkin" src="${skinUrl(p.username)}" alt="${p.username}" width="44" height="44">
        <span class="playerName">${p.username}</span>
@@ -160,9 +160,9 @@ function renderLeaderboard() {
           ${p.entries.map(r => {
             const tier = tierFromRank(r.rank);
             return `
-            <span class="tierBadge${tier ? ` tier-${tier}` : ''}" title="${displayMode(r.gamemode)} ${r.rank} — ${safeInt(RANK_POINTS[r.rank] || r.points, 0)} pont">
-              ${MODE_ICONS[displayMode(r.gamemode)] ? `<img class="tierIcon" src="${MODE_ICONS[displayMode(r.gamemode)]}" alt="" width="28" height="28">` : ""}
-              <span class="tierLabel">${r.rank}</span>
+            <span class="tierBadge${tier ? ` tier-${tier}` : ''}">
+              ${MODE_ICONS[displayMode(r.gamemode)] ? `<img class="tierIcon" src="${MODE_ICONS[displayMode(r.gamemode)]}" alt="" width="28" height="28" title="${displayMode(r.gamemode)} ${r.rank} — ${safeInt(RANK_POINTS[r.rank] || r.points, 0)} pont">` : ""}
+              <span class="tierLabel" title="${displayMode(r.gamemode)} ${r.rank} — ${safeInt(RANK_POINTS[r.rank] || r.points, 0)} pont">${r.rank}</span>
             </span>
           `;
           }).join("")}
