@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeonTiers</title>
+  <link rel="stylesheet" href="./app/globals.css">
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: linear-gradient(120deg, #120f2b, #081a2e); color: white; }
+    .container { max-width: 1100px; margin: auto; padding: 40px 20px; }
+    .page { min-height: 100vh; }
+    .bg { position: fixed; inset: 0; background: #09090b; z-index: -1; }
+    .navbar { width: 100%; max-width: 1352px; margin: 1rem auto 0; padding: 0 16px; }
+    .navInner { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: rgba(10,10,15,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
+    .navLogo { font-size: 20px; font-weight: 700; color: white; text-decoration: none; }
+    .navLinks { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
+    .navLink { display: flex; align-items: center; gap: 8px; text-decoration: none; color: rgba(255,255,255,0.45); font-size: 15px; padding: 8px 14px; border-radius: 6px; }
+    .navLink:hover, .navLink.active { color: white; background: rgba(255,255,255,0.06); }
+    .mainWrap { max-width: 1352px; margin: 0 auto; padding: 0 16px; }
+    .mainCard { background: #0a0a0f; border: 2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 32px 20px; margin-top: 116px; }
+    .tabRow { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+    .tabRow::-webkit-scrollbar { display: none; }
+    .tabBtn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 8px; min-width: 72px; cursor: pointer; border: 2px solid transparent; border-radius: 18px 18px 0 0; background: transparent; color: rgba(255,255,255,0.25); }
+    .tabBtn.active { background: rgba(139,92,246,0.15); color: white; border-color: rgba(255,255,255,0.08); }
+    .tabLabel { font-size: 10px; font-weight: 700; text-transform: capitalize; }
+    .infoBar { display: flex; justify-content: flex-end; margin-bottom: 16px; padding-top: 4px; }
+    .infoText { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.45); }
+    .colHead { display: grid; grid-template-columns: 50px 48px 1fr auto; gap: 16px; padding: 10px 20px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.45); }
+    .playerRow { display: grid; grid-template-columns: 50px 48px 1fr auto; gap: 16px; align-items: center; padding: 16px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 6px; cursor: pointer; }
+    .playerRow:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); }
+    .rowNum { text-align: center; font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.45); }
+    .playerSkin { width: 44px; height: 44px; border-radius: 8px; }
+    .playerName { font-size: 20px; font-weight: 600; color: white; }
+    .rowTiers { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+    .tierBadge { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); min-width: 52px; }
+    .tierIcon { width: 28px; height: 28px; }
+    .tierLabel { font-size: 12px; font-weight: 800; text-transform: uppercase; }
+    .emptyState { padding: 48px 24px; text-align: center; }
+    .emptyTitle { font-size: 16px; font-weight: 700; color: white; }
+    .emptySub { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.45); }
+    .pageFooter { max-width: 1352px; margin: 80px auto 0; padding: 32px 16px; text-align: center; }
+    .footerText { font-size: 14px; color: rgba(255,255,255,0.45); }
+    .searchWrap { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0 12px; height: 40px; color: rgba(255,255,255,0.45); }
+    .searchInput { background: transparent; border: none; outline: none; color: white; font-size: 14px; width: 180px; }
+    .searchKbd { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); font-size: 12px; padding: 3px 8px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="bg"></div>
+    <div style="padding-top: 1rem;"></div>
+    <header class="navbar">
+      <nav class="navInner">
+        <a class="navLogo" href="/">NeonTiers</a>
+        <ul class="navLinks">
+          <li><a class="navLink active" href="/">Főoldal</a></li>
+          <li><a class="navLink" href="https://discord.gg/7fanAQDxaN" target="_blank">Discord</a></li>
+        </ul>
+        <span class="searchWrap">
+          <input class="searchInput" placeholder="Játékos keresése..." id="searchInput" spellCheck="false">
+          <kbd class="searchKbd">/</kbd>
+        </span>
+      </nav>
+    </header>
+    <main class="mainWrap">
+      <div class="mainCard">
+        <section class="tabRow" id="tabRow"></section>
+        <div class="infoBar"><span class="infoText">Ranglista</span></div>
+        <div class="colHead">
+          <span class="colHash">#</span>
+          <span class="colPlayer">Játékos</span>
+          <span class="colTiers">Tierek</span>
+        </div>
+        <div id="leaderboard"></div>
+      </div>
+    </main>
+    <footer class="pageFooter"><div class="footerText">NeonTiers © <span id="year"></span></div></footer>
+  </div>
+  <script src="./app/page.js"></script>
+</body>
+</html>
