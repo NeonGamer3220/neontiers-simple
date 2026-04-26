@@ -192,7 +192,7 @@ export default function Page() {
     yearEl = document.getElementById("year");
 
     document.documentElement.lang = "hu";
-    yearEl.textContent = new Date().getFullYear();
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     // Search handler
     searchInput.addEventListener("input", (e) => {
@@ -209,11 +209,35 @@ export default function Page() {
   }, []);
 
   return (
-    <>
-      <div id="tabRow"></div>
-      <div id="leaderboard"></div>
-      <input id="searchInput" type="text" placeholder="Keresés..." />
-      <div id="year"></div>
-    </>
+    <div className="page">
+      <div className="bg"></div>
+      <div style={{paddingTop: '1rem'}}></div>
+      <header className="navbar">
+        <nav className="navInner">
+          <a className="navLogo" href="/">NeonTiers</a>
+          <ul className="navLinks">
+            <li><a className="navLink active" href="/">Főoldal</a></li>
+            <li><a className="navLink" href={DISCORD_INVITE} target="_blank">Discord</a></li>
+          </ul>
+          <span className="searchWrap">
+            <input className="searchInput" placeholder="Játékos keresése..." id="searchInput" spellCheck="false" />
+            <kbd className="searchKbd">/</kbd>
+          </span>
+        </nav>
+      </header>
+      <main className="mainWrap">
+        <div className="mainCard">
+          <section className="tabRow" id="tabRow"></section>
+          <div className="infoBar"><span className="infoText">Ranglista</span></div>
+          <div className="colHead">
+            <span className="colHash">#</span>
+            <span className="colPlayer">Játékos</span>
+            <span className="colTiers">Tierek</span>
+          </div>
+          <div id="leaderboard"></div>
+        </div>
+      </main>
+      <footer className="pageFooter"><div className="footerText">NeonTiers © <span id="year"></span></div></footer>
+    </div>
   );
 }
