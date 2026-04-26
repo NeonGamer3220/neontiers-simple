@@ -65,17 +65,22 @@ function skinUrl(username) {
 // State
 let tests = [], activeMode = "Összes", query = "", loading = true;
 
-// DOM refs
-const tabRow = document.getElementById("tabRow");
-const leaderboard = document.getElementById("leaderboard");
-const searchInput = document.getElementById("searchInput");
-const yearEl = document.getElementById("year");
+// DOM refs (client-side only)
+let tabRow, leaderboard, searchInput, yearEl;
 
-document.documentElement.lang = "hu";
-yearEl.textContent = new Date().getFullYear();
+if (typeof document !== 'undefined') {
+  tabRow = document.getElementById("tabRow");
+  leaderboard = document.getElementById("leaderboard");
+  searchInput = document.getElementById("searchInput");
+  yearEl = document.getElementById("year");
+
+  document.documentElement.lang = "hu";
+  yearEl.textContent = new Date().getFullYear();
+}
 
 // Render tabs
 function renderTabs() {
+  if (!tabRow) return;
   tabRow.innerHTML = "";
   MODE_LIST.forEach(m => {
     const btn = document.createElement("a");
@@ -105,6 +110,7 @@ function renderTabs() {
 
 // Render leaderboard
 function renderLeaderboard() {
+  if (!leaderboard) return;
   const rows = tests.map(r => ({
     id: r?.id, username: String(r?.username || "").trim(),
     gamemode: String(r?.gamemode || "").trim(),
@@ -185,13 +191,15 @@ async function fetchData() {
   renderLeaderboard();
 }
 
-// Search handler
-searchInput.addEventListener("input", (e) => {
-  query = e.target.value;
-  renderLeaderboard();
-});
+// Search handler and init (client-side only)
+if (typeof document !== 'undefined') {
+  searchInput.addEventListener("input", (e) => {
+    query = e.target.value;
+    renderLeaderboard();
+  });
 
-// Init
-renderTabs();
-fetchData();
-setInterval(fetchData, 60000);
+  // Init
+  renderTabs();
+  fetchData();
+  setInterval(fetchData, 60000);
+}
