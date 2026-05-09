@@ -46,7 +46,9 @@ const MODE_DISPLAY_MAP = {
  };
 
 function displayMode(mode) {
-  return MODE_DISPLAY_MAP[mode?.toLowerCase()] || mode || "";
+  if (!mode) return "";
+  const key = mode.toLowerCase().replace(/\s+/g, "");
+  return MODE_DISPLAY_MAP[key] || mode || "";
 }
  const RANK_POINTS = {
     LT5: 1, HT5: 2, LT4: 3, HT4: 4,
