@@ -13,35 +13,37 @@ const EASTER_EGGS = [
 const MODE_LIST = [
   "Összes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
   "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
-  "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra",
+   "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stickfight",
 ];
 
 const MODE_ICONS = {
-  "Összes": "/images/overall.png",
-  "Vanilla": "/images/vanilla.png",
-  "UHC": "/images/uhc.png",
-  "Pot": "/images/pot.png",
-  "NethPot": "/images/nethpot.png",
-  "SMP": "/images/smp.png",
-  "Sword": "/images/sword.png",
-  "Axe": "/images/axe.png",
-  "Mace": "/images/mace.png",
-  "Cart": "/images/cart.png",
-  "Creeper": "/images/creeper.png",
-  "DiaSMP": "/images/diasmp.png",
-  "OGVanilla": "/images/ogvanilla.png",
-  "SpearMace": "/images/spear.png",
-  "SpearElytra": "/images/spear.png",
-  "ShieldlessUHC": "/images/shieldlessuhc.png",
-};
+   "Összes": "/images/overall.png",
+   "Vanilla": "/images/vanilla.png",
+   "UHC": "/images/uhc.png",
+   "Pot": "/images/pot.png",
+   "NethPot": "/images/nethpot.png",
+   "SMP": "/images/smp.png",
+   "Sword": "/images/sword.png",
+   "Axe": "/images/axe.png",
+   "Mace": "/images/mace.png",
+   "Cart": "/images/cart.png",
+   "Creeper": "/images/creeper.png",
+   "DiaSMP": "/images/diasmp.png",
+   "OGVanilla": "/images/ogvanilla.png",
+   "SpearMace": "/images/spear.png",
+   "SpearElytra": "/images/spear.png",
+   "ShieldlessUHC": "/images/shieldlessuhc.png",
+   "Stickfight": "/images/stickfight.png",
+ };
 
 const MODE_DISPLAY_MAP = {
-  "vanilla": "Vanilla", "uhc": "UHC", "pot": "Pot", "nethpot": "NethPot",
-  "smp": "SMP", "sword": "Sword", "axe": "Axe", "mace": "Mace",
-  "cart": "Cart", "creeper": "Creeper", "diasmp": "DiaSMP",
-  "ogvanilla": "OGVanilla", "shieldlessuhc": "ShieldlessUHC",
-  "spearmace": "SpearMace", "spearelytra": "SpearElytra",
-};
+   "vanilla": "Vanilla", "uhc": "UHC", "pot": "Pot", "nethpot": "NethPot",
+   "smp": "SMP", "sword": "Sword", "axe": "Axe", "mace": "Mace",
+   "cart": "Cart", "creeper": "Creeper", "diasmp": "DiaSMP",
+   "ogvanilla": "OGVanilla", "shieldlessuhc": "ShieldlessUHC",
+   "spearmace": "SpearMace", "spearelytra": "SpearElytra",
+   "stickfight": "Stickfight",
+ };
 
 function displayMode(mode) {
   return MODE_DISPLAY_MAP[mode?.toLowerCase()] || mode || "";
