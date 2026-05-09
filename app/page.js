@@ -13,7 +13,7 @@ const EASTER_EGGS = [
 const MODE_LIST = [
   "Összes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
   "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
-   "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stickfight",
+  "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stickfight",
 ];
 
 const MODE_ICONS = {
