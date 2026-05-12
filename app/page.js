@@ -50,6 +50,195 @@ function displayMode(mode) {
   const key = mode.toLowerCase().replace(/\s+/g, "");
   return MODE_DISPLAY_MAP[key] || mode || "";
 }
+
+// Tier icons as SVG components
+const TierIcon = ({ tier, width = 22, height = 22 }) => {
+  const icons = {
+    1: ( // Gold star for Tier 1
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+    ),
+    2: ( // Silver shield for Tier 2
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/>
+      </svg>
+    ),
+    3: ( // Bronze hexagon for Tier 3
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/>
+      </svg>
+    ),
+    4: ( // Purple gem for Tier 4
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/>
+      </svg>
+    ),
+    5: ( // Blue diamond for Tier 5
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 12L12 22L22 12L12 2ZM12 6L18.5 12L12 18L5.5 12L12 6Z"/>
+      </svg>
+    ),
+  };
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="currentColor">
+      {icons[tier]}
+    </svg>
+  );
+};
+
+// Rank badge color mapping based on rank type
+function rankBadgeColor(rank) {
+  if (!rank) return "#888d95";
+  const r = rank.toUpperCase();
+  if (r === "HT1" || r === "LT1") return "#d5b355";
+  if (r === "HT2") return "#a4b3c7";
+  if (r === "LT2") return "#888d95";
+  if (r === "RHT2" || r === "RLT2") return "#8f7cff";
+  if (r === "HT3") return "#dd8849";
+  if (r === "LT3") return "#b36830";
+  if (r === "HT4") return "#b7aadf";
+  if (r === "HT5") return "#6f6389";
+  return "#888d95";
+}
+
+// Tier column colors
+const TIER_COLORS = {
+  1: { accent: "#ffcf4a", surface: "rgba(255, 207, 74, 0.22)" },
+  2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
+  3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
+  4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.14)" },
+  5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.14)" },
+};
+
+// Tier display names
+const TIER_NAMES = {
+  1: "Tier 1",
+  2: "Tier 2",
+  3: "Tier 3",
+  4: "Tier 4",
+  5: "Tier 5",
+};
+
+// Modal backdrop component
+function ModalBackdrop({ onClose }) {
+  return (
+    <div className="tierBoardBackdrop" onClick={onClose}>
+      <style jsx>{`
+        .tierBoardBackdrop {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.7);
+          backdrop-filter: blur(4px);
+          z-index: 9998;
+          animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// Single player card for tier board
+function TierPlayerCard({ player, rank }) {
+  const badgeColor = rankBadgeColor(rank);
+  const skinUrl = `https://mc-heads.net/avatar/${encodeURIComponent(player.username)}/56`;
+
+  return (
+    <button className="modeTierPlayer" type="button" aria-haspopup="dialog" aria-expanded="false"
+      style={{
+        '--player-accent': badgeColor,
+        '--mode-player-surface': 'rgba(255, 255, 255, 0.018)',
+        '--mode-player-surface-hover': 'rgba(255, 255, 255, 0.035)',
+        '--player-rank-surface': `${badgeColor}33`,
+        '--player-rank-border': `${badgeColor}44`,
+        '--player-rank-text': badgeColor,
+      }}
+    >
+      <img
+        className="modeTierSkin"
+        alt={player.username}
+        width={38}
+        height={38}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        src={skinUrl}
+      />
+      <span className="modeTierName">{player.username}</span>
+      <span className="modeTierRank">{rank}</span>
+    </button>
+  );
+}
+
+// Single tier column
+function TierColumn({ tier, players }) {
+  const colors = TIER_COLORS[tier];
+  if (!colors) return null;
+
+  return (
+    <section
+      className="modeTierColumn"
+      style={{
+        '--column-accent': colors.accent,
+        '--column-surface': colors.surface,
+      }}
+    >
+      <header className="modeTierHead">
+        <TierIcon tier={tier} />
+        <span>{TIER_NAMES[tier]}</span>
+      </header>
+      <div className="modeTierList">
+        {players.map((player, idx) => (
+          <TierPlayerCard
+            key={`${player.username}-${player.rank}-${idx}`}
+            player={player}
+            rank={player.rank}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// Main Tier Board Modal
+function TierBoardModal({ isOpen, mode, players, onClose }) {
+  if (!isOpen || !mode || !players) return null;
+
+  // Group players by tier
+  const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+  players.forEach((player) => {
+    const tier = tierFromRank(player.rank);
+    if (tier && tiers[tier]) {
+      tiers[tier].push(player);
+    }
+  });
+
+  return (
+    <div className="tierBoardModal">
+      <ModalBackdrop onClose={onClose} />
+      <div className="tierBoardContent">
+        <div className="tierBoardHeader">
+          <h2 className="tierBoardTitle">{displayMode(mode)} Ranglista</h2>
+          <button className="tierBoardClose" onClick={onClose} aria-label="Bezárás">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="modeBoard">
+          {[1, 2, 3, 4, 5].map((tier) => (
+            tiers[tier] && tiers[tier].length > 0 && (
+              <TierColumn key={tier} tier={tier} players={tiers[tier]} modeName={mode} />
+            )
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
  const RANK_POINTS = {
     LT5: 1, HT5: 2, LT4: 3, HT4: 4,
     LT3: 6, HT3: 10, LT2: 16, HT2: 28,
@@ -89,6 +278,8 @@ export default function Page() {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [tierBoardMode, setTierBoardMode] = useState(null);
+  const [showTierBoard, setShowTierBoard] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -112,54 +303,125 @@ export default function Page() {
     return () => { alive = false; clearInterval(t); };
   }, []);
 
-  const leaderboard = useMemo(() => {
-    const rows = tests
-      .map((r) => ({
-        id: r?.id,
-        username: String(r?.username || "").trim(),
-        gamemode: String(r?.gamemode || "").trim(),
-        rank: String(r?.rank || "").trim(),
-        points: r?.points != null
-          ? safeInt(r.points, 0)
-          : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
-        created_at: r?.created_at ? String(r.created_at) : "",
-      }))
-      .filter((r) => r.username && r.gamemode && r.rank);
+   const leaderboard = useMemo(() => {
+     const rows = tests
+       .map((r) => ({
+         id: r?.id,
+         username: String(r?.username || "").trim(),
+         gamemode: String(r?.gamemode || "").trim(),
+         rank: String(r?.rank || "").trim(),
+         points: r?.points != null
+           ? safeInt(r.points, 0)
+           : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
+         created_at: r?.created_at ? String(r.created_at) : "",
+       }))
+       .filter((r) => r.username && r.gamemode && r.rank);
 
-    const latestByUserMode = new Map();
-    for (const r of rows) {
-      const key = `${r.username}__${r.gamemode}`;
-      const prev = latestByUserMode.get(key);
-      if (!prev) { latestByUserMode.set(key, r); continue; }
-      const prevTime = prev.created_at ? Date.parse(prev.created_at) : 0;
-      const curTime = r.created_at ? Date.parse(r.created_at) : 0;
-      if (curTime > prevTime) latestByUserMode.set(key, r);
-      else if (curTime === prevTime && safeInt(r.id, 0) > safeInt(prev.id, 0))
-        latestByUserMode.set(key, r);
-    }
+     const latestByUserMode = new Map();
+     for (const r of rows) {
+       const key = `${r.username}__${r.gamemode}`;
+       const prev = latestByUserMode.get(key);
+       if (!prev) { latestByUserMode.set(key, r); continue; }
+       const prevTime = prev.created_at ? Date.parse(prev.created_at) : 0;
+       const curTime = r.created_at ? Date.parse(r.created_at) : 0;
+       if (curTime > prevTime) latestByUserMode.set(key, r);
+       else if (curTime === prevTime && safeInt(r.id, 0) > safeInt(prev.id, 0))
+         latestByUserMode.set(key, r);
+     }
 
-    const latestRows = Array.from(latestByUserMode.values());
-    const filteredByMode = activeMode === "Összes"
-      ? latestRows
-      : latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
+     const latestRows = Array.from(latestByUserMode.values());
+     const filteredByMode = activeMode === "Összes"
+       ? latestRows
+       : latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
 
-    const byUser = new Map();
-    for (const r of filteredByMode) {
-      if (!byUser.has(r.username)) byUser.set(r.username, []);
-      byUser.get(r.username).push(r);
-    }
+     const byUser = new Map();
+     for (const r of filteredByMode) {
+       if (!byUser.has(r.username)) byUser.set(r.username, []);
+       byUser.get(r.username).push(r);
+     }
 
-    const players = Array.from(byUser.entries()).map(([username, entries]) => {
-      entries.sort((a, b) => a.gamemode.localeCompare(b.gamemode));
-      const total = entries.reduce((sum, e) => sum + safeInt(e.points, 0), 0);
-      return { username, entries, total };
-    });
+     const players = Array.from(byUser.entries()).map(([username, entries]) => {
+       entries.sort((a, b) => a.gamemode.localeCompare(b.gamemode));
+       const total = entries.reduce((sum, e) => sum + safeInt(e.points, 0), 0);
+       return { username, entries, total };
+     });
 
-    const q = query.trim().toLowerCase();
-    const searched = !q ? players : players.filter((p) => p.username.toLowerCase().includes(q));
-    searched.sort((a, b) => b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username));
-    return searched;
-  }, [tests, activeMode, query]);
+     const q = query.trim().toLowerCase();
+     const searched = !q ? players : players.filter((p) => p.username.toLowerCase().includes(q));
+     searched.sort((a, b) => b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username));
+     return searched;
+   }, [tests, activeMode, query]);
+
+   // Compute players for a specific mode (for tier board)
+   const modePlayers = useMemo(() => {
+     if (!tierBoardMode) return [];
+     const rows = tests
+       .map((r) => ({
+         id: r?.id,
+         username: String(r?.username || "").trim(),
+         gamemode: String(r?.gamemode || "").trim(),
+         rank: String(r?.rank || "").trim(),
+         points: r?.points != null
+           ? safeInt(r.points, 0)
+           : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
+         created_at: r?.created_at ? String(r.created_at) : "",
+       }))
+       .filter((r) => r.username && r.gamemode && r.rank);
+
+     const latestByUserMode = new Map();
+     for (const r of rows) {
+       const key = `${r.username}__${r.gamemode}`;
+       const prev = latestByUserMode.get(key);
+       if (!prev) { latestByUserMode.set(key, r); continue; }
+       const prevTime = prev.created_at ? Date.parse(prev.created_at) : 0;
+       const curTime = r.created_at ? Date.parse(r.created_at) : 0;
+       if (curTime > prevTime) latestByUserMode.set(key, r);
+       else if (curTime === prevTime && safeInt(r.id, 0) > safeInt(prev.id, 0))
+         latestByUserMode.set(key, r);
+     }
+
+     const latestRows = Array.from(latestByUserMode.values());
+     const filtered = tierBoardMode === "Összes"
+       ? latestRows
+       : latestRows.filter((r) => r.gamemode.toLowerCase() === tierBoardMode.toLowerCase());
+
+     // Return list of player records with username and rank
+     return filtered.map(r => ({
+       username: r.username,
+       rank: r.rank,
+     }));
+   }, [tests, tierBoardMode]);
+
+   const openTierBoard = (mode) => {
+     setTierBoardMode(mode);
+     setShowTierBoard(true);
+   };
+
+   const closeTierBoard = () => {
+     setShowTierBoard(false);
+     setTimeout(() => setTierBoardMode(null), 300);
+   };
+
+   // Add keyboard listener for Escape key
+   useEffect(() => {
+     const handleKeyDown = (e) => {
+       if (e.key === "Escape" && showTierBoard) {
+         closeTierBoard();
+       }
+     };
+     window.addEventListener("keydown", handleKeyDown);
+     return () => window.removeEventListener("keydown", handleKeyDown);
+   }, [showTierBoard]);
+
+   // Lock body scroll when modal open
+   useEffect(() => {
+     if (showTierBoard) {
+       document.body.style.overflow = "hidden";
+     } else {
+       document.body.style.overflow = "";
+     }
+     return () => { document.body.style.overflow = ""; };
+   }, [showTierBoard]);
 
   const floatingEggs = EASTER_MODE
     ? Array.from({ length: 18 }, (_, i) => ({
@@ -230,7 +492,11 @@ export default function Page() {
               <a
                 key={m}
                 className={`tabBtn ${activeMode === m ? "active" : ""}`}
-                onClick={() => setActiveMode(m)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveMode(m);
+                  openTierBoard(m);
+                }}
                 role="button"
                 tabIndex={0}
               >
@@ -352,11 +618,19 @@ export default function Page() {
                 )}
               </React.Fragment>
             ))
-          )}
-        </div>
-      </main>
+           )}
+         </div>
+       </main>
 
-      <footer className="pageFooter">
+       {/* Tier Board Modal */}
+       <TierBoardModal
+         isOpen={showTierBoard}
+         mode={tierBoardMode}
+         players={modePlayers}
+         onClose={closeTierBoard}
+       />
+
+       <footer className="pageFooter">
         <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
       </footer>
 
@@ -665,6 +939,177 @@ export default function Page() {
 
         .tierBadge:hover .tierTooltip {
           display: flex;
+        }
+
+        /* ===== TIER BOARD MODAL ===== */
+        .tierBoardModal {
+          position: fixed; inset: 0;
+          display: flex; align-items: center; justify-content: center;
+          z-index: 9999;
+          animation: fadeIn 0.2s ease;
+          padding: 20px;
+        }
+
+        .tierBoardContent {
+          background: var(--card);
+          border: 2px solid var(--border);
+          border-radius: 16px;
+          max-width: 95vw;
+          max-height: 90vh;
+          overflow: auto;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+          animation: scaleIn 0.25s ease;
+        }
+
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+
+        .tierBoardHeader {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 20px 24px;
+          border-bottom: 1px solid var(--border);
+          position: sticky; top: 0;
+          background: var(--card);
+          z-index: 10;
+        }
+
+        .tierBoardTitle {
+          font-size: 24px;
+          font-weight: 800;
+          color: var(--text);
+          margin: 0;
+        }
+
+        .tierBoardClose {
+          width: 40px; height: 40px;
+          display: flex; align-items: center; justify-content: center;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          color: var(--muted);
+          cursor: pointer;
+          transition: all 0.15s;
+          padding: 0;
+        }
+
+        .tierBoardClose:hover {
+          background: rgba(255,255,255,0.1);
+          color: var(--text);
+          border-color: rgba(255,255,255,0.2);
+        }
+
+        .modeBoard {
+          padding: 16px 24px 24px;
+        }
+
+        .modeTierColumn {
+          margin-bottom: 16px;
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          overflow: hidden;
+          background: var(--column-surface);
+        }
+
+        .modeTierHead {
+          display: flex; align-items: center; gap: 8px;
+          padding: 12px 16px;
+          background: rgba(0,0,0,0.2);
+          border-bottom: 1px solid var(--border);
+        }
+
+        .modeTierHeadIcon {
+          width: 22px; height: 22px;
+          flex-shrink: 0;
+        }
+
+        .modeTierHead span {
+          font-size: 15px;
+          font-weight: 700;
+          color: var(--column-accent);
+        }
+
+        .modeTierList {
+          display: flex; flex-wrap: wrap; gap: 8px;
+          padding: 12px;
+        }
+
+        .modeTierPlayer {
+          display: flex; align-items: center; gap: 8px;
+          padding: 8px 12px;
+          border-radius: 8px;
+          background: var(--mode-player-surface);
+          border: 1px solid transparent;
+          cursor: pointer;
+          transition: all 0.15s;
+          min-width: fit-content;
+        }
+
+        .modeTierPlayer:hover {
+          background: var(--mode-player-surface-hover);
+          border-color: var(--player-accent);
+        }
+
+        .modeTierSkin {
+          width: 38px; height: 38px;
+          border-radius: 6px;
+          image-rendering: pixelated;
+          background: rgba(255,255,255,0.1);
+        }
+
+        .modeTierName {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text);
+          max-width: 120px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .modeTierRank {
+          font-size: 11px;
+          font-weight: 800;
+          color: var(--player-rank-text);
+          background: var(--player-rank-surface);
+          padding: 4px 8px;
+          border-radius: 6px;
+          border: 1px solid var(--player-rank-border);
+        }
+
+        @media (max-width: 768px) {
+          .tierBoardContent {
+            max-width: 100vw;
+            max-height: 85vh;
+            border-radius: 12px;
+          }
+
+          .tierBoardHeader {
+            padding: 16px;
+          }
+
+          .tierBoardTitle {
+            font-size: 18px;
+          }
+
+          .modeBoard {
+            padding: 12px;
+          }
+
+          .modeTierList {
+            gap: 6px;
+            padding: 8px;
+          }
+
+          .modeTierPlayer {
+            padding: 6px 10px;
+          }
+
+          .modeTierName {
+            max-width: 80px;
+            font-size: 12px;
+          }
         }
 
         /* ===== EMPTY ===== */
