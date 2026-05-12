@@ -435,190 +435,89 @@ export default function Page() {
       }))
     : [];
 
-  return (
-    <div className="page">
-      <div className="bg" />
+   return (
+     <div className="page">
+       <div className="bg" />
 
-      {EASTER_MODE && (
-        <div className="easterEggsContainer">
-          {floatingEggs.map((egg) => (
-            <span key={egg.key} className="floatingEgg" style={egg.style}>{egg.emoji}</span>
-          ))}
-        </div>
-      )}
+       {EASTER_MODE && (
+         <div className="easterEggsContainer">
+           {floatingEggs.map((egg) => (
+             <span key={egg.key} className="floatingEgg" style={egg.style}>{egg.emoji}</span>
+           ))}
+         </div>
+       )}
 
-      <div style={{ paddingTop: "1rem" }} />
+       <div style={{ paddingTop: "1rem" }} />
 
-      {/* Navbar */}
-      <header className="navbar">
-        <nav className="navInner">
-          <a className="navLogo" href="/">
-            {EASTER_MODE ? "🐰 NeonTiers" : "NeonTiers"}
-          </a>
-          <ul className="navLinks">
-            <li>
-              <a className="navLink active" href="/">
-                <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/></svg>
-                Főoldal
-              </a>
-            </li>
-            <li>
-              <a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-                <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>
-                Discord
-              </a>
-            </li>
-          </ul>
-          <span className="searchWrap">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
-            <input
-              className="searchInput"
-              placeholder="Játékos keresése..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              spellCheck={false}
-            />
-            <kbd className="searchKbd">/</kbd>
-          </span>
-        </nav>
-      </header>
+       {/* Navbar */}
+       <header className="navbar">
+         <nav className="navInner">
+           <a className="navLogo" href="/">
+             {EASTER_MODE ? "🐰 NeonTiers" : "NeonTiers"}
+           </a>
+           <ul className="navLinks">
+             <li>
+               <a className="navLink active" href="/">
+                 <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/></svg>
+                 Főoldal
+               </a>
+             </li>
+             <li>
+               <a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
+                 <svg viewBox="0 0 16 16" width="18" height="18" fill="currentColor"><path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/></svg>
+                 Discord
+               </a>
+             </li>
+           </ul>
+           <span className="searchWrap">
+             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/></svg>
+             <input
+               className="searchInput"
+               placeholder="Játékos keresése..."
+               value={query}
+               onChange={(e) => setQuery(e.target.value)}
+               spellCheck={false}
+             />
+             <kbd className="searchKbd">/</kbd>
+           </span>
+         </nav>
+       </header>
 
-      {/* Main card with tabs - mctiers.com: mt-28, rounded-xl, border-2 */}
-      <main className="mainWrap">
-        <div className="mainCard">
-          {/* Mode tabs - absolute positioned, bottom-full, overlapping card */}
-          <section className="tabRow">
-            {MODE_LIST.map((m) => (
-              <a
-                key={m}
-                className={`tabBtn ${activeMode === m ? "active" : ""}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActiveMode(m);
-                  openTierBoard(m);
-                }}
-                role="button"
-                tabIndex={0}
-              >
-                {MODE_ICONS[m] && (
-                  <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={24} height={24} />
-                )}
-                <strong className="tabLabel">{m}</strong>
-                {activeMode === m && <span className="tabActiveLine" />}
-              </a>
-            ))}
-          </section>
+       {/* Main card with mode tabs */}
+       <main className="mainWrap">
+         <div className="mainCard">
+           {/* Mode tabs - clicking opens tier board modal */}
+           <section className="tabRow">
+             {MODE_LIST.map((m) => (
+               <a
+                 key={m}
+                 className={`tabBtn ${activeMode === m ? "active" : ""}`}
+                 onClick={(e) => {
+                   e.preventDefault();
+                   setActiveMode(m);
+                   openTierBoard(m);
+                 }}
+                 role="button"
+                 tabIndex={0}
+               >
+                 {MODE_ICONS[m] && (
+                   <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={24} height={24} />
+                 )}
+                 <strong className="tabLabel">{m}</strong>
+                 {activeMode === m && <span className="tabActiveLine" />}
+               </a>
+             ))}
+           </section>
 
-          {/* Info bar */}
-          <div className="infoBar">
-            <span className="infoText">{EASTER_MODE ? "🐰 Húsvéti ranglista" : "Ranglista"}</span>
-          </div>
-
-          {/* Column headers - mctiers.com grid */}
-          <div className="colHead">
-            <span className="colHash">#</span>
-            <span className="colPlayer">Játékos</span>
-            <span className="colTiers">Tierek</span>
-          </div>
-
-          {/* Player rows */}
-          {loading ? (
-            <div className="emptyState">
-              <div className="emptyTitle">Betöltés...</div>
-              <div className="emptySub">Kérlek várj.</div>
-            </div>
-          ) : leaderboard.length === 0 ? (
-            <div className="emptyState">
-              <div className="emptyTitle">Nincs adat</div>
-              <div className="emptySub">Még nincs mentett teszt eredmény.</div>
-            </div>
-          ) : (
-            leaderboard.map((p, idx) => (
-              <React.Fragment key={p.username}>
-                <div
-                  className={`playerRow ${selectedPlayer === p.username ? "playerRowSelected" : ""}`}
-                  onClick={() => setSelectedPlayer(selectedPlayer === p.username ? null : p.username)}
-                  style={{ cursor: "pointer" }}
-                >
-                  <span className="rowNum">{idx + 1}</span>
-                  <img
-                    className="playerSkin"
-                    src={skinUrl(p.username)}
-                    alt={p.username}
-                    width={44}
-                    height={44}
-                  />
-                  <span className="playerName">{p.username}</span>
-                  <span className="rowTiers">
-                    {p.entries.map((r) => {
-                      const tier = tierFromRank(r.rank);
-                      const color = tierColor(tier);
-                      const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
-                      return (
-                        <span className="tierBadge" key={`${r.gamemode}:${r.rank}`} style={{ color }} title={`${displayMode(r.gamemode)} ${r.rank} — ${pts} pont`}>
-                          {MODE_ICONS[displayMode(r.gamemode)] && (
-                            <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={28} height={28} />
-                          )}
-                          <span className="tierLabel">{r.rank}</span>
-                          <span className="tierTooltip">
-                            {displayMode(r.gamemode)} {r.rank}
-                            <span className="tierTooltipPts">{pts} pont</span>
-                          </span>
-                        </span>
-                      );
-                    })}
-                  </span>
-                </div>
-
-                {/* Expanded player detail */}
-                {selectedPlayer === p.username && (
-                  <div className="playerDetail">
-                    <div className="detailLeft">
-                      <img
-                        className="detailSkin"
-                        src={`https://mc-heads.net/body/${encodeURIComponent(p.username)}/80`}
-                        alt={p.username}
-                        width={50}
-                        height={100}
-                      />
-                    </div>
-                    <div className="detailRight">
-                      <div className="detailUsername">{p.username}</div>
-                      <div className="detailStats">
-                        <div className="detailStat">
-                          <span className="detailStatValue">{p.total}</span>
-                          <span className="detailStatLabel">Pont</span>
-                        </div>
-                        <div className="detailStat">
-                          <span className="detailStatValue">{p.entries.length}</span>
-                          <span className="detailStatLabel">Rang</span>
-                        </div>
-                        <div className="detailStat">
-                          <span className="detailStatValue">#{idx + 1}</span>
-                          <span className="detailStatLabel">Helyezés</span>
-                        </div>
-                      </div>
-                      <div className="detailTiers">
-                        {p.entries.map((r) => {
-                          const tier = tierFromRank(r.rank);
-                          const color = tierColor(tier);
-                          return (
-                            <div className="detailTier" key={`${r.gamemode}:${r.rank}`}>
-                              {MODE_ICONS[displayMode(r.gamemode)] && (
-                                <img className="detailTierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={24} height={24} />
-                              )}
-                              <span className="detailTierMode">{displayMode(r.gamemode)}</span>
-                              <span className="detailTierRank" style={{ color }}>{r.rank}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </React.Fragment>
-            ))
-           )}
+           {/* Info bar showing current mode */}
+           <div className="infoBar">
+             <span className="infoText">
+               {EASTER_MODE ? "🐰 " : ""}
+               {activeMode === "Összes"
+                 ? "Minden gamemode összesítve"
+                 : displayMode(activeMode) + " gamemode ranglista"}
+             </span>
+           </div>
          </div>
        </main>
 
@@ -779,340 +678,7 @@ export default function Page() {
           font-size: 14px; font-weight: 600; color: var(--muted);
         }
 
-        /* ===== COLUMN HEADERS ===== */
-        .colHead {
-          display: grid; grid-template-columns: 50px 48px 1fr auto;
-          gap: 16px; padding: 10px 20px;
-          font-size: 12px; font-weight: 700; text-transform: uppercase;
-          letter-spacing: 0.08em; color: var(--muted);
-        }
-
-        .colHash { text-align: center; }
-        .colPlayer { grid-column: 3; text-align: left; }
-        .colTiers { text-align: right; min-width: 240px; }
-
-        /* ===== PLAYER ROWS ===== */
-        .playerRow {
-          display: grid; grid-template-columns: 50px 48px 1fr auto;
-          gap: 16px; align-items: center;
-          padding: 16px 20px; border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.06);
-          margin-bottom: 6px;
-          transition: all 0.2s ease;
-        }
-
-        .playerRow:hover {
-          background: rgba(255,255,255,0.04);
-          border-color: rgba(255,255,255,0.14);
-          transform: scale(1.01);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,92,246,0.15);
-        }
-
-        .playerRowSelected {
-          background: rgba(139,92,246,0.08);
-          border-color: rgba(139,92,246,0.25);
-          margin-bottom: 0;
-        }
-
-        /* ===== PLAYER DETAIL ===== */
-        .playerDetail {
-          display: flex; gap: 20px; padding: 16px 20px 20px 134px;
-          background: rgba(139,92,246,0.05);
-          border-bottom: 1px solid rgba(255,255,255,0.04);
-          border-radius: 0 0 10px 10px;
-          animation: slideDown 0.15s ease;
-        }
-
-        @keyframes slideDown {
-          from { opacity: 0; transform: translateY(-8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .detailLeft {
-          flex-shrink: 0;
-        }
-
-        .detailSkin {
-          image-rendering: pixelated;
-          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
-        }
-
-        .detailRight {
-          display: flex; flex-direction: column; gap: 12px; min-width: 0;
-        }
-
-        .detailUsername {
-          font-size: 22px; font-weight: 700; color: var(--text);
-        }
-
-        .detailStats {
-          display: flex; gap: 24px;
-        }
-
-        .detailStat {
-          display: flex; flex-direction: column; gap: 2px;
-        }
-
-        .detailStatValue {
-          font-size: 20px; font-weight: 800; color: var(--text);
-        }
-
-        .detailStatLabel {
-          font-size: 11px; font-weight: 600; color: var(--muted);
-          text-transform: uppercase; letter-spacing: 0.06em;
-        }
-
-        .detailTiers {
-          display: flex; flex-wrap: wrap; gap: 8px;
-        }
-
-        .detailTier {
-          display: flex; align-items: center; gap: 8px;
-          padding: 6px 12px; border-radius: 8px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .detailTierIcon {
-          width: 24px; height: 24px;
-        }
-
-        .detailTierMode {
-          font-size: 13px; font-weight: 600; color: var(--muted);
-        }
-
-        .detailTierRank {
-          font-size: 13px; font-weight: 800;
-        }
-
-        .rowNum {
-          text-align: center; font-size: 18px; font-weight: 700;
-          color: var(--muted);
-        }
-
-        .playerSkin {
-          width: 44px; height: 44px; border-radius: 8px;
-          image-rendering: pixelated;
-          background: rgba(255,255,255,0.06);
-        }
-
-        .playerName {
-          font-size: 20px; font-weight: 600; color: var(--text);
-          overflow: visible; white-space: nowrap;
-        }
-
-        .rowTiers {
-          display: flex; flex-wrap: wrap; gap: 8px;
-          justify-content: flex-end; align-items: center;
-        }
-
-        .tierBadge {
-          display: inline-flex; flex-direction: column; align-items: center;
-          gap: 4px; padding: 8px 12px;
-          border-radius: 10px; background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.1);
-          min-width: 52px; position: relative; cursor: default;
-        }
-
-        .tierIcon {
-          width: 28px; height: 28px;
-        }
-
-        .tierLabel {
-          font-size: 12px; font-weight: 800; text-transform: uppercase;
-        }
-
-        .tierTooltip {
-          display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
-          transform: translateX(-50%); white-space: nowrap;
-          background: rgba(20,20,30,0.95); border: 1px solid rgba(255,255,255,0.12);
-          border-radius: 8px; padding: 8px 12px;
-          font-size: 12px; font-weight: 600; color: var(--text);
-          flex-direction: column; align-items: center; gap: 4px;
-          z-index: 100; pointer-events: none;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-
-        .tierTooltipPts {
-          font-size: 11px; color: var(--muted); font-weight: 700;
-        }
-
-        .tierBadge:hover .tierTooltip {
-          display: flex;
-        }
-
-        /* ===== TIER BOARD MODAL ===== */
-        .tierBoardModal {
-          position: fixed; inset: 0;
-          display: flex; align-items: center; justify-content: center;
-          z-index: 9999;
-          animation: fadeIn 0.2s ease;
-          padding: 20px;
-        }
-
-        .tierBoardContent {
-          background: var(--card);
-          border: 2px solid var(--border);
-          border-radius: 16px;
-          max-width: 95vw;
-          max-height: 90vh;
-          overflow: auto;
-          box-shadow: 0 25px 50px rgba(0,0,0,0.5);
-          animation: scaleIn 0.25s ease;
-        }
-
-        @keyframes scaleIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to { opacity: 1; transform: scale(1); }
-        }
-
-        .tierBoardHeader {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 20px 24px;
-          border-bottom: 1px solid var(--border);
-          position: sticky; top: 0;
-          background: var(--card);
-          z-index: 10;
-        }
-
-        .tierBoardTitle {
-          font-size: 24px;
-          font-weight: 800;
-          color: var(--text);
-          margin: 0;
-        }
-
-        .tierBoardClose {
-          width: 40px; height: 40px;
-          display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          color: var(--muted);
-          cursor: pointer;
-          transition: all 0.15s;
-          padding: 0;
-        }
-
-        .tierBoardClose:hover {
-          background: rgba(255,255,255,0.1);
-          color: var(--text);
-          border-color: rgba(255,255,255,0.2);
-        }
-
-        .modeBoard {
-          padding: 16px 24px 24px;
-        }
-
-        .modeTierColumn {
-          margin-bottom: 16px;
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          overflow: hidden;
-          background: var(--column-surface);
-        }
-
-        .modeTierHead {
-          display: flex; align-items: center; gap: 8px;
-          padding: 12px 16px;
-          background: rgba(0,0,0,0.2);
-          border-bottom: 1px solid var(--border);
-        }
-
-        .modeTierHeadIcon {
-          width: 22px; height: 22px;
-          flex-shrink: 0;
-        }
-
-        .modeTierHead span {
-          font-size: 15px;
-          font-weight: 700;
-          color: var(--column-accent);
-        }
-
-        .modeTierList {
-          display: flex; flex-wrap: wrap; gap: 8px;
-          padding: 12px;
-        }
-
-        .modeTierPlayer {
-          display: flex; align-items: center; gap: 8px;
-          padding: 8px 12px;
-          border-radius: 8px;
-          background: var(--mode-player-surface);
-          border: 1px solid transparent;
-          cursor: pointer;
-          transition: all 0.15s;
-          min-width: fit-content;
-        }
-
-        .modeTierPlayer:hover {
-          background: var(--mode-player-surface-hover);
-          border-color: var(--player-accent);
-        }
-
-        .modeTierSkin {
-          width: 38px; height: 38px;
-          border-radius: 6px;
-          image-rendering: pixelated;
-          background: rgba(255,255,255,0.1);
-        }
-
-        .modeTierName {
-          font-size: 13px;
-          font-weight: 600;
-          color: var(--text);
-          max-width: 120px;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
-
-        .modeTierRank {
-          font-size: 11px;
-          font-weight: 800;
-          color: var(--player-rank-text);
-          background: var(--player-rank-surface);
-          padding: 4px 8px;
-          border-radius: 6px;
-          border: 1px solid var(--player-rank-border);
-        }
-
-        @media (max-width: 768px) {
-          .tierBoardContent {
-            max-width: 100vw;
-            max-height: 85vh;
-            border-radius: 12px;
-          }
-
-          .tierBoardHeader {
-            padding: 16px;
-          }
-
-          .tierBoardTitle {
-            font-size: 18px;
-          }
-
-          .modeBoard {
-            padding: 12px;
-          }
-
-          .modeTierList {
-            gap: 6px;
-            padding: 8px;
-          }
-
-          .modeTierPlayer {
-            padding: 6px 10px;
-          }
-
-          .modeTierName {
-            max-width: 80px;
-            font-size: 12px;
-          }
-        }
-
-        /* ===== EMPTY ===== */
+        /* ===== EMPTY STATE ===== */
         .emptyState { padding: 48px 24px; text-align: center; }
         .emptyTitle { font-size: 16px; font-weight: 700; color: var(--text); }
         .emptySub { margin-top: 6px; font-size: 13px; color: var(--muted); }
@@ -1138,17 +704,16 @@ export default function Page() {
           100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-          .navLinks { display: none; }
-          .searchInput { width: 100px; }
-          .tabBtn { min-width: 72px; padding: 6px 10px; }
-          .tabIcon { width: 24px; height: 24px; }
-          .tabLabel { font-size: 10px; }
-          .colTiers { display: none; }
-          .rowTiers { display: none; }
-          .mainCard { padding: 8px 16px 16px; }
-        }
+         /* Responsive */
+         @media (max-width: 768px) {
+           .navLinks { display: none; }
+           .searchInput { width: 100px; }
+           .tabBtn { min-width: 72px; padding: 6px 10px; }
+           .tabIcon { width: 24px; height: 24px; }
+           .tabLabel { font-size: 10px; }
+           .mainCard { padding: 8px 16px 16px; }
+           .tierBoardContent { max-width: 100vw; max-height: 85vh; }
+         }
       `}</style>
     </div>
   );
