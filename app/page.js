@@ -511,17 +511,122 @@ export default function Page() {
              ))}
            </section>
 
-           {/* Info bar showing current mode */}
-           <div className="infoBar">
-             <span className="infoText">
-               {EASTER_MODE ? "🐰 " : ""}
-               {activeMode === "Összes"
-                 ? "Minden gamemode összesítve"
-                 : displayMode(activeMode) + " gamemode ranglista"}
-             </span>
-           </div>
-         </div>
-       </main>
+            {/* Info bar showing current mode */}
+            <div className="infoBar">
+              <span className="infoText">
+                {EASTER_MODE ? "🐰 " : ""}
+                {activeMode === "Összes"
+                  ? "Minden gamemode összesítve"
+                  : displayMode(activeMode) + " gamemode ranglista"}
+              </span>
+            </div>
+
+            {/* Column headers */}
+            <div className="colHead">
+              <span className="colHash">#</span>
+              <span className="colPlayer">Játékos</span>
+              <span className="colTiers">Tierek</span>
+            </div>
+
+            {/* Player rows */}
+            {loading ? (
+              <div className="emptyState">
+                <div className="emptyTitle">Betöltés...</div>
+                <div className="emptySub">Kérlek várj.</div>
+              </div>
+            ) : leaderboard.length === 0 ? (
+              <div className="emptyState">
+                <div className="emptyTitle">Nincs adat</div>
+                <div className="emptySub">Még nincs mentett teszt eredmény.</div>
+              </div>
+            ) : (
+              leaderboard.map((p, idx) => (
+                <React.Fragment key={p.username}>
+                  <div
+                    className={`playerRow ${selectedPlayer === p.username ? "playerRowSelected" : ""}`}
+                    onClick={() => setSelectedPlayer(selectedPlayer === p.username ? null : p.username)}
+                  >
+                    <span className="rowNum">{idx + 1}</span>
+                    <img
+                      className="playerSkin"
+                      src={skinUrl(p.username)}
+                      alt={p.username}
+                      width={44}
+                      height={44}
+                    />
+                    <span className="playerName">{p.username}</span>
+                    <span className="rowTiers">
+                      {p.entries.map((r) => {
+                        const tier = tierFromRank(r.rank);
+                        const color = tierColor(tier);
+                        const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
+                        return (
+                          <span className="tierBadge" key={`${r.gamemode}:${r.rank}`} style={{ color }} title={`${displayMode(r.gamemode)} ${r.rank} — ${pts} pont`}>
+                            {MODE_ICONS[displayMode(r.gamemode)] && (
+                              <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={28} height={28} />
+                            )}
+                            <span className="tierLabel">{r.rank}</span>
+                            <span className="tierTooltip">
+                              {displayMode(r.gamemode)} {r.rank}
+                              <span className="tierTooltipPts">{pts} pont</span>
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </span>
+                  </div>
+
+                  {/* Expanded player detail */}
+                  {selectedPlayer === p.username && (
+                    <div className="playerDetail">
+                      <div className="detailLeft">
+                        <img
+                          className="detailSkin"
+                          src={`https://mc-heads.net/body/${encodeURIComponent(p.username)}/80`}
+                          alt={p.username}
+                          width={50}
+                          height={100}
+                        />
+                      </div>
+                      <div className="detailRight">
+                        <div className="detailUsername">{p.username}</div>
+                        <div className="detailStats">
+                          <div className="detailStat">
+                            <span className="detailStatValue">{p.total}</span>
+                            <span className="detailStatLabel">Pont</span>
+                          </div>
+                          <div className="detailStat">
+                            <span className="detailStatValue">{p.entries.length}</span>
+                            <span className="detailStatLabel">Rang</span>
+                          </div>
+                          <div className="detailStat">
+                            <span className="detailStatValue">#{idx + 1}</span>
+                            <span className="detailStatLabel">Helyezés</span>
+                          </div>
+                        </div>
+                        <div className="detailTiers">
+                          {p.entries.map((r) => {
+                            const tier = tierFromRank(r.rank);
+                            const color = tierColor(tier);
+                            return (
+                              <div className="detailTier" key={`${r.gamemode}:${r.rank}`}>
+                                {MODE_ICONS[displayMode(r.gamemode)] && (
+                                  <img className="detailTierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={24} height={24} />
+                                )}
+                                <span className="detailTierMode">{displayMode(r.gamemode)}</span>
+                                <span className="detailTierRank" style={{ color }}>{r.rank}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
+              ))
+            )}
+          </div>
+        </main>
 
        {/* Tier Board Modal */}
        <TierBoardModal
@@ -678,6 +783,168 @@ export default function Page() {
 
         .infoText {
           font-size: 14px; font-weight: 600; color: var(--muted);
+        }
+
+        /* ===== LEADERBOARD TABLE ===== */
+        .colHead {
+          display: grid; grid-template-columns: 50px 48px 1fr auto;
+          gap: 16px; padding: 10px 20px;
+          font-size: 12px; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.08em; color: var(--muted);
+        }
+
+        .colHash { text-align: center; }
+        .colPlayer { grid-column: 3; text-align: left; }
+        .colTiers { text-align: right; min-width: 240px; }
+
+        .playerRow {
+          display: grid; grid-template-columns: 50px 48px 1fr auto;
+          gap: 16px; align-items: center;
+          padding: 16px 20px; border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.06);
+          margin-bottom: 6px;
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+
+        .playerRow:hover {
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(255,255,255,0.14);
+          transform: scale(1.01);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3), 0 0 0 1px rgba(139,92,246,0.15);
+        }
+
+        .playerRowSelected {
+          background: rgba(139,92,246,0.08);
+          border-color: rgba(139,92,246,0.25);
+          margin-bottom: 0;
+        }
+
+        .rowNum {
+          text-align: center; font-size: 18px; font-weight: 700;
+          color: var(--muted);
+        }
+
+        .playerSkin {
+          width: 44px; height: 44px; border-radius: 8px;
+          image-rendering: pixelated;
+          background: rgba(255,255,255,0.06);
+        }
+
+        .playerName {
+          font-size: 20px; font-weight: 600; color: var(--text);
+          overflow: visible; white-space: nowrap;
+        }
+
+        .rowTiers {
+          display: flex; flex-wrap: wrap; gap: 8px;
+          justify-content: flex-end; align-items: center;
+        }
+
+        .tierBadge {
+          display: inline-flex; flex-direction: column; align-items: center;
+          gap: 4px; padding: 8px 12px;
+          border-radius: 10px; background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          min-width: 52px; position: relative; cursor: default;
+        }
+
+        .tierIcon {
+          width: 28px; height: 28px;
+        }
+
+        .tierLabel {
+          font-size: 12px; font-weight: 800; text-transform: uppercase;
+        }
+
+        .tierTooltip {
+          display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+          transform: translateX(-50%); white-space: nowrap;
+          background: rgba(20,20,30,0.95); border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 8px; padding: 8px 12px;
+          font-size: 12px; font-weight: 600; color: var(--text);
+          flex-direction: column; align-items: center; gap: 4px;
+          z-index: 100; pointer-events: none;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        .tierTooltipPts {
+          font-size: 11px; color: var(--muted); font-weight: 700;
+        }
+
+        .tierBadge:hover .tierTooltip {
+          display: flex;
+        }
+
+        /* ===== PLAYER DETAIL ===== */
+        .playerDetail {
+          display: flex; gap: 20px; padding: 16px 20px 20px 134px;
+          background: rgba(139,92,246,0.05);
+          border-bottom: 1px solid rgba(255,255,255,0.04);
+          border-radius: 0 0 10px 10px;
+          animation: slideDown 0.15s ease;
+        }
+
+        @keyframes slideDown {
+          from { opacity: 0; transform: translateY(-8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .detailLeft {
+          flex-shrink: 0;
+        }
+
+        .detailSkin {
+          image-rendering: pixelated;
+          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+        }
+
+        .detailRight {
+          display: flex; flex-direction: column; gap: 12px; min-width: 0;
+        }
+
+        .detailUsername {
+          font-size: 22px; font-weight: 700; color: var(--text);
+        }
+
+        .detailStats {
+          display: flex; gap: 24px;
+        }
+
+        .detailStat {
+          display: flex; flex-direction: column; gap: 2px;
+        }
+
+        .detailStatValue {
+          font-size: 20px; font-weight: 800; color: var(--text);
+        }
+
+        .detailStatLabel {
+          font-size: 11px; font-weight: 600; color: var(--muted);
+          text-transform: uppercase; letter-spacing: 0.06em;
+        }
+
+        .detailTiers {
+          display: flex; flex-wrap: wrap; gap: 8px;
+        }
+
+        .detailTier {
+          display: flex; align-items: center; gap: 8px;
+          padding: 6px 12px; border-radius: 8px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .detailTierIcon {
+          width: 24px; height: 24px;
+        }
+
+        .detailTierMode {
+          font-size: 13px; font-weight: 600; color: var(--muted);
+        }
+
+        .detailTierRank {
+          font-size: 13px; font-weight: 800;
         }
 
         /* ===== EMPTY STATE ===== */
