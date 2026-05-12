@@ -128,7 +128,6 @@ function ModalBackdrop({ onClose }) {
         .tierBoardBackdrop {
           position: fixed; inset: 0;
           background: rgba(0,0,0,0.7);
-          backdrop-filter: blur(4px);
           z-index: 9998;
           animation: fadeIn 0.2s ease;
         }
@@ -487,19 +486,22 @@ export default function Page() {
        <main className="mainWrap">
          <div className="mainCard">
            {/* Mode tabs - clicking opens tier board modal */}
-           <section className="tabRow">
-             {MODE_LIST.map((m) => (
-               <a
-                 key={m}
-                 className={`tabBtn ${activeMode === m ? "active" : ""}`}
-                 onClick={(e) => {
-                   e.preventDefault();
-                   setActiveMode(m);
-                   openTierBoard(m);
-                 }}
-                 role="button"
-                 tabIndex={0}
-               >
+          <section className="tabRow">
+            {MODE_LIST.map((m) => (
+              <a
+                key={m}
+                className={`tabBtn ${activeMode === m ? "active" : ""}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveMode(m);
+                  // Only open tier board for specific game modes, not "Összes"
+                  if (m !== "Összes") {
+                    openTierBoard(m);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+              >
                  {MODE_ICONS[m] && (
                    <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={24} height={24} />
                  )}
