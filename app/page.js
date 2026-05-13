@@ -117,25 +117,6 @@ function skinUrl(username) {
 
 // ===== TIER BOARD MODAL =====
 
-function ModalBackdrop({ onClose }) {
-  return (
-    <div className="tierBoardBackdrop" onClick={onClose}>
-      <style jsx>{`
-        .tierBoardBackdrop {
-          position: fixed; inset: 0;
-          background: rgba(0, 0, 0, 0.85);
-          z-index: 9998;
-          animation: fadeIn 0.2s ease;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-      `}</style>
-    </div>
-  );
-}
-
 function TierPlayerCard({ player, rank }) {
   const badgeColor = rankBadgeColor(rank);
   const skin = `https://mc-heads.net/avatar/${encodeURIComponent(player.username)}/56`;
@@ -211,9 +192,16 @@ function TierBoardModal({ isOpen, mode, players, onClose }) {
   });
 
   return (
-    <div className="tierBoardModal">
-      <ModalBackdrop onClose={onClose} />
-      <div className="tierBoardContent">
+    <div className="tierBoardModal" onClick={onClose}>
+      <style jsx>{`
+        .tierBoardModal {
+          position: fixed; inset: 0;
+          background: rgba(0, 0, 0, 0.85);
+          z-index: 9998;
+          display: flex; align-items: center; justify-content: center;
+        }
+      `}</style>
+      <div className="tierBoardContent" onClick={(e) => e.stopPropagation()}>
         <div className="tierBoardHeader">
           <h2 className="tierBoardTitle">{displayMode(mode)} Ranglista</h2>
           <button className="tierBoardClose" onClick={onClose} aria-label="Bezárás">
@@ -863,9 +851,9 @@ export default function Page() {
         .tierBoardContent {
           background: #0b0d11fa;
           border: 1px solid #ffffff1f;
-          border-radius: 28px;
-          width: min(920px, calc(100vw - 44px));
-          max-height: calc(100vh - 44px);
+          border-radius: 24px;
+          width: min(860px, calc(100vw - 40px));
+          max-height: calc(100vh - 60px);
           position: relative;
           overflow: hidden;
           display: flex; flex-direction: column;
@@ -899,8 +887,8 @@ export default function Page() {
 
         .modeBoard {
           display: grid;
-          grid-template-columns: repeat(5, minmax(220px, 1fr));
-          gap: 12px;
+          grid-template-columns: repeat(5, minmax(180px, 1fr));
+          gap: 10px;
           padding: 2px 2px 8px;
           overflow-x: auto;
           background: transparent;
@@ -909,32 +897,32 @@ export default function Page() {
         .modeBoard { scrollbar-width: none; }
 
         .modeTierColumn {
-          min-width: 220px;
+          min-width: 180px;
           background: #ffffff07;
           border: 1px solid #ffffff12;
-          border-radius: 20px;
+          border-radius: 16px;
           overflow: hidden;
           display: flex; flex-direction: column;
-          content-visibility: auto; contain-intrinsic-size: 480px;
+          content-visibility: auto; contain-intrinsic-size: 400px;
         }
 
         .modeTierHead {
-          display: flex; align-items: center; gap: 10px;
+          display: flex; align-items: center; gap: 8px;
           justify-content: center;
-          padding: 0 18px;
-          min-height: 56px;
+          padding: 0 14px;
+          min-height: 48px;
           background: var(--column-surface);
           color: var(--column-accent);
-          font-size: 18px; font-weight: 900;
+          font-size: 16px; font-weight: 900;
           letter-spacing: -0.02em;
           border-bottom: 1px solid #ffffff0f;
         }
         .modeTierHeadIcon {
-          flex-shrink: 0; width: 22px; height: 22px;
+          flex-shrink: 0; width: 20px; height: 20px;
           fill: currentColor;
         }
         .modeTierNumber {
-          font-size: 24px; font-weight: 900;
+          font-size: 20px; font-weight: 900;
           letter-spacing: -0.02em;
         }
 
