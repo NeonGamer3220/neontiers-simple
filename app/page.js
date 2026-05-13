@@ -285,10 +285,36 @@ export default function Page() {
             <kbd className="searchKbd">/</kbd>
           </span>
         </nav>
-      </header>
+       </header>
 
-      {/* Main content */}
-      <main className="mainWrap">
+       {/* Gamemode tabs */}
+       <div className="tabsWrap">
+         <div className="tabsScroller">
+           <div className="tabRow">
+             {MODE_LIST.map((m) => (
+               <button
+                 key={m}
+                 className={`tabBtn ${activeMode === m ? "active" : ""}`}
+                 onClick={() => {
+                   setActiveMode(m);
+                   openTierBoard(m);
+                 }}
+                 aria-pressed={activeMode === m}
+                 type="button"
+               >
+                 {MODE_ICONS[m] && (
+                   <img className="tabIcon" src={MODE_ICONS[m]} alt={`${m} ikon`} width={30} height={30} loading="lazy" decoding="async" />
+                 )}
+                 <span className="tabLabel">{m}</span>
+                 {activeMode === m && <span className="tabActiveLine" />}
+               </button>
+             ))}
+           </div>
+         </div>
+       </div>
+
+       {/* Main content */}
+       <main className="mainWrap">
         <div className="mainCard">
            {/* Info bar */}
            <div className="infoBar">
@@ -308,35 +334,9 @@ export default function Page() {
             <span className="colSkinSpacer" aria-hidden="true"></span>
             <span className="colPlayer">Játékos</span>
             <span className="colTiers">Tierek</span>
-          </div>
+           </div>
 
-          {/* Tabs */}
-          <div className="tabsWrap">
-            <div className="tabsScroller">
-              <div className="tabRow">
-                {MODE_LIST.map((m) => (
-                  <button
-                    key={m}
-                    className={`tabBtn ${activeMode === m ? "active" : ""}`}
-                    onClick={() => {
-                      setActiveMode(m);
-                      openTierBoard(m);
-                    }}
-                    aria-pressed={activeMode === m}
-                    type="button"
-                  >
-                    {MODE_ICONS[m] && (
-                      <img className="tabIcon" src={MODE_ICONS[m]} alt={`${m} ikon`} width={30} height={30} loading="lazy" decoding="async" />
-                    )}
-                    <span className="tabLabel">{m}</span>
-                    {activeMode === m && <span className="tabActiveLine" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Player rows */}
+           {/* Player rows */}
           {loading ? (
             <div className="emptyState">
               <div className="emptyTitle">Betöltés...</div>
