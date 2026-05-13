@@ -976,6 +976,8 @@ export default function Page() {
            justify-content: center;
            z-index: 99999;
            padding: 40px 20px;
+           background: rgba(0, 0, 0, 0.85);
+           backdrop-filter: blur(4px);
          }
 
          .tierBoardContent {
