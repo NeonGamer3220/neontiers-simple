@@ -735,12 +735,12 @@ export default function Page() {
           height: 28px;
         }
 
-        .tabLabel {
-          font-size: 10px;
-          font-weight: 800;
-          letter-spacing: 0.04em;
-          white-space: nowrap;
-        }
+         .tabLabel {
+           font-size: 9px;
+           font-weight: 800;
+           letter-spacing: 0.02em;
+           white-space: nowrap;
+         }
 
          .tabActiveLine {
            position: absolute;
@@ -1226,7 +1226,7 @@ export default function Page() {
            .tabBtn { min-width: 76px; padding: 9px 8px 8px; }
            .tabActiveLine { left: 8px; right: 8px; }
            .tabIcon { width: 24px; height: 24px; }
-           .tabLabel { font-size: 9px; letter-spacing: 0.03em; }
+            .tabLabel { font-size: 9px; letter-spacing: 0.02em; }
            .mainCard { border-radius: 22px; padding: 16px 14px 18px; }
            .tierBoardContent { max-width: 100vw; max-height: 85vh; }
          }
