@@ -60,11 +60,6 @@ function tierFromRank(rank) {
   return Number(m[2]);
 }
 
-function tierLabel(rank) {
-  const t = tierFromRank(rank);
-  return t ? `Tier ${t}` : rank;
-}
-
 function rankBadgeColor(rank) {
   if (!rank) return "#888d95";
   const r = rank.toUpperCase();
@@ -410,9 +405,9 @@ export default function Page() {
                             decoding="async"
                           />
                         )}
-                         <span className="tierLabel">{tierLabel(r.rank)}</span>
+                         <span className="tierLabel">{r.rank}</span>
                          <span className="tierTooltip" aria-hidden="true">
-                           <span className="tierTooltipRank">{tierLabel(r.rank)}</span>
+                           <span className="tierTooltipRank">{r.rank}</span>
                            <span>{pts} pont</span>
                          </span>
                       </span>
@@ -472,7 +467,7 @@ export default function Page() {
                     }}>
                       <header className="modeTierHead">
                         <span className="modeTierHeadIcon">{tierIcons[t]}</span>
-                        <span className="modeTierNumber">Tier {t}</span>
+                        <span className="modeTierNumber">{t}</span>
                       </header>
                       <div className="modeTierList">
                         {tiers[t].map((p, i) => {
@@ -502,7 +497,7 @@ export default function Page() {
                                 referrerPolicy="no-referrer"
                               />
                               <span className="modeTierName">{p.username}</span>
-                               <span className="modeTierRank">{tierLabel(p.rank)}</span>
+                               <span className="modeTierRank">{p.rank}</span>
                             </button>
                           );
                         })}
