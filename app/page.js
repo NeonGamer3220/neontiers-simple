@@ -590,8 +590,8 @@ export default function Page() {
 
         /* Navbar */
         .navbar {
-          width: 100%; max-width: 1480px; margin: 0 auto;
-          padding: 18px 20px 0;
+          width: 100%; max-width: 1200px; margin: 0 auto;
+          padding: 18px 16px 0;
         }
 
         .navInner {
@@ -646,8 +646,8 @@ export default function Page() {
 
         /* Main card */
         .mainWrap {
-          max-width: 1480px; margin: 0 auto;
-          padding: 0 20px;
+          max-width: 1200px; margin: 0 auto;
+          padding: 0 16px;
           position: relative;
         }
 
@@ -656,7 +656,7 @@ export default function Page() {
           border: 1px solid var(--border);
           border-radius: 24px;
           padding: 22px 28px 28px;
-          margin-top: 68px;
+          margin-top: 42px;
           position: relative;
           box-shadow: 0 24px 72px #00000061;
           overflow: visible;
@@ -851,31 +851,29 @@ export default function Page() {
         .tierBoardContent {
           background: #0b0d11fa;
           border: 1px solid #ffffff1f;
-          border-radius: 24px;
-          width: min(860px, calc(100vw - 40px));
-          max-height: calc(100vh - 60px);
+          border-radius: 20px;
+          width: min(760px, calc(100vw - 36px));
+          max-height: calc(100vh - 100px);
           position: relative;
           overflow: hidden;
           display: flex; flex-direction: column;
-          box-shadow: 0 28px 90px #00000075;
+          box-shadow: 0 24px 72px #00000075;
           animation: modalSlideIn 0.25s ease;
         }
 
         .tierBoardHeader {
           display: flex; align-items: center; justify-content: space-between;
-          padding: 20px 28px;
+          padding: 14px 20px;
           border-bottom: 1px solid rgba(255,255,255,0.08);
           background: rgba(255,255,255,0.02);
         }
-
         .tierBoardTitle {
-          font-size: 22px; font-weight: 800; color: var(--text);
+          font-size: 18px; font-weight: 800; color: var(--text);
           margin: 0;
         }
-
         .tierBoardClose {
-          position: absolute; top: 16px; right: 16px;
-          width: 40px; height: 40px;
+          position: absolute; top: 12px; right: 12px;
+          width: 36px; height: 36px;
           border: none; border-radius: 999px;
           background: #ffffff14; color: #ffffffc2;
           cursor: pointer; display: inline-flex;
@@ -883,13 +881,13 @@ export default function Page() {
           transition: background 0.15s, color 0.15s;
         }
         .tierBoardClose:hover { color: var(--text); background: #ffffff1f; }
-        .tierBoardClose svg { width: 18px; height: 18px; }
+        .tierBoardClose svg { width: 16px; height: 16px; }
 
         .modeBoard {
           display: grid;
-          grid-template-columns: repeat(5, minmax(180px, 1fr));
-          gap: 10px;
-          padding: 2px 2px 8px;
+          grid-template-columns: repeat(5, minmax(150px, 1fr));
+          gap: 8px;
+          padding: 2px 2px 6px;
           overflow-x: auto;
           background: transparent;
         }
@@ -897,32 +895,32 @@ export default function Page() {
         .modeBoard { scrollbar-width: none; }
 
         .modeTierColumn {
-          min-width: 180px;
+          min-width: 150px;
           background: #ffffff07;
           border: 1px solid #ffffff12;
-          border-radius: 16px;
+          border-radius: 14px;
           overflow: hidden;
           display: flex; flex-direction: column;
-          content-visibility: auto; contain-intrinsic-size: 400px;
+          content-visibility: auto; contain-intrinsic-size: 360px;
         }
 
         .modeTierHead {
-          display: flex; align-items: center; gap: 8px;
+          display: flex; align-items: center; gap: 6px;
           justify-content: center;
-          padding: 0 14px;
-          min-height: 48px;
+          padding: 0 12px;
+          min-height: 42px;
           background: var(--column-surface);
           color: var(--column-accent);
-          font-size: 16px; font-weight: 900;
+          font-size: 14px; font-weight: 900;
           letter-spacing: -0.02em;
           border-bottom: 1px solid #ffffff0f;
         }
         .modeTierHeadIcon {
-          flex-shrink: 0; width: 20px; height: 20px;
+          flex-shrink: 0; width: 18px; height: 18px;
           fill: currentColor;
         }
         .modeTierNumber {
-          font-size: 20px; font-weight: 900;
+          font-size: 18px; font-weight: 900;
           letter-spacing: -0.02em;
         }
 
@@ -930,14 +928,14 @@ export default function Page() {
           display: flex; flex-direction: column; gap: 1px;
           padding: 8px;
           overflow-y: auto;
-          max-height: 60vh;
+          max-height: 45vh;
         }
 
         .modeTierPlayer {
           display: grid;
           grid-template-columns: 38px minmax(0,1fr) auto;
           align-items: center; gap: 10px;
-          width: 100%; padding: 8px 12px;
+          width: 100%; padding: 6px 10px;
           background: var(--mode-player-surface, #ffffff08);
           border: 1px solid rgba(255,255,255,0.04);
           border-radius: 8px;
@@ -945,8 +943,8 @@ export default function Page() {
           cursor: pointer;
           transition: background 0.15s, border-color 0.15s;
           position: relative; color: var(--text);
-          font-size: 15px; font-weight: 800;
-          min-height: 54px;
+          font-size: 14px; font-weight: 800;
+          min-height: 46px;
         }
         .modeTierPlayer:hover {
           background: var(--mode-player-surface-hover, #ffffff0e);
@@ -972,12 +970,12 @@ export default function Page() {
         }
 
         .modeTierRank {
-          font-size: 11px; font-weight: 900;
+          font-size: 10px; font-weight: 900;
           color: var(--player-rank-text);
           background: var(--player-rank-surface);
           border: 1px solid var(--player-rank-border);
           border-radius: 999px;
-          padding: 0 8px; min-width: 40px; min-height: 24px;
+          padding: 0 7px; min-width: 36px; min-height: 22px;
           display: inline-flex; justify-content: center; align-items: center;
           flex-shrink: 0;
         }
