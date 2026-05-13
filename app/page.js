@@ -590,7 +590,7 @@ export default function Page() {
 
         /* Navbar */
         .navbar {
-          width: 100%; max-width: 1200px; margin: 0 auto;
+          width: 100%; max-width: 1100px; margin: 0 auto;
           padding: 18px 16px 0;
         }
 
@@ -646,7 +646,7 @@ export default function Page() {
 
         /* Main card */
         .mainWrap {
-          max-width: 1200px; margin: 0 auto;
+          max-width: 1100px; margin: 0 auto;
           padding: 0 16px;
           position: relative;
         }
@@ -656,7 +656,7 @@ export default function Page() {
           border: 1px solid var(--border);
           border-radius: 24px;
           padding: 22px 28px 28px;
-          margin-top: 42px;
+          margin-top: 24px;
           position: relative;
           box-shadow: 0 24px 72px #00000061;
           overflow: visible;
@@ -852,8 +852,8 @@ export default function Page() {
           background: #0b0d11fa;
           border: 1px solid #ffffff1f;
           border-radius: 20px;
-          width: min(760px, calc(100vw - 36px));
-          max-height: calc(100vh - 100px);
+          width: min(720px, calc(100vw - 32px));
+          max-height: calc(100vh - 120px);
           position: relative;
           overflow: hidden;
           display: flex; flex-direction: column;
