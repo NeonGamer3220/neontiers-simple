@@ -290,16 +290,17 @@ export default function Page() {
       {/* Main content */}
       <main className="mainWrap">
         <div className="mainCard">
-          {/* Info bar */}
-          <div className="infoBar">
-            <div className="infoBarLeft">
-              <a className="infoDiscordLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord" title="Discord">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-                  <path d="M19.82 5.7a16.5 16.5 0 0 0-4.12-1.3l-.2.4a14.75 14.75 0 0 1 3.85 1.53 12.93 12.93 0 0 0-3.92-1.26 15.52 15.52 0 0 0-6.87 0A12.95 12.95 0 0 0 4.65 6.3a14.74 14.74 0 0 1 3.84-1.52l-.2-.39a16.4 16.4 0 0 0-4.1 1.3C1.6 9.6.9 13.4 1.23 17.16a16.6 16.6 0 0 0 5.04 2.56l1.08-1.77c-.6-.2-1.17-.46-1.7-.76.14.1.28.18.43.27 3.28 1.88 6.83 1.88 10.08 0 .15-.09.29-.17.43-.27a10.2 10.2 0 0 1-1.7.76l1.08 1.77a16.5 16.5 0 0 0 5.04-2.56c.4-4.37-.67-8.14-2.7-11.46ZM8.87 14.83c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.8 2.08-1.8 2.08Zm6.26 0c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.79 2.08-1.8 2.08Z"/>
+           {/* Info bar */}
+           <div className="infoBar">
+             <div className="infoBarLeft">
+               <a className="infoDiscordLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord" title="Discord">
+                 <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                   <path d="M19.82 5.7a16.5 16.5 0 0 0-4.12-1.3l-.2.4a14.75 14.75 0 0 1 3.85 1.53 12.93 12.93 0 0 0-3.92-1.26 15.52 15.52 0 0 0-6.87 0A12.95 12.95 0 0 0 4.65 6.3a14.74 14.74 0 0 1 3.84-1.52l-.2-.39a16.4 16.4 0 0 0-4.1 1.3C1.6 9.6.9 13.4 1.23 17.16a16.6 16.6 0 0 0 5.04 2.56l1.08-1.77c-.6-.2-1.17-.46-1.7-.76.14.1.28.18.43.27 3.28 1.88 6.83 1.88 10.08 0 .15-.09.29-.17.43-.27a10.2 10.2 0 0 1-1.7.76l1.08 1.77a16.5 16.5 0 0 0 5.04-2.56c.4-4.37-.67-8.14-2.7-11.46ZM8.87 14.83c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.8 2.08-1.8 2.08Zm6.26 0c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.79 2.08-1.8 2.08Z"/>
                 </svg>
                 <span>Discord</span>
               </a>
             </div>
+          </div>
             <div className="infoBarRight">
               <div className="partnerBadge partnerBadgeMuted">
                 <img className="partnerLogo partnerLogoSmall" src="/ametiszt.png" alt="AmetisztCraft" width="24" height="24" loading="lazy" decoding="async" />
@@ -774,97 +775,29 @@ export default function Page() {
           border-radius: 999px;
         }
 
-        /* Info bar */
-        .infoBar {
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: space-between;
-          align-items: center;
-          gap: 14px;
-          margin-bottom: 16px;
-        }
-
-        .infoBarLeft, .infoBarRight {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .infoDiscordLink {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          text-decoration: none;
-          color: var(--muted);
-          font-size: 14px;
-          font-weight: 700;
-          transition: color 0.15s;
-        }
-        .infoDiscordLink:hover { color: var(--text); }
-
-        .partnerBadge {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 12px;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.1);
-          font-size: 12px;
-          font-weight: 700;
-        }
-        .partnerBadgeMuted {
-          opacity: 0.7;
-        }
-
-        .partnerLogo { border-radius: 999px; }
-        .partnerLogoSmall { width: 24px; height: 24px; }
-        .partnerLogo { width: 28px; height: 28px; }
-
-        .partnerMeta {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .partnerMetaCompact {
-          gap: 6px;
-        }
-
-        .partnerCaption {
-          color: var(--muted);
-          font-size: 12px;
-        }
-
-        .partnerDomain, .partnerDomainCompact {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 999px;
-          padding: 0 10px;
-          height: 26px;
-          font-size: 11px;
-          font-weight: 700;
-          color: var(--muted);
-          cursor: pointer;
-          transition: all 0.15s;
-        }
-        .partnerDomainCompact {
-          padding: 0 8px;
-          height: 22px;
-          font-size: 10px;
-        }
-        .partnerDomain:hover, .partnerDomainCompact:hover {
-          background: rgba(255,255,255,0.1);
-          border-color: rgba(255,255,255,0.15);
-        }
-
-        .partnerCopyIcon {
-          width: 14px;
-          height: 14px;
-          opacity: 0.6;
-        }
+         /* Info bar */
+         .infoBar {
+           display: flex;
+           justify-content: flex-end;
+           margin-bottom: 12px;
+           padding-top: 4px;
+         }
+         .infoBarLeft {
+           display: flex;
+           align-items: center;
+           gap: 12px;
+         }
+         .infoDiscordLink {
+           display: flex;
+           align-items: center;
+           gap: 8px;
+           text-decoration: none;
+           color: var(--muted);
+           font-size: 14px;
+           font-weight: 700;
+           transition: color 0.15s;
+         }
+         .infoDiscordLink:hover { color: var(--text); }
 
         /* Column headers */
         .colHead {
