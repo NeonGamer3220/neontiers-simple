@@ -695,24 +695,24 @@ export default function Page() {
           align-items: flex-end;
         }
 
-        .tabBtn {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 6px;
-          min-width: 96px;
-          padding: 12px 10px 10px;
-          cursor: pointer;
-          user-select: none;
-          position: relative;
-          border: 1px solid #ffffff1a;
-          border-bottom: none;
-          border-radius: 18px 18px 0 0;
-          background: #ffffff06;
-          color: #ffffff8f;
-          transition: color 0.15s, background 0.15s, border-color 0.15s;
-        }
+         .tabBtn {
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           justify-content: flex-end;
+           gap: 6px;
+           min-width: 84px;
+           padding: 10px 9px 9px;
+           cursor: pointer;
+           user-select: none;
+           position: relative;
+           border: 1px solid #ffffff1a;
+           border-bottom: none;
+           border-radius: 18px 18px 0 0;
+           background: #ffffff06;
+           color: #ffffff8f;
+           transition: color 0.15s, background 0.15s, border-color 0.15s;
+         }
 
         .tabBtn:hover {
           color: var(--text);
@@ -738,15 +738,15 @@ export default function Page() {
           white-space: nowrap;
         }
 
-        .tabActiveLine {
-          position: absolute;
-          bottom: 0;
-          left: 14px;
-          right: 14px;
-          height: 3px;
-          background: #fff;
-          border-radius: 999px;
-        }
+         .tabActiveLine {
+           position: absolute;
+           bottom: 0;
+           left: 9px;
+           right: 9px;
+           height: 3px;
+           background: #fff;
+           border-radius: 999px;
+         }
 
          /* Info bar */
          .infoBar {
@@ -1212,19 +1212,20 @@ export default function Page() {
           .colSkinSpacer, .colTiers { display: none; }
         }
 
-        @media (max-width: 980px) {
-          .navbar, .mainWrap, .pageFooter {
-            padding-left: 14px;
-            padding-right: 14px;
-          }
-          .navbar { padding-top: 14px; }
-          .navInner { gap: 12px; padding: 10px 16px; min-height: 64px; }
-          .tabBtn { min-width: 84px; padding: 10px 9px 9px; }
-          .tabIcon { width: 24px; height: 24px; }
-          .tabLabel { font-size: 9px; letter-spacing: 0.03em; }
-          .mainCard { border-radius: 22px; padding: 16px 14px 18px; }
-          .tierBoardContent { max-width: 100vw; max-height: 85vh; }
-        }
+         @media (max-width: 980px) {
+           .navbar, .mainWrap, .pageFooter {
+             padding-left: 14px;
+             padding-right: 14px;
+           }
+           .navbar { padding-top: 14px; }
+           .navInner { gap: 12px; padding: 10px 16px; min-height: 64px; }
+           .tabBtn { min-width: 76px; padding: 9px 8px 8px; }
+           .tabActiveLine { left: 8px; right: 8px; }
+           .tabIcon { width: 24px; height: 24px; }
+           .tabLabel { font-size: 9px; letter-spacing: 0.03em; }
+           .mainCard { border-radius: 22px; padding: 16px 14px 18px; }
+           .tierBoardContent { max-width: 100vw; max-height: 85vh; }
+         }
 
         @media (max-width: 760px) {
           .navbar, .mainWrap, .pageFooter {
