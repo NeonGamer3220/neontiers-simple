@@ -445,18 +445,18 @@ export default function Page() {
           5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
         };
 
-        return (
-          <div className="tierBoardModal" onClick={closeTierBoard}>
-            <div className="tierBoardContent" onClick={(e) => e.stopPropagation()}>
-              <div className="tierBoardHeader">
-                <h2 className="tierBoardTitle">{displayMode(tierBoardMode)} ranglista</h2>
-                <button className="tierBoardClose" onClick={closeTierBoard} aria-label="Bezárás">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 6L6 18M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="modeBoard">
+         return (
+           <div className="playerModalBackdrop" onClick={closeTierBoard}>
+             <div className="playerModalCard" onClick={(e) => e.stopPropagation()}>
+               <div className="tierBoardHeader">
+                 <h2 className="tierBoardTitle">{displayMode(tierBoardMode)} ranglista</h2>
+                 <button className="tierBoardClose" onClick={closeTierBoard} aria-label="Bezárás">
+                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                     <path d="M18 6L6 18M6 6l12 12" />
+                   </svg>
+                 </button>
+               </div>
+               <div className="modeBoard">
                 {[1, 2, 3, 4, 5].map((t) => (
                   tiers[t] && tiers[t].length > 0 && (
                     <section key={t} className="modeTierColumn" style={{
@@ -968,29 +968,28 @@ export default function Page() {
         }
 
          /* Tier Board Modal */
-         .tierBoardModal {
+         .playerModalBackdrop {
            position: fixed;
            inset: 0;
            display: flex;
-           align-items: center;
            justify-content: center;
-           z-index: 99999;
-           padding: 40px 20px;
-           background: var(--bg);
+           align-items: center;
+           z-index: 120;
+           padding: 22px;
+           background: #03050ac7;
+           -webkit-backdrop-filter: blur(10px);
+           backdrop-filter: blur(10px);
          }
 
-         .tierBoardContent {
+         .playerModalCard {
            background: #0b0d11fa;
            border: 1px solid #ffffff1f;
-           border-radius: 20px;
-           width: 100%;
-           max-width: 1440px;
-           max-height: 90vh;
+           border-radius: 28px;
+           width: min(920px, calc(100vw - 44px));
+           max-height: calc(100vh - 44px);
            position: relative;
-           overflow: hidden;
-           display: flex;
-           flex-direction: column;
-           box-shadow: 0 24px 72px #00000075;
+           overflow: visible;
+           box-shadow: 0 28px 90px #00000075;
            animation: modalSlideIn 0.25s ease;
          }
 
