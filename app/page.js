@@ -716,6 +716,7 @@ export default function Page() {
            background: #ffffff06;
            color: #ffffff8f;
            transition: color 0.15s, background 0.15s, border-color 0.15s;
+           flex-shrink: 0;
          }
 
         .tabBtn:hover {
