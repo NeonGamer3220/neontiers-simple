@@ -976,15 +976,15 @@ export default function Page() {
            justify-content: center;
            z-index: 99999;
            padding: 40px 20px;
-           background: rgba(0, 0, 0, 0.85);
-           backdrop-filter: blur(4px);
+           background: var(--bg);
          }
 
          .tierBoardContent {
            background: #0b0d11fa;
            border: 1px solid #ffffff1f;
            border-radius: 20px;
-           width: min(900px, calc(100vw - 20px));
+           width: 100%;
+           max-width: 1440px;
            max-height: 90vh;
            position: relative;
            overflow: hidden;
