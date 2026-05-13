@@ -967,30 +967,30 @@ export default function Page() {
           display: flex;
         }
 
-        /* Tier Board Modal */
-        .tierBoardModal {
-          position: fixed;
-          inset: 0;
-          display: flex;
-          align-items: flex-start;
-          justify-content: center;
-          z-index: 99999;
-          padding-top: 80px;
-        }
+         /* Tier Board Modal */
+         .tierBoardModal {
+           position: fixed;
+           inset: 0;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           z-index: 99999;
+           padding: 40px 20px;
+         }
 
-        .tierBoardContent {
-          background: #0b0d11fa;
-          border: 1px solid #ffffff1f;
-          border-radius: 20px;
-          width: min(640px, calc(100vw - 26px));
-          max-height: 82vh;
-          position: relative;
-          overflow: hidden;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 24px 72px #00000075;
-          animation: modalSlideIn 0.25s ease;
-        }
+         .tierBoardContent {
+           background: #0b0d11fa;
+           border: 1px solid #ffffff1f;
+           border-radius: 20px;
+           width: min(900px, calc(100vw - 20px));
+           max-height: 90vh;
+           position: relative;
+           overflow: hidden;
+           display: flex;
+           flex-direction: column;
+           box-shadow: 0 24px 72px #00000075;
+           animation: modalSlideIn 0.25s ease;
+         }
 
         @keyframes modalSlideIn {
           from { opacity: 0; transform: scale(0.95) translateY(20px); }
