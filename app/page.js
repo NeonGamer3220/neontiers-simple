@@ -656,16 +656,16 @@ export default function Page() {
           border-radius: 4px;
         }
 
-        /* Main layout */
-        .mainWrap {
-          max-width: 1480px;
-          margin: 0 auto;
-          padding-left: 20px;
-          padding-right: 20px;
-          position: relative;
-        }
+         /* Main layout */
+         .mainWrap {
+           max-width: 1480px;
+           margin: 0 auto;
+           padding-left: 20px;
+           padding-right: 20px;
+           position: relative;
+         }
 
-        .mainCard {
+         .mainCard {
           background: var(--bg-panel);
           border: 1px solid var(--border);
           border-radius: 24px;
@@ -676,12 +676,16 @@ export default function Page() {
           overflow: visible;
         }
 
-        /* Tabs */
-        .tabsWrap {
-          margin-top: -1px;
-          position: relative;
-          z-index: 1;
-        }
+         /* Tabs */
+         .tabsWrap {
+           max-width: 1480px;
+           margin: 0 auto;
+           padding-left: 20px;
+           padding-right: 20px;
+           margin-top: -1px;
+           position: relative;
+           z-index: 1;
+         }
 
         .tabsScroller {
           overflow-x: auto;
