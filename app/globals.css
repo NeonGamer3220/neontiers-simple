@@ -1,169 +1,19 @@
-body {
+/* Base styles – minimal reset, everything else lives in app/page.js */
+html, body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(120deg, #120f2b, #081a2e);
-  color: white;
+  padding: 0;
+  height: 100%;
+  background: #09090b;
+  color: #ffffff;
+  font-family: "Montserrat", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizelegibility;
 }
 
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 40px 20px;
-}
+* { box-sizing: border-box; }
 
-.title {
-  font-size: 42px;
-  font-weight: 900;
-  margin-bottom: 10px;
-}
-
-.subtitle {
-  font-size: 32px;
-  font-weight: 800;
-  margin-top: 40px;
-  margin-bottom: 20px;
-}
-
-.card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 25px;
-  margin-bottom: 20px;
-  border-radius: 20px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.left {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.rank-number {
-  font-size: 22px;
-  font-weight: bold;
-}
-
-.player-name {
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 10px;
-}
-
-.badges {
-  display: flex;
-  gap: 10px;
-}
-
-.tag {
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-weight: 900;
-  font-size: 13px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(0,0,0,0.3);
-  transition: 0.2s ease;
-}
-
-/* ===== GLOW SYSTEM ===== */
-
-/* Tier 1 – Yellow */
-.tier-1 {
-  color: #ffd54a;
-  border-color: #ffd54a !important;
-  box-shadow:
-    0 0 6px rgba(255,213,74,0.9),
-    0 0 18px rgba(255,213,74,0.6);
-}
-
-/* Tier 2 – Silver */
-.tier-2 {
-  color: #e6e6e6;
-  border-color: #e6e6e6 !important;
-  box-shadow:
-    0 0 6px rgba(230,230,230,0.9),
-    0 0 18px rgba(230,230,230,0.6);
-}
-
-/* Tier 3 – Bronze */
-.tier-3 {
-  color: #cd7f32;
-  border-color: #cd7f32 !important;
-  box-shadow:
-    0 0 6px rgba(205,127,50,0.9),
-    0 0 18px rgba(205,127,50,0.6);
-}
-
-/* Tier 4 – Neon Purple */
-.tier-4 {
-  color: #c23bff;
-  border-color: #c23bff !important;
-  box-shadow:
-    0 0 6px rgba(194,59,255,0.9),
-    0 0 18px rgba(194,59,255,0.6);
-}
-
-/* Tier 5 – Blue */
-.tier-5 {
-  color: #4db2ff;
-  border-color: #4db2ff !important;
-  box-shadow:
-    0 0 6px rgba(77,178,255,0.9),
-    0 0 18px rgba(77,178,255,0.6);
-}
-
-.points {
-  text-align: right;
-}
-
-.points-value {
-  font-size: 34px;
-  font-weight: 900;
-  color: #4db2ff;
-}
-
-.points-label {
-  font-size: 13px;
-  opacity: 0.7;
-}
-
-/* Additional styles from index.html */
-.page { min-height: 100vh; }
-.bg { position: fixed; inset: 0; background: #09090b; z-index: -1; }
-.navbar { width: 100%; max-width: 1352px; margin: 1rem auto 0; padding: 0 16px; }
-.navInner { height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: rgba(10,10,15,0.9); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; }
-.navLogo { font-size: 20px; font-weight: 700; color: white; text-decoration: none; }
-.navLinks { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; }
-.navLink { display: flex; align-items: center; gap: 8px; text-decoration: none; color: rgba(255,255,255,0.45); font-size: 15px; padding: 8px 14px; border-radius: 6px; }
-.navLink:hover, .navLink.active { color: white; background: rgba(255,255,255,0.06); }
-.mainWrap { max-width: 1352px; margin: 0 auto; padding: 0 16px; }
-.mainCard { background: #0a0a0f; border: 2px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 32px 20px; margin-top: 116px; }
-.tabRow { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
-.tabRow::-webkit-scrollbar { display: none; }
-.tabBtn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 8px; min-width: 72px; cursor: pointer; border: 2px solid transparent; border-radius: 18px 18px 0 0; background: transparent; color: rgba(255,255,255,0.25); }
-.tabBtn.active { background: rgba(139,92,246,0.15); color: white; border-color: rgba(255,255,255,0.08); }
-.tabIcon { width: 24px; height: 24px; }
-.tabLabel { font-size: 10px; font-weight: 700; text-transform: capitalize; }
-.tabActiveLine { height: 2px; background: #8b5cf6; border-radius: 1px; width: 100%; }
-.infoBar { display: flex; justify-content: flex-end; margin-bottom: 16px; padding-top: 4px; }
-.infoText { font-size: 14px; font-weight: 600; color: rgba(255,255,255,0.45); }
-.colHead { display: grid; grid-template-columns: 50px 48px 1fr auto; gap: 16px; padding: 10px 20px; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.45); }
-.playerRow { display: grid; grid-template-columns: 50px 48px 1fr auto; gap: 16px; align-items: center; padding: 16px 20px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); margin-bottom: 6px; cursor: pointer; }
-.playerRow:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.14); }
-.rowNum { text-align: center; font-size: 18px; font-weight: 700; color: rgba(255,255,255,0.45); }
-.playerSkin { width: 44px; height: 44px; border-radius: 8px; }
-.playerName { font-size: 20px; font-weight: 600; color: white; }
-.rowTiers { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
-.tierBadge { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); min-width: 52px; }
-.tierIcon { width: 28px; height: 28px; }
-.tierLabel { font-size: 12px; font-weight: 800; text-transform: uppercase; }
-.emptyState { padding: 48px 24px; text-align: center; }
-.emptyTitle { font-size: 16px; font-weight: 700; color: white; }
-.emptySub { margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.45); }
-.pageFooter { max-width: 1352px; margin: 80px auto 0; padding: 32px 16px; text-align: center; }
-.footerText { font-size: 14px; color: rgba(255,255,255,0.45); }
-.searchWrap { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 0 12px; height: 40px; color: rgba(255,255,255,0.45); }
-.searchInput { background: transparent; border: none; outline: none; color: white; font-size: 14px; width: 180px; }
-.searchKbd { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); font-size: 12px; padding: 3px 8px; border-radius: 4px; }
+a { text-decoration: none; color: inherit; }
+button { border: none; background: transparent; cursor: pointer; font: inherit; color: inherit; }
+ul, li { list-style: none; margin: 0; padding: 0; }
+img { display: block; }
+input { font: inherit; color: inherit; }

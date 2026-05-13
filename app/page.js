@@ -66,7 +66,6 @@ function tierFromRank(rank) {
 }
 
 function tierColor(tier) {
-  // flat mapping: tier number only (1-5), matching CSS variable usage
   const colors = {
     1: "#d5b355",
     2: "#888d95",
@@ -89,19 +88,16 @@ function hexToRgba(hex, alpha) {
 function rankBadgeColor(rank) {
   if (!rank) return "#888d95";
   const r = rank.toUpperCase();
-  // LT tiers
   if (r === "LT1") return "#d5b355";
   if (r === "LT2") return "#888d95";
   if (r === "LT3") return "#b36830";
   if (r === "LT4") return "#514764";
   if (r === "LT5") return "#40384f";
-  // HT tiers
   if (r === "HT1") return "#d5b355";
   if (r === "HT2") return "#a4b3c7";
   if (r === "HT3") return "#dd8849";
   if (r === "HT4") return "#b7aadf";
   if (r === "HT5") return "#6f6389";
-  // RLT/RHT (special)
   if (r === "RLT1" || r === "RLT2" || r === "RHT2") return "#8f7cff";
   return "#888d95";
 }
@@ -115,123 +111,11 @@ function skinUrl(username) {
   return `https://mc-heads.net/avatar/${encodeURIComponent(username)}/56`;
 }
 
-// ===== TIER BOARD MODAL =====
-
-function TierPlayerCard({ player, rank }) {
-  const badgeColor = rankBadgeColor(rank);
-  const skin = `https://mc-heads.net/avatar/${encodeURIComponent(player.username)}/56`;
-
-  return (
-    <button className="modeTierPlayer" type="button" aria-haspopup="dialog" aria-expanded="false"
-      style={{
-        '--player-accent': badgeColor,
-        '--mode-player-surface': 'rgba(255, 255, 255, 0.018)',
-        '--mode-player-surface-hover': 'rgba(255, 255, 255, 0.035)',
-        '--player-rank-surface': `${badgeColor}33`,
-        '--player-rank-border': `${badgeColor}44`,
-        '--player-rank-text': badgeColor,
-      }}
-    >
-      <img className="modeTierSkin" alt={player.username} width={38} height={38} loading="lazy" decoding="async" referrerPolicy="no-referrer" src={skin} />
-      <span className="modeTierName">{player.username}</span>
-      <span className="modeTierRank">{rank}</span>
-    </button>
-  );
-}
-
-function TierColumn({ tier, players }) {
-  const colors = {
-    1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
-    2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
-    3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
-    4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
-    5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
-  }[tier];
-
-  if (!colors) return null;
-
-  // Unique SVG shape per tier (simple icons)
-  const tierIcons = {
-    1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
-    2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
-    3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
-    4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
-    5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
-  }[tier];
-
-  return (
-    <section className="modeTierColumn" style={{
-      '--column-accent': colors.accent,
-      '--column-surface': colors.surface,
-    }}>
-      <header className="modeTierHead">
-        <span className="modeTierHeadIcon">{tierIcons}</span>
-        <span className="modeTierNumber">{tier}</span>
-      </header>
-      <div className="modeTierList">
-        {players.map((p, i) => (
-          <TierPlayerCard key={`${p.username}-${i}`} player={p} rank={p.rank} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TierBoardModal({ isOpen, mode, players, onClose }) {
-  if (!isOpen || !mode || !players) return null;
-
-  const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-  players.forEach((p) => {
-    const t = tierFromRank(p.rank);
-    if (t && tiers[t]) tiers[t].push(p);
-  });
-
-  // Sort each tier by points descending
-  Object.keys(tiers).forEach(t => {
-    tiers[t].sort((a, b) => (b.points || 0) - (a.points || 0));
-  });
-
-  return (
-    <div className="tierBoardModal" onClick={onClose}>
-      <style jsx>{`
-        .tierBoardModal {
-          position: fixed; inset: 0;
-          background: rgba(0, 0, 0, 0.85);
-          z-index: 9998;
-          display: flex; align-items: center; justify-content: center;
-        }
-      `}</style>
-      <div className="tierBoardContent" onClick={(e) => e.stopPropagation()}>
-        <div className="tierBoardHeader">
-          <h2 className="tierBoardTitle">{displayMode(mode)} Ranglista</h2>
-          <button className="tierBoardClose" onClick={onClose} aria-label="Bezárás">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="modeBoard">
-          {[1, 2, 3, 4, 5].map((t) => (
-            tiers[t] && tiers[t].length > 0 && (
-              <TierColumn key={t} tier={t} players={tiers[t]} />
-            )
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ===== MAIN PAGE =====
-
 export default function Page() {
   const [activeMode, setActiveMode] = useState("Összes");
   const [query, setQuery] = useState("");
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [tierBoardMode, setTierBoardMode] = useState(null);
-  const [showTierBoard, setShowTierBoard] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -303,77 +187,6 @@ export default function Page() {
     searched.sort((a, b) => b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username));
     return searched;
   }, [tests, activeMode, query]);
-
-  const modePlayers = useMemo(() => {
-    if (!tierBoardMode) return [];
-    const rows = tests
-      .map((r) => ({
-        id: r?.id,
-        username: String(r?.username || "").trim(),
-        gamemode: String(r?.gamemode || "").trim(),
-        rank: String(r?.rank || "").trim(),
-        points: r?.points != null
-          ? safeInt(r.points, 0)
-          : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
-        created_at: r?.created_at ? String(r.created_at) : "",
-      }))
-      .filter((r) => r.username && r.gamemode && r.rank);
-
-    const latestByUserMode = new Map();
-    for (const r of rows) {
-      const key = `${r.username}__${r.gamemode}`;
-      const prev = latestByUserMode.get(key);
-      if (!prev) { latestByUserMode.set(key, r); continue; }
-      const prevTime = prev.created_at ? Date.parse(prev.created_at) : 0;
-      const curTime = r.created_at ? Date.parse(r.created_at) : 0;
-      if (curTime > prevTime) latestByUserMode.set(key, r);
-      else if (curTime === prevTime && safeInt(r.id, 0) > safeInt(prev.id, 0))
-        latestByUserMode.set(key, r);
-    }
-
-    const latestRows = Array.from(latestByUserMode.values());
-    const filtered = tierBoardMode === "Összes"
-      ? latestRows
-      : latestRows.filter((r) => r.gamemode.toLowerCase() === tierBoardMode.toLowerCase());
-
-    // Return list of player records with username, rank, and points
-    return filtered.map(r => ({
-      username: r.username,
-      rank: r.rank,
-      points: r.points,
-    }));
-  }, [tests, tierBoardMode]);
-
-  const openTierBoard = (mode) => {
-    if (mode !== "Összes") {
-      setTierBoardMode(mode);
-      setShowTierBoard(true);
-    }
-  };
-
-  const closeTierBoard = () => {
-    setShowTierBoard(false);
-    setTimeout(() => setTierBoardMode(null), 300);
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && showTierBoard) {
-        closeTierBoard();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showTierBoard]);
-
-  useEffect(() => {
-    if (showTierBoard) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => { document.body.style.overflow = ""; };
-  }, [showTierBoard]);
 
   const floatingEggs = EASTER_MODE
     ? Array.from({ length: 18 }, (_, i) => ({
@@ -449,10 +262,7 @@ export default function Page() {
               <button
                 key={m}
                 className={`tabBtn ${activeMode === m ? "active" : ""}`}
-                onClick={() => {
-                  setActiveMode(m);
-                  openTierBoard(m);
-                }}
+                onClick={() => setActiveMode(m)}
                 aria-pressed={activeMode === m}
                 type="button"
               >
@@ -460,7 +270,6 @@ export default function Page() {
                   <img className="tabIcon" src={MODE_ICONS[m]} alt={m} width={28} height={28} />
                 )}
                 <strong className="tabLabel">{m}</strong>
-                {activeMode === m && <span className="tabActiveLine" />}
               </button>
             ))}
           </section>
@@ -472,13 +281,6 @@ export default function Page() {
                 ? "Minden gamemode összesítve"
                 : displayMode(activeMode) + " gamemode ranglista"}
             </span>
-          </div>
-
-          {/* Column headers */}
-          <div className="colHead">
-            <span className="colHash">#</span>
-            <span className="colPlayer">Játékos</span>
-            <span className="colTiers">Tierek</span>
           </div>
 
           {/* Player rows */}
@@ -500,73 +302,50 @@ export default function Page() {
                   className="playerSkin"
                   src={skinUrl(p.username)}
                   alt={p.username}
-                  width={44}
-                  height={44}
+                  width={48}
+                  height={48}
                 />
-                <span className="playerName">{p.username}</span>
-                <span className="rowTiers">
-                   {p.entries.map((r) => {
-                     const tier = tierFromRank(r.rank);
-                     const baseColor = rankBadgeColor(r.rank);
-                     const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
-                     return (
-                       <span className="tierBadge" key={`${r.gamemode}:${r.rank}`}
-                         style={{
-                           '--tier-accent': baseColor,
-                           '--tier-border': hexToRgba(baseColor, 0.78),
-                           '--tier-surface': hexToRgba(baseColor, 0.22),
-                           '--tier-text': baseColor,
-                           color: baseColor,
-                         }}
-                         title={`${displayMode(r.gamemode)} ${r.rank} — ${pts} pont`}
-                       >
-                         {MODE_ICONS[displayMode(r.gamemode)] && (
-                           <img className="tierIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={28} height={28} />
-                         )}
-                         <span className="tierLabel">{r.rank}</span>
-                         <span className="tierTooltip">
-                           {displayMode(r.gamemode)} {r.rank}
-                           <span className="tierTooltipPts">{pts} pont</span>
-                         </span>
-                       </span>
-                     );
-                   })}
-                </span>
+                <div className="playerInfo">
+                  <span className="playerName">{p.username}</span>
+                  <span className="playerPoints">{p.total} pont</span>
+                </div>
+                <div className="tierBadges">
+                  {p.entries.map((r) => {
+                    const baseColor = rankBadgeColor(r.rank);
+                    const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
+                    return (
+                      <span className="badge" key={`${r.gamemode}:${r.rank}`} style={{
+                        '--tier-accent': baseColor,
+                        '--tier-border': hexToRgba(baseColor, 0.78),
+                        '--tier-surface': hexToRgba(baseColor, 0.22),
+                        '--tier-text': baseColor,
+                      }}>
+                        {MODE_ICONS[displayMode(r.gamemode)] && (
+                          <img className="badgeIcon" src={MODE_ICONS[displayMode(r.gamemode)]} alt="" width={24} height={24} />
+                        )}
+                        <span className="badgeRank">{r.rank}</span>
+                        <span className="badgePoints">{pts} pont</span>
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
             ))
           )}
         </div>
       </main>
 
-      {/* Tier Board Modal */}
-      <TierBoardModal
-        isOpen={showTierBoard}
-        mode={tierBoardMode}
-        players={modePlayers}
-        onClose={closeTierBoard}
-      />
-
       <footer className="pageFooter">
         <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
       </footer>
 
       <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-
-        @keyframes modalSlideIn {
-          from { opacity: 0; transform: scale(0.95) translateY(20px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
         :root {
-          --bg: #0b0e14;
-          --bg-panel: #0b0d11fa;
-          --border: #ffffff14;
-          --text: #fffffff0;
-          --muted: #ffffff9e;
+          --bg: #09090b;
+          --bg-panel: #0a0a0f;
+          --border: rgba(255,255,255,0.08);
+          --text: #ffffff;
+          --muted: rgba(255,255,255,0.45);
           --accent: #8f7cff;
         }
 
@@ -636,7 +415,7 @@ export default function Page() {
           color: var(--text); font-size: 15px; width: 100%;
           flex: 1; min-width: 0;
         }
-        .searchInput::placeholder { color: #ffffff75; }
+        .searchInput::placeholder { color: rgba(255,255,255,0.5); }
 
         .searchKbd {
           background: rgba(255,255,255,0.08); color: var(--muted);
@@ -654,59 +433,50 @@ export default function Page() {
         .mainCard {
           background: var(--bg-panel);
           border: 1px solid var(--border);
-          border-radius: 24px;
-          padding: 22px 28px 28px;
-          margin-top: 28px;
-          position: relative;
-          box-shadow: 0 24px 72px #00000061;
-          overflow: visible;
+          border-radius: 16px;
+          padding: 20px 24px;
+          margin-top: 20px;
+          box-shadow: 0 24px 72px rgba(0,0,0,0.4);
         }
 
         /* Mode tabs */
         .tabRow {
-          position: absolute; bottom: 100%; left: 0; right: 0;
-          display: flex; gap: 10px;
-          overflow-x: auto; overflow-y: hidden;
-          padding: 6px 0 0;
-          scrollbar-width: none;
+          display: flex; gap: 6px;
+          overflow-x: auto; scrollbar-width: none;
+          padding: 4px 0 0;
           align-items: flex-end;
+          border-bottom: 1px solid var(--border);
+          margin-bottom: 12px;
         }
         .tabRow::-webkit-scrollbar { display: none; }
 
         .tabBtn {
           display: flex; flex-direction: column; align-items: center;
           justify-content: flex-end; gap: 6px;
-          min-width: 96px; padding: 12px 10px 10px;
-          cursor: pointer; user-select: none; position: relative;
-          border: 1px solid #ffffff1a; border-bottom: none;
-          border-radius: 18px 18px 0 0;
-          background: #ffffff06; color: #ffffff8f;
-          transition: color 0.15s, background 0.15s, border-color 0.15s;
+          min-width: 88px; padding: 12px 10px 10px;
+          cursor: pointer; border: none; border-bottom: 2px solid transparent;
+          border-radius: 12px 12px 0 0;
+          background: transparent; color: var(--muted);
+          transition: color 0.15s, background 0.15s;
         }
         .tabBtn:hover {
-          color: var(--text); background: #ffffff0d; border-color: #ffffff2e;
+          color: var(--text); background: rgba(255,255,255,0.06);
         }
         .tabBtn.active {
-          color: var(--text); background: var(--bg-panel);
-          border-color: rgba(255,255,255,0.2);
-        }
-        .tabActiveLine {
-          position: absolute; bottom: 0;
-          left: 14px; right: 14px;
-          height: 3px; background: #fff;
-          border-radius: 999px;
+          color: var(--text);
+          border-bottom-color: var(--accent);
+          background: rgba(255,255,255,0.04);
         }
         .tabIcon { width: 28px; height: 28px; }
         .tabLabel {
           font-size: 10px; font-weight: 800;
-          letter-spacing: 0.04em;
-          white-space: nowrap;
+          letter-spacing: 0.04em; white-space: nowrap;
         }
 
         /* Info bar */
         .infoBar {
-          display: flex; align-items: center; justify-content: flex-end;
-          margin-bottom: 16px; padding-top: 4px;
+          display: flex; justify-content: flex-end;
+          margin-bottom: 12px; padding-top: 4px;
         }
         .infoText {
           font-size: 14px; font-weight: 700;
@@ -714,117 +484,103 @@ export default function Page() {
           letter-spacing: 0.11em; text-transform: uppercase;
         }
 
-        /* Leaderboard table */
-        .colHead {
-          display: grid; grid-template-columns: 56px 68px minmax(180px,1fr) minmax(0,1.35fr);
-          gap: 14px; padding: 10px 18px;
-          font-size: 11px; font-weight: 800;
-          text-transform: uppercase; letter-spacing: 0.11em;
-          color: var(--muted);
+        /* Leaderboard */
+        .leaderboard {
+          display: flex; flex-direction: column; gap: 6px;
         }
-        .colHash { text-align: center; }
-        .colPlayer { grid-column: 3; text-align: left; }
-        .colTiers { text-align: right; justify-self: end; padding-right: 6px; }
 
         .playerRow {
-          display: grid; grid-template-columns: 56px 68px minmax(180px,1fr) minmax(0,1.35fr);
-          gap: 14px; align-items: center;
-          padding: 16px 18px; border-radius: 15px;
-          background: #ffffff04; border: 1px solid #ffffff0f;
-          margin-bottom: 9px;
-          transition: border-color 0.15s, background 0.15s;
-          position: relative; overflow: visible;
-          text-align: left; width: 100%; color: inherit;
+          display: grid;
+          grid-template-columns: 50px 56px 1fr auto;
+          gap: 12px;
+          align-items: center;
+          padding: 12px 16px;
+          border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.06);
+          background: rgba(255,255,255,0.02);
+          transition: background 0.15s, border-color 0.15s;
         }
         .playerRow:hover {
-          background: #ffffff0a; border-color: #ffffff29;
-          z-index: 4;
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(255,255,255,0.12);
         }
 
         .rowNum {
-          text-align: center; font-size: 21px; font-weight: 900;
+          text-align: center; font-size: 18px; font-weight: 800;
           color: var(--muted);
         }
 
         .playerSkin {
-          width: 64px; height: 64px; border-radius: 13px;
+          width: 48px; height: 48px; border-radius: 8px;
           image-rendering: pixelated;
-          background: transparent;
-          filter: drop-shadow(-4px 0 6px #0000002e);
-          transform: translateY(4px);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
+        .playerInfo {
+          display: flex; flex-direction: column; gap: 2px;
+          min-width: 0;
+        }
         .playerName {
-          font-size: 22px; font-weight: 800; color: var(--text);
+          font-size: 18px; font-weight: 800; color: var(--text);
           white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-
-        .rowTiers {
-          display: flex; flex-wrap: nowrap; gap: 11px;
-          padding: 2px 4px;
-          justify-content: flex-end; justify-self: stretch;
-          width: 100%; min-width: 0; max-width: 100%;
-          min-height: 82px;
-          overflow: visible;
+        .playerPoints {
+          font-size: 13px; color: var(--muted); font-weight: 700;
         }
 
-        .tierBadge {
-          isolation: isolate;
-          background: transparent; border: none;
+        .tierBadges {
+          display: flex; flex-wrap: wrap; gap: 6px;
+          justify-content: flex-end; align-items: center;
+        }
+
+        .badge {
+          display: inline-flex;
           flex-direction: column; align-items: center;
-          gap: 1px; width: 42px; min-width: 42px;
-          height: auto; padding: 0; display: inline-flex;
-          position: relative; overflow: visible;
-          text-align: center;
+          gap: 2px;
+          padding: 6px 8px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.1);
+          min-width: 48px;
+          transition: transform 0.1s, box-shadow 0.1s;
+          position: relative;
         }
-        .tierBadge:hover { z-index: 30; }
-
-        .tierIcon {
-          box-sizing: border-box;
-          border: 2px solid var(--tier-border);
-          background: #141a24;
+        .badge:hover {
+          z-index: 10; transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          border-color: var(--tier-accent);
+        }
+        .badgeIcon {
+          width: 24px; height: 24px;
+          /* border: 2px solid var(--tier-border); */
+          /* background: #141a24; */
           border-radius: 999px;
-          width: 41px; height: 41px; padding: 8px;
-          box-shadow: inset 0 1px #ffffff08;
           display: flex; align-items: center; justify-content: center;
         }
-        .tierIcon img { width: 100%; height: 100%; object-fit: contain; }
-
-        .tierLabel {
-          background: var(--tier-surface, #ffffff24);
-          min-height: 19px; color: var(--tier-text);
-          white-space: nowrap; letter-spacing: 0.03em;
-          border: none; border-radius: 999px;
+        .badgeRank {
+          font-size: 11px; font-weight: 900;
+          color: var(--tier-accent);
+          background: var(--tier-surface);
+          border: 1px solid var(--tier-border);
+          border-radius: 999px;
+          padding: 0 6px; min-height: 18px; line-height: 1;
           display: inline-flex; justify-content: center; align-items: center;
-          margin-top: -3px; padding: 0 7px;
-          font-size: 12px; font-weight: 900; line-height: 1;
         }
-
-        .tierTooltip {
-          display: none;
-          position: absolute; bottom: calc(100% + 8px); left: 50%;
-          transform: translateX(-50%); white-space: nowrap;
-          background: #11161ffa; border: 1px solid #ffffff1f;
-          border-radius: 15px; padding: 10px 12px;
-          color: var(--text); flex-direction: column; align-items: center; gap: 4px;
-          min-width: 96px; box-shadow: 0 18px 40px #0000005c;
-          pointer-events: none; z-index: 140;
+        .badgePoints {
+          font-size: 9px; color: var(--muted);
         }
-        .tierTooltipRank, .tierTooltipPts { color: var(--tier-accent); font-size: 14px; font-weight: 900; line-height: 1; }
-        .tierTooltip span:not(.tierTooltipRank) { color: var(--muted); font-size: 12px; font-weight: 700; }
-        .tierBadge:hover .tierTooltip { display: flex; }
 
         /* Empty state */
-        .emptyState { padding: 64px 22px; text-align: center; }
-        .emptyTitle { font-size: 20px; font-weight: 900; }
-        .emptySub { color: var(--muted); margin-top: 10px; font-size: 15px; }
+        .emptyState { padding: 48px 24px; text-align: center; }
+        .emptyTitle { font-size: 18px; font-weight: 800; color: var(--text); }
+        .emptySub { margin-top: 8px; font-size: 14px; color: var(--muted); }
 
         /* Footer */
         .pageFooter {
-          max-width: 1352px; margin: 80px auto 0;
-          padding: 26px 16px; text-align: center;
+          max-width: 1100px; margin: 80px auto 0;
+          padding: 24px 16px; text-align: center;
         }
-        .footerText { color: var(--muted); font-size: 15px; }
+        .footerText { color: var(--muted); font-size: 14px; }
 
         /* Easter eggs */
         .easterEggsContainer {
@@ -841,174 +597,33 @@ export default function Page() {
           100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
         }
 
-        /* ===== TIER BOARD MODAL ===== */
-        .tierBoardModal {
-          position: fixed; inset: 0;
-          display: flex; align-items: center; justify-content: center;
-          z-index: 9999;
-        }
-
-        .tierBoardContent {
-          background: #0b0d11fa;
-          border: 1px solid #ffffff1f;
-          border-radius: 20px;
-          width: min(700px, calc(100vw - 30px));
-          max-height: calc(100vh - 110px);
-          position: relative;
-          overflow: hidden;
-          display: flex; flex-direction: column;
-          box-shadow: 0 24px 72px #00000075;
-          animation: modalSlideIn 0.25s ease;
-        }
-
-        .tierBoardHeader {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 14px 20px;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-          background: rgba(255,255,255,0.02);
-        }
-        .tierBoardTitle {
-          font-size: 18px; font-weight: 800; color: var(--text);
-          margin: 0;
-        }
-        .tierBoardClose {
-          position: absolute; top: 12px; right: 12px;
-          width: 36px; height: 36px;
-          border: none; border-radius: 999px;
-          background: #ffffff14; color: #ffffffc2;
-          cursor: pointer; display: inline-flex;
-          align-items: center; justify-content: center;
-          transition: background 0.15s, color 0.15s;
-        }
-        .tierBoardClose:hover { color: var(--text); background: #ffffff1f; }
-        .tierBoardClose svg { width: 16px; height: 16px; }
-
-        .modeBoard {
-          display: grid;
-          grid-template-columns: repeat(5, minmax(150px, 1fr));
-          gap: 8px;
-          padding: 2px 2px 6px;
-          overflow-x: auto;
-          background: transparent;
-        }
-        .modeBoard::-webkit-scrollbar { display: none; }
-        .modeBoard { scrollbar-width: none; }
-
-        .modeTierColumn {
-          min-width: 150px;
-          background: #ffffff07;
-          border: 1px solid #ffffff12;
-          border-radius: 14px;
-          overflow: hidden;
-          display: flex; flex-direction: column;
-          content-visibility: auto; contain-intrinsic-size: 360px;
-        }
-
-        .modeTierHead {
-          display: flex; align-items: center; gap: 6px;
-          justify-content: center;
-          padding: 0 12px;
-          min-height: 42px;
-          background: var(--column-surface);
-          color: var(--column-accent);
-          font-size: 14px; font-weight: 900;
-          letter-spacing: -0.02em;
-          border-bottom: 1px solid #ffffff0f;
-        }
-        .modeTierHeadIcon {
-          flex-shrink: 0; width: 18px; height: 18px;
-          fill: currentColor;
-        }
-        .modeTierNumber {
-          font-size: 18px; font-weight: 900;
-          letter-spacing: -0.02em;
-        }
-
-        .modeTierList {
-          display: flex; flex-direction: column; gap: 1px;
-          padding: 8px;
-          overflow-y: auto;
-          max-height: 45vh;
-        }
-
-        .modeTierPlayer {
-          display: grid;
-          grid-template-columns: 38px minmax(0,1fr) auto;
-          align-items: center; gap: 10px;
-          width: 100%; padding: 6px 10px;
-          background: var(--mode-player-surface, #ffffff08);
-          border: 1px solid rgba(255,255,255,0.04);
-          border-radius: 8px;
-          border-bottom: none; border-left: none; border-right: none;
-          cursor: pointer;
-          transition: background 0.15s, border-color 0.15s;
-          position: relative; color: var(--text);
-          font-size: 14px; font-weight: 800;
-          min-height: 46px;
-        }
-        .modeTierPlayer:hover {
-          background: var(--mode-player-surface-hover, #ffffff0e);
-          border-color: var(--player-rank-border);
-        }
-        .modeTierPlayer:before {
-          content: "";
-          background: var(--player-accent);
-          width: 3px; position: absolute;
-          top: 0; bottom: 0; left: 0;
-        }
-
-        .modeTierSkin {
-          width: 38px; height: 38px; border-radius: 6px;
-          image-rendering: pixelated;
-          flex-shrink: 0;
-          filter: drop-shadow(-3px 0 4px #00000029);
-          background: transparent;
-        }
-
-        .modeTierName {
-          flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
-        }
-
-        .modeTierRank {
-          font-size: 10px; font-weight: 900;
-          color: var(--player-rank-text);
-          background: var(--player-rank-surface);
-          border: 1px solid var(--player-rank-border);
-          border-radius: 999px;
-          padding: 0 7px; min-width: 36px; min-height: 22px;
-          display: inline-flex; justify-content: center; align-items: center;
-          flex-shrink: 0;
-        }
-
         /* Responsive */
-        @media (max-width: 1180px) {
-          .colHead, .playerRow {
-            grid-template-columns: 56px 56px minmax(180px,1fr);
+        @media (max-width: 768px) {
+          .playerRow {
+            grid-template-columns: 40px 44px 1fr;
           }
-          .colTiers, .rowTiers { display: none; }
-          .playerDetail { padding: 22px 24px; }
-        }
-        @media (max-width: 980px) {
-          .navbar, .mainWrap, .pageFooter {
-            padding-left: 14px; padding-right: 14px;
+          .tierBadges {
+            grid-column: 3;
+            margin-top: 8px;
           }
-          .navbar { padding-top: 14px; }
-          .navLogoMark { height: 21px; }
-          .searchWrap { border-radius: 999px; width: 100%; min-height: 46px; }
-          .mainCard { border-radius: 22px; padding: 16px 14px 18px; }
-          .tabBtn { border-radius: 16px 16px 0 0; min-width: 84px; padding: 10px 9px 9px; }
-          .tabRow { justify-content: flex-start; gap: 8px; min-width: max-content; }
-          .tabIcon { width: 24px; height: 24px; }
-          .tabLabel { font-size: 9px; letter-spacing: 0.03em; }
-          .playerDetail { flex-direction: column; gap: 16px; }
-          .detailTiers { flex-wrap: wrap; }
-          .tierBoardContent { max-width: 100vw; max-height: 85vh; }
+          .rowNum { font-size: 16px; }
+          .playerSkin { width: 40px; height: 40px; }
+          .playerName { font-size: 16px; }
+          .playerPoints { font-size: 12px; }
+          .badge { padding: 4px 6px; min-width: 40px; }
+          .badgeIcon { width: 20px; height: 20px; }
+          .badgeRank { font-size: 10px; }
+          .badgePoints { font-size: 8px; }
         }
-        @media (max-width: 760px) {
+        @media (max-width: 480px) {
           .navbar, .mainWrap, .pageFooter { padding-left: 10px; padding-right: 10px; }
-          .tabsWrap { margin: 40px auto -1px; padding-top: 10px; }
           .tabBtn { min-width: 76px; padding: 9px 8px 8px; }
           .tabLabel { font-size: 8px; }
+          .playerRow {
+            grid-template-columns: 32px 36px 1fr;
+            gap: 8px; padding: 8px;
+          }
+          .playerSkin { width: 32px; height: 32px; }
         }
       `}</style>
     </div>
