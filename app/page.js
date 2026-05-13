@@ -301,33 +301,6 @@ export default function Page() {
               </a>
             </div>
           </div>
-            <div className="infoBarRight">
-              <div className="partnerBadge partnerBadgeMuted">
-                <img className="partnerLogo partnerLogoSmall" src="/ametiszt.png" alt="AmetisztCraft" width="24" height="24" loading="lazy" decoding="async" />
-                <span className="partnerMeta partnerMetaCompact">
-                  <span className="partnerCaption">Partner szerver</span>
-                  <button className="partnerDomain partnerDomainCompact" type="button" title="ametisztcraft.hu másolása" aria-label="AmetisztCraft IP másolása" data-copied="false">
-                    <span>ametisztcraft.hu</span>
-                    <svg className="partnerCopyIcon" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M9 7.5A2.5 2.5 0 0 1 11.5 5h6A2.5 2.5 0 0 1 20 7.5v8a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 9 15.5v-8Zm2.5-.5a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-6ZM4 9.5A2.5 2.5 0 0 1 6.5 7H7v2H6.5a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V17h2v.5A2.5 2.5 0 0 1 12.5 20h-6A2.5 2.5 0 0 1 4 17.5v-8Z" fill="currentColor"/>
-                    </svg>
-                  </button>
-                </span>
-              </div>
-              <div className="partnerBadge">
-                <img className="partnerLogo" src="/BestPvP.hu-LOGO.webp" alt="BestPvP.hu" width="28" height="28" loading="lazy" decoding="async" />
-                <span className="partnerMeta">
-                  <span className="partnerCaption">Ajánlott szerver</span>
-                  <button className="partnerDomain" type="button" title="bestpvp.hu másolása" aria-label="BestPvP IP másolása" data-copied="false">
-                    <span>bestpvp.hu</span>
-                    <svg className="partnerCopyIcon" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M9 7.5A2.5 2.5 0 0 1 11.5 5h6A2.5 2.5 0 0 1 20 7.5v8a2.5 2.5 0 0 1-2.5 2.5h-6A2.5 2.5 0 0 1 9 15.5v-8Zm2.5-.5a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-6ZM4 9.5A2.5 2.5 0 0 1 6.5 7H7v2H6.5a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V17h2v.5A2.5 2.5 0 0 1 12.5 20h-6A2.5 2.5 0 0 1 4 17.5v-8Z" fill="currentColor"/>
-                    </svg>
-                  </button>
-                </span>
-              </div>
-            </div>
-          </div>
 
           {/* Column headers */}
           <div className="colHead">
