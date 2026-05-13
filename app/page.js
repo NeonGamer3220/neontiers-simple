@@ -333,13 +333,15 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Column headers */}
-          <div className="colHead">
-            <span className="colHash">#</span>
-            <span className="colSkinSpacer" aria-hidden="true"></span>
-            <span className="colPlayer">Játékos</span>
-            <span className="colTiers">Tierek</span>
-           </div>
+           {/* Column headers */}
+           <div className="colHead">
+             <span className="colHash">#</span>
+             <span className="colSkinSpacer" aria-hidden="true"></span>
+             <span className="colPlayer">
+               {activeMode === "Összes" ? "Játékos" : activeMode}
+             </span>
+             <span className="colTiers">Tierek</span>
+            </div>
 
            {/* Player rows */}
           {loading ? (
