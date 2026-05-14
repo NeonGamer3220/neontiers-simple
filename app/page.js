@@ -535,10 +535,98 @@ export default function Page() {
           )}
         </main>
 
-       {/* Tier Board Modal */}
-       {showTierBoard && tierBoardMode && (() => {
-         // ... existing modal code ...
-       })()}
+
+        {/* Tier Board Modal */}
+        {(() => {
+          if (!showTierBoard || !tierBoardMode) return null;
+          const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+          modePlayers.forEach((p) => {
+            const t = tierFromRank(p.rank);
+            if (t && tiers[t]) tiers[t].push(p);
+          });
+          Object.keys(tiers).forEach(t => {
+            tiers[t].sort((a, b) => (b.points || 0) - (a.points || 0));
+          });
+
+          const tierIcons = {
+            1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+            2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
+            3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
+            4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
+            5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
+          };
+
+          const tierColors = {
+            1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
+            2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
+            3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
+            4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
+            5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
+          };
+
+          return (
+            <div className="playerModalBackdrop" onClick={closeTierBoard}>
+              <div className="playerModalCard" onClick={(e) => e.stopPropagation()}>
+                <div className="tierBoardHeader">
+                  <h2 className="tierBoardTitle">{displayMode(tierBoardMode)} ranglista</h2>
+                  <button className="tierBoardClose" onClick={closeTierBoard} aria-label="Bezárás">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="modeBoard">
+                 {[1, 2, 3, 4, 5].map((t) => (
+                   tiers[t] && tiers[t].length > 0 && (
+                     <section key={t} className="modeTierColumn" style={{
+                       '--column-accent': tierColors[t].accent,
+                       '--column-surface': tierColors[t].surface,
+                     }}>
+                       <header className="modeTierHead">
+                         <span className="modeTierHeadIcon">{tierIcons[t]}</span>
+                         <span className="modeTierNumber">{t}</span>
+                       </header>
+                       <div className="modeTierList">
+                         {tiers[t].map((p, i) => {
+                           const badgeColor = rankBadgeColor(p.rank);
+                           return (
+                             <button
+                               key={`${p.username}-${i}`}
+                               className="modeTierPlayer"
+                               type="button"
+                               style={{
+                                 '--player-accent': badgeColor,
+                                 '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                 '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                 '--player-rank-surface': `${badgeColor}33`,
+                                 '--player-rank-border': `${badgeColor}44`,
+                                 '--player-rank-text': badgeColor,
+                               }}
+                             >
+                               <img
+                                 className="modeTierSkin"
+                                 src={skinUrl(p.username)}
+                                 alt={p.username}
+                                 width={38}
+                                 height={38}
+                                 loading="lazy"
+                                 decoding="async"
+                                 referrerPolicy="no-referrer"
+                               />
+                               <span className="modeTierName">{p.username}</span>
+                                <span className="modeTierRank">{p.rank}</span>
+                             </button>
+                           );
+                         })}
+                       </div>
+                     </section>
+                   )
+                 ))}
+               </div>
+             </div>
+           </div>
+         );
+        })()}
 
        {/* Player Detail Modal */}
        {showPlayerDetail && selectedPlayer && (() => {
@@ -625,12 +713,13 @@ export default function Page() {
          );
        })()}
 
-      <footer className="pageFooter">
-        <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
-      </footer>
+       <footer className="pageFooter">
+         <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
+       </footer>
 
-      <style jsx global>{`
-        :root {
+
+        <style jsx global>{`
+          :root {
           --bg: #0b0e14;
           --bg-deep: #0b0e14;
           --bg-panel: #0b0d11f5;
