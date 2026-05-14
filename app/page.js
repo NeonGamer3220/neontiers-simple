@@ -308,16 +308,15 @@ export default function Page() {
          <div className="tabsScroller">
            <div className="tabRow">
              {MODE_LIST.map((m) => (
-               <button
-                 key={m}
-                 className={`tabBtn ${activeMode === m ? "active" : ""}`}
-                 onClick={() => {
-                   setActiveMode(m);
-                   openTierBoard(m);
-                 }}
-                 aria-pressed={activeMode === m}
-                 type="button"
-               >
+                <button
+                  key={m}
+                  className={`tabBtn ${activeMode === m ? "active" : ""}`}
+                  onClick={() => {
+                    setActiveMode(m);
+                  }}
+                  aria-pressed={activeMode === m}
+                  type="button"
+                >
                  {MODE_ICONS[m] && (
                    <img className="tabIcon" src={MODE_ICONS[m]} alt={`${m} ikon`} width={30} height={30} loading="lazy" decoding="async" />
                  )}
