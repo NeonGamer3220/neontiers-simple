@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
 
@@ -7,13 +7,13 @@ const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 const EASTER_MODE = false;
 
 const MODE_LIST = [
-  "Összes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
+  "├ľsszes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
   "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
   "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stickfight",
 ];
 
 const MODE_ICONS = {
-  "Összes": "/images/overall.png",
+  "├ľsszes": "/images/overall.png",
   "Vanilla": "/images/vanilla.png",
   "UHC": "/images/uhc.png",
   "Pot": "/images/pot.png",
@@ -112,7 +112,7 @@ function skinUrl(username) {
 }
 
 export default function Page() {
-  const [activeMode, setActiveMode] = useState("Összes");
+  const [activeMode, setActiveMode] = useState("├ľsszes");
   const [query, setQuery] = useState("");
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -176,7 +176,7 @@ export default function Page() {
     }
 
     const latestRows = Array.from(latestByUserMode.values());
-    const filteredByMode = activeMode === "Összes"
+    const filteredByMode = activeMode === "├ľsszes"
       ? latestRows
       : latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
 
@@ -199,7 +199,7 @@ export default function Page() {
   }, [tests, activeMode, query]);
 
   const openTierBoard = (mode) => {
-    if (mode !== "Összes") {
+    if (mode !== "├ľsszes") {
       setTierBoardMode(mode);
       setShowTierBoard(true);
     }
@@ -271,7 +271,7 @@ export default function Page() {
     }
 
     const latestRows = Array.from(latestByUserMode.values());
-    const filtered = tierBoardMode === "Összes"
+    const filtered = tierBoardMode === "├ľsszes"
       ? latestRows
       : latestRows.filter((r) => r.gamemode.toLowerCase() === tierBoardMode.toLowerCase());
 
@@ -281,184 +281,6 @@ export default function Page() {
       points: r.points,
     }));
   }, [tests, tierBoardMode]);
-
-  // Compute tier board modal content (non-hook)
-  let tierBoardModal = null;
-  if (showTierBoard && tierBoardMode) {
-    const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-    modePlayers.forEach((p) => {
-      const t = tierFromRank(p.rank);
-      if (t && tiers[t]) tiers[t].push(p);
-    });
-    Object.keys(tiers).forEach(t => {
-      tiers[t].sort((a, b) => (b.points || 0) - (a.points || 0));
-    });
-
-    const tierIcons = {
-      1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
-      2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
-      3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
-      4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
-      5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
-    };
-
-    const tierColors = {
-      1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
-      2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
-      3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
-      4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
-      5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
-    };
-
-    tierBoardModal = (
-      <div className="playerModalBackdrop" onClick={closeTierBoard}>
-        <div className="playerModalCard" onClick={(e) => e.stopPropagation()}>
-          <div className="tierBoardHeader">
-            <h2 className="tierBoardTitle">{displayMode(tierBoardMode)} ranglista</h2>
-            <button className="tierBoardClose" onClick={closeTierBoard} aria-label="Bezárás">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 6L6 18M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="modeBoard">
-            {[1, 2, 3, 4, 5].map((t) => (
-              tiers[t] && tiers[t].length > 0 && (
-                <section key={t} className="modeTierColumn" style={{
-                  '--column-accent': tierColors[t].accent,
-                  '--column-surface': tierColors[t].surface,
-                }}>
-                  <header className="modeTierHead">
-                    <span className="modeTierHeadIcon">{tierIcons[t]}</span>
-                    <span className="modeTierNumber">{t}</span>
-                  </header>
-                  <div className="modeTierList">
-                    {tiers[t].map((p, i) => {
-                      const badgeColor = rankBadgeColor(p.rank);
-                      return (
-                        <button
-                          key={`${p.username}-${i}`}
-                          className="modeTierPlayer"
-                          type="button"
-                          style={{
-                            '--player-accent': badgeColor,
-                            '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                            '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                            '--player-rank-surface': `${badgeColor}33`,
-                            '--player-rank-border': `${badgeColor}44`,
-                            '--player-rank-text': badgeColor,
-                          }}
-                        >
-                          <img
-                            className="modeTierSkin"
-                            src={skinUrl(p.username)}
-                            alt={p.username}
-                            width={38}
-                            height={38}
-                            loading="lazy"
-                            decoding="async"
-                            referrerPolicy="no-referrer"
-                          />
-                          <span className="modeTierName">{p.username}</span>
-                          <span className="modeTierRank">{p.rank}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              )
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Compute player detail modal content (non-hook)
-  let playerDetailModal = null;
-  if (showPlayerDetail && selectedPlayer) {
-    const totalPoints = selectedPlayer.total;
-    const modeCount = selectedPlayer.entries.length;
-    playerDetailModal = (
-      <div className="playerDetailBackdrop" onClick={closePlayerDetail}>
-        <div className="playerDetailCard" onClick={(e) => e.stopPropagation()}>
-          <button className="playerDetailClose" onClick={closePlayerDetail} aria-label="Bezárás">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-          <div className="detailLeft">
-            <div className="detailAvatarFrame" style={{
-              '--detail-avatar-border': hexToRgba(rankBadgeColor(selectedPlayer.entries[0]?.rank || 'LT1'), 0.3),
-              '--detail-avatar-surface': hexToRgba(rankBadgeColor(selectedPlayer.entries[0]?.rank || 'LT1'), 0.08),
-            }}>
-              <img
-                className="detailAvatar"
-                alt={selectedPlayer.username}
-                width={118}
-                height={118}
-                loading="lazy"
-                decoding="async"
-                referrerPolicy="no-referrer"
-                src={skinUrl(selectedPlayer.username)}
-              />
-            </div>
-          </div>
-          <div className="detailRight">
-            <div className="detailUsername" id="player-modal-title">{selectedPlayer.username}</div>
-            <div className="detailStats">
-              <div className="detailStat">
-                <span className="detailStatValue">{totalPoints}</span>
-                <span className="detailStatLabel">Pont</span>
-              </div>
-              <div className="detailStat">
-                <span className="detailStatValue">{modeCount}</span>
-                <span className="detailStatLabel">Mód</span>
-              </div>
-            </div>
-            <div className="detailTiers">
-              {selectedPlayer.entries.map((entry, idx) => {
-                const baseColor = rankBadgeColor(entry.rank);
-                const pts = safeInt(RANK_POINTS[entry.rank] || entry.points, 0);
-                const displayMode = displayMode(entry.gamemode);
-                return (
-                  <div
-                    key={`${entry.gamemode}-${idx}`}
-                    className="detailTier"
-                    data-gamemode={entry.gamemode.toLowerCase()}
-                    style={{
-                      color: baseColor,
-                      '--tier-accent': baseColor,
-                      '--tier-border': hexToRgba(baseColor, 0.78),
-                      '--tier-surface': hexToRgba(baseColor, 0.22),
-                      '--tier-text': baseColor,
-                    }}
-                  >
-                    {MODE_ICONS[displayMode] && (
-                      <img
-                        className="detailTierIcon"
-                        alt={`${displayMode} ikon`}
-                        width={26}
-                        height={26}
-                        loading="lazy"
-                        decoding="async"
-                        src={MODE_ICONS[displayMode]}
-                      />
-                    )}
-                    <span className="detailTierRank">{entry.rank}</span>
-                    <span className="tierTooltip" aria-hidden="true">
-                      <span className="tierTooltipRank">{entry.rank}</span>
-                      <span>{pts} pont</span>
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
    return (
      <div className={`page ${showTierBoard ? 'modal-open' : ''}`}>
@@ -474,7 +296,7 @@ export default function Page() {
                 <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true">
                   <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
                 </svg>
-                Főoldal
+                F┼Ĺoldal
               </a>
             </li>
             <li>
@@ -492,7 +314,7 @@ export default function Page() {
             </svg>
             <input
               className="searchInput"
-              placeholder="Játékos keresése..."
+              placeholder="J├ít├ękos keres├ęse..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               spellCheck={false}
@@ -529,8 +351,8 @@ export default function Page() {
 
         {/* Main content */}
         <main className="mainWrap">
-          {/* Leaderboard - shown only for Összes */}
-          {activeMode === "Összes" && (
+          {/* Leaderboard - shown only for ├ľsszes */}
+          {activeMode === "├ľsszes" && (
             <div className="mainCard">
               {/* Info bar */}
               <div className="infoBar">
@@ -548,20 +370,20 @@ export default function Page() {
               <div className="colHead">
                 <span className="colHash">#</span>
                 <span className="colSkinSpacer" aria-hidden="true"></span>
-                <span className="colPlayer">Játékos</span>
+                <span className="colPlayer">J├ít├ękos</span>
                 <span className="colTiers">Tierek</span>
               </div>
 
               {/* Player rows */}
               {loading ? (
                 <div className="emptyState">
-                  <div className="emptyTitle">Betöltés...</div>
-                  <div className="emptySub">Kérlek várj.</div>
+                  <div className="emptyTitle">Bet├Âlt├ęs...</div>
+                  <div className="emptySub">K├ęrlek v├írj.</div>
                 </div>
               ) : leaderboard.length === 0 ? (
                 <div className="emptyState">
                   <div className="emptyTitle">Nincs adat</div>
-                  <div className="emptySub">Még nincs mentett teszt eredmény.</div>
+                  <div className="emptySub">M├ęg nincs mentett teszt eredm├ęny.</div>
                 </div>
                ) : (
                 leaderboard.map((p, idx) => (
@@ -643,7 +465,7 @@ export default function Page() {
           )}
 
           {/* Gamemode-specific tier board inline - no modal */}
-          {activeMode !== "Összes" && (
+          {activeMode !== "├ľsszes" && (
             <div className="mainCard">
               <div className="modeBoard">
                 {[1, 2, 3, 4, 5].map((t) => {
@@ -702,7 +524,7 @@ export default function Page() {
                             );
                           })
                         ) : (
-                          <div className="emptyTierList">Nincs játékos</div>
+                          <div className="emptyTierList">Nincs j├ít├ękos</div>
                         )}
                       </div>
                     </section>
@@ -713,24 +535,191 @@ export default function Page() {
           )}
         </main>
 
-        <footer className="pageFooter">
-          <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
-        </footer>
 
-        {tierBoardModalContent}
-        {playerDetailModalContent}
+        {/* Tier Board Modal */}
+        {(() => {
+          if (!showTierBoard || !tierBoardMode) return null;
+          const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+          modePlayers.forEach((p) => {
+            const t = tierFromRank(p.rank);
+            if (t && tiers[t]) tiers[t].push(p);
+          });
+          Object.keys(tiers).forEach(t => {
+            tiers[t].sort((a, b) => (b.points || 0) - (a.points || 0));
+          });
 
-        <style jsx global>{`
+          const tierIcons = {
+            1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+            2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
+            3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
+            4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
+            5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
+          };
+
+          const tierColors = {
+            1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
+            2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
+            3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
+            4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
+            5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
+          };
+
+          return (
+            <div className="playerModalBackdrop" onClick={closeTierBoard}>
+              <div className="playerModalCard" onClick={(e) => e.stopPropagation()}>
+                <div className="tierBoardHeader">
+                  <h2 className="tierBoardTitle">{displayMode(tierBoardMode)} ranglista</h2>
+                  <button className="tierBoardClose" onClick={closeTierBoard} aria-label="Bez├ír├ís">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="modeBoard">
+                 {[1, 2, 3, 4, 5].map((t) => (
+                   tiers[t] && tiers[t].length > 0 && (
+                     <section key={t} className="modeTierColumn" style={{
+                       '--column-accent': tierColors[t].accent,
+                       '--column-surface': tierColors[t].surface,
+                     }}>
+                       <header className="modeTierHead">
+                         <span className="modeTierHeadIcon">{tierIcons[t]}</span>
+                         <span className="modeTierNumber">{t}</span>
+                       </header>
+                       <div className="modeTierList">
+                         {tiers[t].map((p, i) => {
+                           const badgeColor = rankBadgeColor(p.rank);
+                           return (
+                             <button
+                               key={`${p.username}-${i}`}
+                               className="modeTierPlayer"
+                               type="button"
+                               style={{
+                                 '--player-accent': badgeColor,
+                                 '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                 '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                 '--player-rank-surface': `${badgeColor}33`,
+                                 '--player-rank-border': `${badgeColor}44`,
+                                 '--player-rank-text': badgeColor,
+                               }}
+                             >
+                               <img
+                                 className="modeTierSkin"
+                                 src={skinUrl(p.username)}
+                                 alt={p.username}
+                                 width={38}
+                                 height={38}
+                                 loading="lazy"
+                                 decoding="async"
+                                 referrerPolicy="no-referrer"
+                               />
+                               <span className="modeTierName">{p.username}</span>
+                                <span className="modeTierRank">{p.rank}</span>
+                             </button>
+                           );
+                         })}
+                       </div>
+                     </section>
+                   )
+                 ))}
+               </div>
+             </div>
+           </div>
+         );
+        })()}
+
+       {/* Player Detail Modal */}
+       {showPlayerDetail && selectedPlayer && (() => {
+         const totalPoints = selectedPlayer.total;
+         const modeCount = selectedPlayer.entries.length;
+         return (
+           <div className="playerDetailBackdrop" onClick={closePlayerDetail}>
+             <div className="playerDetailCard" onClick={(e) => e.stopPropagation()}>
+               <button className="playerDetailClose" onClick={closePlayerDetail} aria-label="Bez├ír├ís">
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                   <path d="M18 6L6 18M6 6l12 12" />
+                 </svg>
+               </button>
+               <div className="detailLeft">
+                 <div className="detailAvatarFrame" style={{
+                   '--detail-avatar-border': hexToRgba(rankBadgeColor(selectedPlayer.entries[0]?.rank || 'LT1'), 0.3),
+                   '--detail-avatar-surface': hexToRgba(rankBadgeColor(selectedPlayer.entries[0]?.rank || 'LT1'), 0.08),
+                 }}>
+                   <img
+                     className="detailAvatar"
+                     alt={selectedPlayer.username}
+                     width={118}
+                     height={118}
+                     loading="lazy"
+                     decoding="async"
+                     referrerPolicy="no-referrer"
+                     src={skinUrl(selectedPlayer.username)}
+                   />
+                 </div>
+               </div>
+               <div className="detailRight">
+                 <div className="detailUsername" id="player-modal-title">{selectedPlayer.username}</div>
+                 <div className="detailStats">
+                   <div className="detailStat">
+                     <span className="detailStatValue">{totalPoints}</span>
+                     <span className="detailStatLabel">Pont</span>
+                   </div>
+                   <div className="detailStat">
+                     <span className="detailStatValue">{modeCount}</span>
+                     <span className="detailStatLabel">M├│d</span>
+                   </div>
+                 </div>
+                 <div className="detailTiers">
+                   {selectedPlayer.entries.map((entry, idx) => {
+                     const baseColor = rankBadgeColor(entry.rank);
+                     const pts = safeInt(RANK_POINTS[entry.rank] || entry.points, 0);
+                     const displayMode = displayMode(entry.gamemode);
+                     return (
+                       <div
+                         key={`${entry.gamemode}-${idx}`}
+                         className="detailTier"
+                         data-gamemode={entry.gamemode.toLowerCase()}
+                         style={{
+                           color: baseColor,
+                           '--tier-accent': baseColor,
+                           '--tier-border': hexToRgba(baseColor, 0.78),
+                           '--tier-surface': hexToRgba(baseColor, 0.22),
+                           '--tier-text': baseColor,
+                         }}
+                       >
+                         {MODE_ICONS[displayMode] && (
+                           <img
+                             className="detailTierIcon"
+                             alt={`${displayMode} ikon`}
+                             width={26}
+                             height={26}
+                             loading="lazy"
+                             decoding="async"
+                             src={MODE_ICONS[displayMode]}
+                           />
+                         )}
+                         <span className="detailTierRank">{entry.rank}</span>
+                         <span className="tierTooltip" aria-hidden="true">
+                           <span className="tierTooltipRank">{entry.rank}</span>
+                           <span>{pts} pont</span>
+                         </span>
+                       </div>
+                     );
+                   })}
+                 </div>
+               </div>
+             </div>
+           </div>
+         );
+       })()}
+
        <footer className="pageFooter">
-         <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
+         <div className="footerText">NeonTiers ┬ę {new Date().getFullYear()}</div>
        </footer>
 
 
         <style jsx global>{`
-         {tierBoardModalContent}
-        {playerDetailModalContent}
-
-        <style jsx global>{`
+          :root {
           --bg: #0b0e14;
           --bg-deep: #0b0e14;
           --bg-panel: #0b0d11f5;
