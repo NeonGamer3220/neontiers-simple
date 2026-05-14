@@ -440,7 +440,8 @@ export default function Page() {
             <div className="mainCard">
               <div className="modeBoard">
                 {[1, 2, 3, 4, 5].map((t) => {
-                  const tierPlayers = modePlayers.filter(p => tierFromRank(p.rank) === t);
+                  const tierPlayers = leaderboard
+                    .filter(p => p.entries.length > 0 && tierFromRank(p.entries[0].rank) === t);
                   if (tierPlayers.length === 0) return null;
                   return (
                     <section
@@ -457,7 +458,8 @@ export default function Page() {
                       </header>
                       <div className="modeTierList">
                         {tierPlayers.map((p, i) => {
-                          const badgeColor = rankBadgeColor(p.rank);
+                          const rank = p.entries[0].rank;
+                          const badgeColor = rankBadgeColor(rank);
                           return (
                             <div
                               key={`${p.username}-${i}`}
@@ -482,7 +484,7 @@ export default function Page() {
                                 referrerPolicy="no-referrer"
                               />
                               <span className="modeTierName">{p.username}</span>
-                              <span className="modeTierRank">{p.rank}</span>
+                              <span className="modeTierRank">{rank}</span>
                             </div>
                           );
                         })}
