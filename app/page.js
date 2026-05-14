@@ -454,7 +454,7 @@ export default function Page() {
                     >
                       <header className="modeTierHead">
                         <span className="modeTierHeadIcon">{TIER_ICONS[t]}</span>
-                        <span className="modeTierNumber">{t}</span>
+                        <span className="modeTierNumber">Tier {t}</span>
                       </header>
                       <div className="modeTierList">
                         {tierPlayers.map((p, i) => {
