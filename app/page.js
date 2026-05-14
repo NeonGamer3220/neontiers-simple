@@ -53,6 +53,22 @@ const RANK_POINTS = {
   LT1: 40, HT1: 60,
 };
 
+const TIER_ICONS = {
+  1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
+  2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
+  3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
+  4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
+  5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
+};
+
+const TIER_COLORS = {
+  1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
+  2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
+  3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
+  4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
+  5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
+};
+
 function tierFromRank(rank) {
   if (!rank || typeof rank !== "string") return null;
   const m = rank.match(/([LH]T)([1-5])/i);
@@ -315,6 +331,7 @@ export default function Page() {
 
         {/* Main content */}
         <main className="mainWrap">
+          {/* Leaderboard - shown only for Összes */}
           {activeMode === "Összes" && (
             <div className="mainCard">
               {/* Info bar */}
@@ -338,6 +355,111 @@ export default function Page() {
               </div>
 
               {/* Player rows */}
+              {loading ? (
+                <div className="emptyState">
+                  <div className="emptyTitle">Betöltés...</div>
+                  <div className="emptySub">Kérlek várj.</div>
+                </div>
+              ) : leaderboard.length === 0 ? (
+                <div className="emptyState">
+                  <div className="emptyTitle">Nincs adat</div>
+                  <div className="emptySub">Még nincs mentett teszt eredmény.</div>
+                </div>
+              ) : (
+                leaderboard.map((p, idx) => (
+                  <button
+                    key={p.username}
+                    id={p.username}
+                    className="playerRow"
+                    type="button"
+                    aria-haspopup="dialog"
+                    aria-expanded="false"
+                  >
+                    <span className="rowNum">{idx + 1}.</span>
+                    <img
+                      className="playerSkin"
+                      src={skinUrl(p.username)}
+                      alt={p.username}
+                      width={64}
+                      height={64}
+                      loading="eager"
+                      decoding="async"
+                      fetchPriority="high"
+                      referrerPolicy="no-referrer"
+                    />
+                    <span className="playerNameWrap">
+                      <span className="playerName">{p.username}</span>
+                      <span className="playerPoints">{p.total} pont</span>
+                    </span>
+                    <span className="rowTiers">
+                      {p.entries.map((r) => {
+                        const baseColor = rankBadgeColor(r.rank);
+                        const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
+                        const displayRank = displayMode(r.gamemode);
+                        return (
+                          <span
+                            key={`${r.gamemode}:${r.rank}`}
+                            className="tierBadge"
+                            data-gamemode={r.gamemode.toLowerCase()}
+                            style={{
+                              color: baseColor,
+                              '--tier-accent': baseColor,
+                              '--tier-border': hexToRgba(baseColor, 0.78),
+                              '--tier-surface': hexToRgba(baseColor, 0.22),
+                              '--tier-text': baseColor,
+                            }}
+                            aria-label={`${displayRank} ${r.rank}`}
+                          >
+                            {MODE_ICONS[displayRank] && (
+                              <img
+                                className="tierIcon"
+                                src={MODE_ICONS[displayRank]}
+                                alt={`${displayRank} ikon`}
+                                width={30}
+                                height={30}
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            )}
+                            <span className="tierLabel">{r.rank}</span>
+                            <span className="tierTooltip" aria-hidden="true">
+                              <span className="tierTooltipRank">{r.rank}</span>
+                              <span>{pts} pont</span>
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
+          {/* Gamemode-specific leaderboard - shown only for specific modes */}
+          {activeMode !== "Összes" && (
+            <div className="mainCard">
+              {/* Info bar */}
+              <div className="infoBar">
+                <div className="infoBarLeft">
+                  <a className="infoDiscordLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord" title="Discord">
+                    <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                      <path d="M19.82 5.7a16.5 16.5 0 0 0-4.12-1.3l-.2.4a14.75 14.75 0 0 1 3.85 1.53 12.93 12.93 0 0 0-3.92-1.26 15.52 15.52 0 0 0-6.87 0A12.95 12.95 0 0 0 4.65 6.3a14.74 14.74 0 0 1 3.84-1.52l-.2-.39a16.4 16.4 0 0 0-4.1 1.3C1.6 9.6.9 13.4 1.23 17.16a16.6 16.6 0 0 0 5.04 2.56l1.08-1.77c-.6-.2-1.17-.46-1.7-.76.14.1.28.18.43.27 3.28 1.88 6.83 1.88 10.08 0 .15-.09.29-.17.43-.27a10.2 10.2 0 0 1-1.7.76l1.08 1.77a16.5 16.5 0 0 0 5.04-2.56c.4-4.37-.67-8.14-2.7-11.46ZM8.87 14.83c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.8 2.08-1.8 2.08Zm6.26 0c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.79 2.08-1.8 2.08Z"/>
+                    </svg>
+                    <span>Discord</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Column headers - static as per competition */}
+              <div className="colHead">
+                <span className="colHash">#</span>
+                <span className="colSkinSpacer" aria-hidden="true"></span>
+                <span className="colPlayer">Játékos</span>
+                <span className="colTiers">Tierek</span>
+              </div>
+
+              {/* Player rows for specific mode */}
               {loading ? (
                 <div className="emptyState">
                   <div className="emptyTitle">Betöltés...</div>
