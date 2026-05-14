@@ -1170,12 +1170,10 @@ export default function Page() {
            fill: currentColor;
          }
 
-         .modeTierList {
-           display: flex;
-           flex-direction: column;
-           overflow-y: auto;
-           max-height: 38vh;
-         }
+          .modeTierList {
+            display: flex;
+            flex-direction: column;
+          }
 
          .modeTierPlayer {
            display: grid;
