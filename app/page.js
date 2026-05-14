@@ -387,14 +387,21 @@ export default function Page() {
                 </div>
                ) : (
                 leaderboard.map((p, idx) => (
-                  <button
+                  <div
                     key={p.username}
                     id={p.username}
                     className="playerRow"
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     aria-haspopup="dialog"
                     aria-expanded={showPlayerDetail ? "true" : "false"}
                     onClick={() => handlePlayerClick(p)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePlayerClick(p);
+                      }
+                    }}
                   >
                     <span className="rowNum">{idx + 1}.</span>
                     <img
@@ -481,27 +488,26 @@ export default function Page() {
                       </header>
                       <div className="modeTierList">
                         {tierPlayers.length > 0 ? (
-                          tierPlayers.map((p, i) => {
-                            const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
-                            const rank = entry.rank;
-                            const badgeColor = rankBadgeColor(rank);
-                            return (
-                            <button
-                              key={`${p.username}-${i}`}
-                              className="modeTierPlayer"
-                              type="button"
-                              onClick={() => handlePlayerClick(p)}
-                              aria-haspopup="dialog"
-                              aria-expanded={showPlayerDetail ? "true" : "false"}
-                              style={{
-                                '--player-accent': badgeColor,
-                                '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                '--player-rank-surface': `${badgeColor}33`,
-                                '--player-rank-border': `${badgeColor}44`,
-                                '--player-rank-text': badgeColor,
-                              }}
-                            >
+                           tierPlayers.map((p, i) => {
+                             const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                             const rank = entry.rank;
+                             const badgeColor = rankBadgeColor(rank);
+                             return (
+                               <div
+                                 key={`${p.username}-${i}`}
+                                 className="modeTierPlayer"
+                                 onClick={() => handlePlayerClick(p)}
+                                 aria-haspopup="dialog"
+                                 aria-expanded={showPlayerDetail ? "true" : "false"}
+                                 style={{
+                                   '--player-accent': badgeColor,
+                                   '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                   '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                   '--player-rank-surface': `${badgeColor}33`,
+                                   '--player-rank-border': `${badgeColor}44`,
+                                   '--player-rank-text': badgeColor,
+                                 }}
+                               >
                                 <img
                                   className="modeTierSkin"
                                   src={skinUrl(p.username)}
