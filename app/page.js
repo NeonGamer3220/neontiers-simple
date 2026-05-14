@@ -442,7 +442,6 @@ export default function Page() {
                 {[1, 2, 3, 4, 5].map((t) => {
                   const tierPlayers = leaderboard
                     .filter(p => p.entries.length > 0 && tierFromRank(p.entries[0].rank) === t);
-                  if (tierPlayers.length === 0) return null;
                   return (
                     <section
                       key={t}
@@ -457,37 +456,41 @@ export default function Page() {
                         <span className="modeTierNumber">Tier {t}</span>
                       </header>
                       <div className="modeTierList">
-                        {tierPlayers.map((p, i) => {
-                          const rank = p.entries[0].rank;
-                          const badgeColor = rankBadgeColor(rank);
-                          return (
-                            <div
-                              key={`${p.username}-${i}`}
-                              className="modeTierPlayer"
-                              style={{
-                                '--player-accent': badgeColor,
-                                '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                '--player-rank-surface': `${badgeColor}33`,
-                                '--player-rank-border': `${badgeColor}44`,
-                                '--player-rank-text': badgeColor,
-                              }}
-                            >
-                              <img
-                                className="modeTierSkin"
-                                src={skinUrl(p.username)}
-                                alt={p.username}
-                                width={38}
-                                height={38}
-                                loading="lazy"
-                                decoding="async"
-                                referrerPolicy="no-referrer"
-                              />
-                              <span className="modeTierName">{p.username}</span>
-                              <span className="modeTierRank">{rank}</span>
-                            </div>
-                          );
-                        })}
+                        {tierPlayers.length > 0 ? (
+                          tierPlayers.map((p, i) => {
+                            const rank = p.entries[0].rank;
+                            const badgeColor = rankBadgeColor(rank);
+                            return (
+                              <div
+                                key={`${p.username}-${i}`}
+                                className="modeTierPlayer"
+                                style={{
+                                  '--player-accent': badgeColor,
+                                  '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                  '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                  '--player-rank-surface': `${badgeColor}33`,
+                                  '--player-rank-border': `${badgeColor}44`,
+                                  '--player-rank-text': badgeColor,
+                                }}
+                              >
+                                <img
+                                  className="modeTierSkin"
+                                  src={skinUrl(p.username)}
+                                  alt={p.username}
+                                  width={38}
+                                  height={38}
+                                  loading="lazy"
+                                  decoding="async"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <span className="modeTierName">{p.username}</span>
+                                <span className="modeTierRank">{rank}</span>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="emptyTierList">Nincs játékos</div>
+                        )}
                       </div>
                     </section>
                   );
@@ -1198,19 +1201,28 @@ export default function Page() {
            contain-intrinsic-size: 54px;
          }
 
-         .modeTierPlayer:hover {
-           background: var(--mode-player-surface-hover, #ffffff0e);
-           border-color: var(--player-rank-border);
-         }
+          .modeTierPlayer:hover {
+            background: var(--mode-player-surface-hover, #ffffff0e);
+            border-color: var(--player-rank-border);
+          }
 
-         .modeTierPlayer:before {
-           content: "";
-           background: var(--player-accent);
-           width: 3px;
-           position: absolute;
-           top: 0;
-           bottom: 0;
-           left: 0;
+          .modeTierPlayer:before {
+            content: "";
+            background: var(--player-accent);
+            width: 3px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+          }
+
+          .emptyTierList {
+            padding: 20px 12px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            font-style: italic;
           }
 
           .modeTierSkin {
