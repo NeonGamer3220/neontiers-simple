@@ -436,7 +436,7 @@ export default function Page() {
             </div>
           )}
 
-          {/* Gamemode-specific tier board - 5 column layout from competition */}
+          {/* Gamemode-specific tier board inline - no modal */}
           {activeMode !== "Összes" && (
             <div className="mainCard">
               <div className="modeBoard">
@@ -459,12 +459,10 @@ export default function Page() {
                       <div className="modeTierList">
                         {tierPlayers.map((p, i) => {
                           const badgeColor = rankBadgeColor(p.rank);
-                          const pts = safeInt(RANK_POINTS[p.rank] || p.points, 0);
                           return (
-                            <button
+                            <div
                               key={`${p.username}-${i}`}
                               className="modeTierPlayer"
-                              type="button"
                               style={{
                                 '--player-accent': badgeColor,
                                 '--mode-player-surface': 'rgba(255,255,255,0.018)',
@@ -486,7 +484,7 @@ export default function Page() {
                               />
                               <span className="modeTierName">{p.username}</span>
                               <span className="modeTierRank">{p.rank}</span>
-                            </button>
+                            </div>
                           );
                         })}
                       </div>
