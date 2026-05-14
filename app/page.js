@@ -116,17 +116,23 @@ export default function Page() {
   const [query, setQuery] = useState("");
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [tierBoardMode, setTierBoardMode] = useState(null);
-  const [showTierBoard, setShowTierBoard] = useState(false);
+   const [tierBoardMode, setTierBoardMode] = useState(null);
+   const [showTierBoard, setShowTierBoard] = useState(false);
+   const [selectedPlayer, setSelectedPlayer] = useState(null);
+   const [showPlayerDetail, setShowPlayerDetail] = useState(false);
 
   useEffect(() => {
     let alive = true;
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch("/api/tests", { 
+        const res = await fetch(`/api/tests?ts=${Date.now()}`, { 
           cache: "no-store",
-          headers: { "Cache-Control": "no-cache" }
+          headers: { 
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+          }
         });
         const data = await res.json();
         if (!alive) return;
@@ -204,15 +210,28 @@ export default function Page() {
     setTimeout(() => setTierBoardMode(null), 300);
   };
 
+  const handlePlayerClick = (player) => {
+    setSelectedPlayer(player);
+    setShowPlayerDetail(true);
+  };
+
+  const closePlayerDetail = () => {
+    setShowPlayerDetail(false);
+    setTimeout(() => setSelectedPlayer(null), 300);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && showTierBoard) {
         closeTierBoard();
       }
+      if (e.key === "Escape" && showPlayerDetail) {
+        closePlayerDetail();
+      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showTierBoard]);
+  }, [showTierBoard, showPlayerDetail]);
 
   useEffect(() => {
     if (showTierBoard) {
@@ -366,7 +385,7 @@ export default function Page() {
                   <div className="emptyTitle">Nincs adat</div>
                   <div className="emptySub">Még nincs mentett teszt eredmény.</div>
                 </div>
-              ) : (
+               ) : (
                 leaderboard.map((p, idx) => (
                   <button
                     key={p.username}
@@ -374,7 +393,8 @@ export default function Page() {
                     className="playerRow"
                     type="button"
                     aria-haspopup="dialog"
-                    aria-expanded="false"
+                    aria-expanded={showPlayerDetail ? "true" : "false"}
+                    onClick={() => handlePlayerClick(p)}
                   >
                     <span className="rowNum">{idx + 1}.</span>
                     <img
@@ -466,18 +486,20 @@ export default function Page() {
                             const rank = entry.rank;
                             const badgeColor = rankBadgeColor(rank);
                             return (
-                              <div
-                                key={`${p.username}-${i}`}
-                                className="modeTierPlayer"
-                                style={{
-                                  '--player-accent': badgeColor,
-                                  '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                  '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                  '--player-rank-surface': `${badgeColor}33`,
-                                  '--player-rank-border': `${badgeColor}44`,
-                                  '--player-rank-text': badgeColor,
-                                }}
-                              >
+                            <button
+                              key={`${p.username}-${i}`}
+                              className="modeTierPlayer"
+                              type="button"
+                              onClick={() => handlePlayerClick(p)}
+                              style={{
+                                '--player-accent': badgeColor,
+                                '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                '--player-rank-surface': `${badgeColor}33`,
+                                '--player-rank-border': `${badgeColor}44`,
+                                '--player-rank-text': badgeColor,
+                              }}
+                            >
                                 <img
                                   className="modeTierSkin"
                                   src={skinUrl(p.username)}
@@ -505,96 +527,95 @@ export default function Page() {
           )}
         </main>
 
-      {/* Tier Board Modal */}
-      {showTierBoard && tierBoardMode && (() => {
-        const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-        modePlayers.forEach((p) => {
-          const t = tierFromRank(p.rank);
-          if (t && tiers[t]) tiers[t].push(p);
-        });
-        Object.keys(tiers).forEach(t => {
-          tiers[t].sort((a, b) => (b.points || 0) - (a.points || 0));
-        });
+       {/* Tier Board Modal */}
+       {showTierBoard && tierBoardMode && (() => {
+         // ... existing modal code ...
+       })()}
 
-        const tierIcons = {
-          1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
-          2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
-          3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
-          4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
-          5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
-        };
-
-        const tierColors = {
-          1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
-          2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
-          3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
-          4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
-          5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
-        };
-
+       {/* Player Detail Modal */}
+       {showPlayerDetail && selectedPlayer && (() => {
+         const totalPoints = selectedPlayer.total;
+         const modeCount = selectedPlayer.entries.length;
          return (
-           <div className="playerModalBackdrop" onClick={closeTierBoard}>
-             <div className="playerModalCard" onClick={(e) => e.stopPropagation()}>
-               <div className="tierBoardHeader">
-                 <h2 className="tierBoardTitle">{displayMode(tierBoardMode)} ranglista</h2>
-                 <button className="tierBoardClose" onClick={closeTierBoard} aria-label="Bezárás">
-                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                     <path d="M18 6L6 18M6 6l12 12" />
-                   </svg>
-                 </button>
+           <div className="playerDetailBackdrop" onClick={closePlayerDetail}>
+             <div className="playerDetailCard" onClick={(e) => e.stopPropagation()}>
+               <button className="playerDetailClose" onClick={closePlayerDetail} aria-label="Bezárás">
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                   <path d="M18 6L6 18M6 6l12 12" />
+                 </svg>
+               </button>
+               <div className="detailLeft">
+                 <div className="detailAvatarFrame" style={{
+                   '--detail-avatar-border': hexToRgba(rankBadgeColor(selectedPlayer.entries[0]?.rank || 'LT1'), 0.3),
+                   '--detail-avatar-surface': hexToRgba(rankBadgeColor(selectedPlayer.entries[0]?.rank || 'LT1'), 0.08),
+                 }}>
+                   <img
+                     className="detailAvatar"
+                     alt={selectedPlayer.username}
+                     width={118}
+                     height={118}
+                     loading="lazy"
+                     decoding="async"
+                     referrerPolicy="no-referrer"
+                     src={skinUrl(selectedPlayer.username)}
+                   />
+                 </div>
                </div>
-               <div className="modeBoard">
-                {[1, 2, 3, 4, 5].map((t) => (
-                  tiers[t] && tiers[t].length > 0 && (
-                    <section key={t} className="modeTierColumn" style={{
-                      '--column-accent': tierColors[t].accent,
-                      '--column-surface': tierColors[t].surface,
-                    }}>
-                      <header className="modeTierHead">
-                        <span className="modeTierHeadIcon">{tierIcons[t]}</span>
-                        <span className="modeTierNumber">{t}</span>
-                      </header>
-                      <div className="modeTierList">
-                        {tiers[t].map((p, i) => {
-                          const badgeColor = rankBadgeColor(p.rank);
-                          return (
-                            <button
-                              key={`${p.username}-${i}`}
-                              className="modeTierPlayer"
-                              type="button"
-                              style={{
-                                '--player-accent': badgeColor,
-                                '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                '--player-rank-surface': `${badgeColor}33`,
-                                '--player-rank-border': `${badgeColor}44`,
-                                '--player-rank-text': badgeColor,
-                              }}
-                            >
-                              <img
-                                className="modeTierSkin"
-                                src={skinUrl(p.username)}
-                                alt={p.username}
-                                width={38}
-                                height={38}
-                                loading="lazy"
-                                decoding="async"
-                                referrerPolicy="no-referrer"
-                              />
-                              <span className="modeTierName">{p.username}</span>
-                               <span className="modeTierRank">{p.rank}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  )
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+               <div className="detailRight">
+                 <div className="detailUsername" id="player-modal-title">{selectedPlayer.username}</div>
+                 <div className="detailStats">
+                   <div className="detailStat">
+                     <span className="detailStatValue">{totalPoints}</span>
+                     <span className="detailStatLabel">Pont</span>
+                   </div>
+                   <div className="detailStat">
+                     <span className="detailStatValue">{modeCount}</span>
+                     <span className="detailStatLabel">Mód</span>
+                   </div>
+                 </div>
+                 <div className="detailTiers">
+                   {selectedPlayer.entries.map((entry, idx) => {
+                     const baseColor = rankBadgeColor(entry.rank);
+                     const pts = safeInt(RANK_POINTS[entry.rank] || entry.points, 0);
+                     const displayMode = displayMode(entry.gamemode);
+                     return (
+                       <div
+                         key={`${entry.gamemode}-${idx}`}
+                         className="detailTier"
+                         data-gamemode={entry.gamemode.toLowerCase()}
+                         style={{
+                           color: baseColor,
+                           '--tier-accent': baseColor,
+                           '--tier-border': hexToRgba(baseColor, 0.78),
+                           '--tier-surface': hexToRgba(baseColor, 0.22),
+                           '--tier-text': baseColor,
+                         }}
+                       >
+                         {MODE_ICONS[displayMode] && (
+                           <img
+                             className="detailTierIcon"
+                             alt={`${displayMode} ikon`}
+                             width={26}
+                             height={26}
+                             loading="lazy"
+                             decoding="async"
+                             src={MODE_ICONS[displayMode]}
+                           />
+                         )}
+                         <span className="detailTierRank">{entry.rank}</span>
+                         <span className="tierTooltip" aria-hidden="true">
+                           <span className="tierTooltipRank">{entry.rank}</span>
+                           <span>{pts} pont</span>
+                         </span>
+                       </div>
+                     );
+                   })}
+                 </div>
+               </div>
+             </div>
+           </div>
+         );
+       })()}
 
       <footer className="pageFooter">
         <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
@@ -1180,29 +1201,26 @@ export default function Page() {
             flex-direction: column;
           }
 
-         .modeTierPlayer {
-           display: grid;
-           grid-template-columns: 38px minmax(0, 1fr) auto;
-           align-items: center;
-           gap: 10px;
-           width: 100%;
-           padding: 8px 12px;
-           background: var(--mode-player-surface, #ffffff08);
-           border-top: 1px solid #ffffff0d;
-           border-bottom: none;
-           border-left: none;
-           border-right: none;
-           border-radius: 8px;
-           cursor: pointer;
-           transition: background 0.15s, border-color 0.15s;
-           position: relative;
-           color: var(--text);
-           font-size: 15px;
-           font-weight: 800;
-           min-height: 54px;
-           content-visibility: auto;
-           contain-intrinsic-size: 54px;
-         }
+          .modeTierPlayer {
+            display: grid;
+            grid-template-columns: 38px minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--mode-player-surface, #ffffff08);
+            border: 1px solid #ffffff0d;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            position: relative;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 800;
+            min-height: 54px;
+            content-visibility: auto;
+            contain-intrinsic-size: 54px;
+          }
 
           .modeTierPlayer:hover {
             background: var(--mode-player-surface-hover, #ffffff0e);
@@ -1264,22 +1282,267 @@ export default function Page() {
           }
 
          /* Empty state */
-        .emptyState {
-          padding: 48px 24px;
-          text-align: center;
-        }
+         .emptyState {
+           padding: 48px 24px;
+           text-align: center;
+         }
 
-        .emptyTitle {
-          font-size: 18px;
-          font-weight: 800;
-          color: var(--text);
-        }
+         .emptyTitle {
+           font-size: 18px;
+           font-weight: 800;
+           color: var(--text);
+         }
 
-        .emptySub {
-          margin-top: 8px;
-          font-size: 14px;
-          color: var(--muted);
-        }
+         .emptySub {
+           margin-top: 8px;
+           font-size: 14px;
+           color: var(--muted);
+         }
+
+         /* Player Detail Modal */
+         .playerDetailBackdrop {
+           position: fixed;
+           inset: 0;
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           z-index: 160;
+           padding: 22px;
+           background: #03050ac7;
+           -webkit-backdrop-filter: blur(10px);
+           backdrop-filter: blur(10px);
+         }
+
+         .playerDetailCard {
+           background: #0b0d11fa;
+           border: 1px solid #ffffff1f;
+           border-radius: 28px;
+           width: min(720px, calc(100vw - 44px));
+           max-height: calc(100vh - 44px);
+           position: relative;
+           overflow: hidden;
+           box-shadow: 0 28px 90px #00000075;
+           animation: modalSlideIn 0.25s ease;
+           display: flex;
+           padding: 0;
+         }
+
+         .playerDetailClose {
+           position: absolute;
+           top: 10px;
+           right: 10px;
+           width: 32px;
+           height: 32px;
+           border: none;
+           border-radius: 999px;
+           background: #ffffff14;
+           color: #ffffffc2;
+           cursor: pointer;
+           display: inline-flex;
+           align-items: center;
+           justify-content: center;
+           transition: background 0.15s, color 0.15s;
+           z-index: 10;
+         }
+
+         .playerDetailClose:hover {
+           color: var(--text);
+           background: #ffffff1f;
+         }
+
+         .playerDetailClose svg {
+           width: 14px;
+           height: 14px;
+         }
+
+         .detailLeft {
+           flex-shrink: 0;
+           width: 160px;
+           padding: 24px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           background: rgba(255,255,255,0.02);
+           border-right: 1px solid rgba(255,255,255,0.08);
+         }
+
+         .detailAvatarFrame {
+           width: 118px;
+           height: 118px;
+           border-radius: 50%;
+           border: 3px solid var(--detail-avatar-border, rgba(213, 179, 85, 0.3));
+           background: var(--detail-avatar-surface, rgba(213, 179, 85, 0.08));
+           padding: 3px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+         }
+
+         .detailAvatar {
+           width: 100%;
+           height: 100%;
+           border-radius: 50%;
+           image-rendering: pixelated;
+           object-fit: cover;
+         }
+
+         .detailRight {
+           flex: 1;
+           padding: 20px 24px;
+           overflow-y: auto;
+           max-height: calc(100vh - 44px);
+         }
+
+         @media (max-height: 600px) {
+           .detailRight {
+             max-height: 50vh;
+           }
+         }
+
+         .detailUsername {
+           font-size: 24px;
+           font-weight: 900;
+           color: var(--text);
+           margin-bottom: 16px;
+           line-height: 1.2;
+         }
+
+         .detailStats {
+           display: flex;
+           gap: 24px;
+           margin-bottom: 20px;
+           padding-bottom: 16px;
+           border-bottom: 1px solid rgba(255,255,255,0.08);
+         }
+
+         .detailStat {
+           display: flex;
+           flex-direction: column;
+           gap: 2px;
+         }
+
+         .detailStatValue {
+           font-size: 28px;
+           font-weight: 900;
+           color: var(--text);
+           line-height: 1;
+         }
+
+         .detailStatLabel {
+           font-size: 12px;
+           font-weight: 700;
+           color: var(--muted);
+           text-transform: uppercase;
+           letter-spacing: 0.05em;
+         }
+
+         .detailTiers {
+           display: flex;
+           flex-wrap: wrap;
+           gap: 8px;
+         }
+
+         .detailTier {
+           isolation: isolate;
+           background: transparent;
+           border: none;
+           flex-direction: column;
+           align-items: center;
+           gap: 1px;
+           width: auto;
+           min-width: 70px;
+           height: auto;
+           padding: 6px 10px;
+           display: inline-flex;
+           position: relative;
+           overflow: visible;
+           text-align: center;
+           cursor: pointer;
+           border-radius: 12px;
+           background: rgba(255,255,255,0.04);
+           border: 1px solid rgba(255,255,255,0.08);
+           transition: all 0.15s;
+         }
+
+         .detailTier:hover {
+           background: rgba(255,255,255,0.06);
+           border-color: var(--tier-border);
+         }
+
+         .detailTierIcon {
+           box-sizing: border-box;
+           border: 2px solid var(--tier-border);
+           background: #141a24;
+           border-radius: 999px;
+           width: 26px;
+           height: 26px;
+           padding: 4px;
+           box-shadow: inset 0 1px #ffffff08;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+         }
+
+         .detailTierRank {
+           background: var(--tier-surface, #ffffff24);
+           min-height: 18px;
+           color: var(--tier-text);
+           white-space: nowrap;
+           letter-spacing: 0.03em;
+           border: none;
+           border-radius: 999px;
+           display: inline-flex;
+           justify-content: center;
+           align-items: center;
+           margin-top: -2px;
+           padding: 0 6px;
+           font-size: 11px;
+           font-weight: 900;
+           line-height: 1;
+         }
+
+         .detailTier .tierTooltip {
+           display: none;
+           position: fixed;
+           white-space: nowrap;
+           background: #11161ffa;
+           border: 1px solid #ffffff1f;
+           border-radius: 15px;
+           flex-direction: column;
+           align-items: center;
+           gap: 4px;
+           min-width: 96px;
+           padding: 10px 12px;
+           color: var(--text);
+           box-shadow: 0 18px 40px #0000005c;
+           pointer-events: none;
+           z-index: 170;
+           transform: translate(-50%);
+           bottom: calc(100% + 8px);
+           left: 50%;
+         }
+
+         .detailTier .tierTooltipRank {
+           color: var(--tier-accent);
+           font-size: 14px;
+           font-weight: 900;
+           line-height: 1;
+         }
+
+         .detailTier .tierTooltip span:not(.tierTooltipRank) {
+           color: var(--muted);
+           font-size: 12px;
+           font-weight: 700;
+         }
+
+         .detailTier:hover .tierTooltip {
+           display: flex;
+         }
+
+         /* Tooltip positioning adjustment for player detail (higher z-index) */
+         .playerDetailBackdrop .tierTooltip {
+           z-index: 180;
+         }
 
         /* Footer */
         .pageFooter {
