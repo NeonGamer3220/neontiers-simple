@@ -282,8 +282,9 @@ export default function Page() {
     }));
   }, [tests, tierBoardMode]);
 
-  const tierBoardModalContent = useMemo(() => {
-    if (!showTierBoard || !tierBoardMode) return null;
+  // Compute tier board modal content (non-hook)
+  let tierBoardModal = null;
+  if (showTierBoard && tierBoardMode) {
     const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
     modePlayers.forEach((p) => {
       const t = tierFromRank(p.rank);
@@ -309,7 +310,7 @@ export default function Page() {
       5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
     };
 
-    return (
+    tierBoardModal = (
       <div className="playerModalBackdrop" onClick={closeTierBoard}>
         <div className="playerModalCard" onClick={(e) => e.stopPropagation()}>
           <div className="tierBoardHeader">
@@ -371,13 +372,14 @@ export default function Page() {
         </div>
       </div>
     );
-  }, [showTierBoard, tierBoardMode, modePlayers, closeTierBoard]);
+  }
 
-  const playerDetailModalContent = useMemo(() => {
-    if (!showPlayerDetail || !selectedPlayer) return null;
+  // Compute player detail modal content (non-hook)
+  let playerDetailModal = null;
+  if (showPlayerDetail && selectedPlayer) {
     const totalPoints = selectedPlayer.total;
     const modeCount = selectedPlayer.entries.length;
-    return (
+    playerDetailModal = (
       <div className="playerDetailBackdrop" onClick={closePlayerDetail}>
         <div className="playerDetailCard" onClick={(e) => e.stopPropagation()}>
           <button className="playerDetailClose" onClick={closePlayerDetail} aria-label="Bezárás">
@@ -456,7 +458,7 @@ export default function Page() {
         </div>
       </div>
     );
-  }, [showPlayerDetail, selectedPlayer, closePlayerDetail]);
+  }
 
    return (
      <div className={`page ${showTierBoard ? 'modal-open' : ''}`}>
