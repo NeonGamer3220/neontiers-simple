@@ -124,7 +124,10 @@ export default function Page() {
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch("/api/tests", { cache: "no-store" });
+        const res = await fetch("/api/tests", { 
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" }
+        });
         const data = await res.json();
         if (!alive) return;
         setTests(Array.isArray(data?.tests) ? data.tests : []);
@@ -137,7 +140,7 @@ export default function Page() {
       }
     }
     load();
-    const t = setInterval(load, 60000);
+    const t = setInterval(load, 5000); // 5 seconds instead of 60 for faster updates
     return () => { alive = false; clearInterval(t); };
   }, []);
 
