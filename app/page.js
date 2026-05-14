@@ -436,10 +436,9 @@ export default function Page() {
             </div>
           )}
 
-          {/* Gamemode-specific leaderboard - shown only for specific modes */}
+          {/* Gamemode-specific leaderboard table */}
           {activeMode !== "Összes" && (
             <div className="mainCard">
-              {/* Info bar */}
               <div className="infoBar">
                 <div className="infoBarLeft">
                   <a className="infoDiscordLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord" title="Discord">
@@ -451,7 +450,7 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* Column headers - static as per competition */}
+              {/* Static column headers matching competition */}
               <div className="colHead">
                 <span className="colHash">#</span>
                 <span className="colSkinSpacer" aria-hidden="true"></span>
@@ -459,7 +458,7 @@ export default function Page() {
                 <span className="colTiers">Tierek</span>
               </div>
 
-              {/* Player rows for specific mode */}
+              {/* Player rows filtered by activeMode */}
               {loading ? (
                 <div className="emptyState">
                   <div className="emptyTitle">Betöltés...</div>
