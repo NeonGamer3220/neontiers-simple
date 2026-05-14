@@ -457,10 +457,10 @@ export default function Page() {
                           </span>
                         );
                       })}
-                    </span>
-                  </button>
-                ))
-              )}
+                     </span>
+                   </div>
+                 ))
+               )}
             </div>
           )}
 
