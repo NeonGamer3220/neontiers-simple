@@ -440,8 +440,10 @@ export default function Page() {
             <div className="mainCard">
               <div className="modeBoard">
                 {[1, 2, 3, 4, 5].map((t) => {
-                  const tierPlayers = leaderboard
-                    .filter(p => p.entries.length > 0 && tierFromRank(p.entries[0].rank) === t);
+                  const tierPlayers = leaderboard.filter(p => {
+                    const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                    return entry && tierFromRank(entry.rank) === t;
+                  });
                   return (
                     <section
                       key={t}
@@ -458,7 +460,8 @@ export default function Page() {
                       <div className="modeTierList">
                         {tierPlayers.length > 0 ? (
                           tierPlayers.map((p, i) => {
-                            const rank = p.entries[0].rank;
+                            const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                            const rank = entry.rank;
                             const badgeColor = rankBadgeColor(rank);
                             return (
                               <div
@@ -781,25 +784,25 @@ export default function Page() {
           align-items: flex-end;
         }
 
-         .tabBtn {
-           display: flex;
-           flex-direction: column;
-           align-items: center;
-           justify-content: flex-end;
-           gap: 6px;
-           min-width: 84px;
-           padding: 10px 9px 9px;
-           cursor: pointer;
-           user-select: none;
-           position: relative;
-           border: 1px solid #ffffff1a;
-           border-bottom: none;
-           border-radius: 18px 18px 0 0;
-           background: #ffffff06;
-           color: #ffffff8f;
-           transition: color 0.15s, background 0.15s, border-color 0.15s;
-           flex-shrink: 0;
-         }
+          .tabBtn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            min-width: 70px;
+            padding: 8px 6px 7px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            border: 1px solid #ffffff1a;
+            border-bottom: none;
+            border-radius: 18px 18px 0 0;
+            background: #ffffff06;
+            color: #ffffff8f;
+            transition: color 0.15s, background 0.15s, border-color 0.15s;
+            flex-shrink: 0;
+          }
 
         .tabBtn:hover {
           color: var(--text);
