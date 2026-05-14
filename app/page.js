@@ -491,6 +491,8 @@ export default function Page() {
                               className="modeTierPlayer"
                               type="button"
                               onClick={() => handlePlayerClick(p)}
+                              aria-haspopup="dialog"
+                              aria-expanded={showPlayerDetail ? "true" : "false"}
                               style={{
                                 '--player-accent': badgeColor,
                                 '--mode-player-surface': 'rgba(255,255,255,0.018)',
