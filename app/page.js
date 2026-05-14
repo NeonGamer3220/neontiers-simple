@@ -245,9 +245,9 @@ export default function Page() {
     }));
   }, [tests, tierBoardMode]);
 
-  return (
-    <div className="page">
-      <div className="bg" />
+   return (
+     <div className={`page ${showTierBoard ? 'modal-open' : ''}`}>
+       <div className="bg" />
 
       {/* Navbar */}
       <header className="navbar">
@@ -976,7 +976,7 @@ export default function Page() {
            display: flex;
            justify-content: center;
            align-items: center;
-           z-index: 120;
+           z-index: 150;
            padding: 22px;
            background: #03050ac7;
            -webkit-backdrop-filter: blur(10px);
@@ -1224,12 +1224,9 @@ export default function Page() {
            .navbar { padding-top: 14px; }
            .navInner { gap: 12px; padding: 10px 16px; min-height: 64px; }
            .tabBtn { min-width: 76px; padding: 9px 8px 8px; }
-           .tabActiveLine { left: 8px; right: 8px; }
-           .tabIcon { width: 24px; height: 24px; }
             .tabLabel { font-size: 9px; letter-spacing: 0.02em; }
-           .mainCard { border-radius: 22px; padding: 16px 14px 18px; }
-           .tierBoardContent { max-width: 100vw; max-height: 85vh; }
-         }
+            .mainCard { border-radius: 22px; padding: 16px 14px 18px; }
+          }
 
         @media (max-width: 760px) {
           .navbar, .mainWrap, .pageFooter {
@@ -1282,11 +1279,20 @@ export default function Page() {
         }
 
         /* Animations */
-        @keyframes modalSlideIn {
-          from { opacity: 0; transform: scale(0.95) translateY(20px); }
-          to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-      `}</style>
+         @keyframes modalSlideIn {
+           from { opacity: 0; transform: scale(0.95) translateY(20px); }
+           to { opacity: 1; transform: scale(1) translateY(0); }
+         }
+
+         /* Hide page content when modal is open */
+         .page.modal-open > .bg,
+         .page.modal-open > .navbar,
+         .page.modal-open > .tabsWrap,
+         .page.modal-open > .mainWrap,
+         .page.modal-open > .pageFooter {
+           display: none !important;
+         }
+       `}</style>
     </div>
   );
 }
