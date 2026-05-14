@@ -140,8 +140,7 @@ export default function Page() {
       }
     }
     load();
-    const t = setInterval(load, 5000); // 5 seconds instead of 60 for faster updates
-    return () => { alive = false; clearInterval(t); };
+    return () => { alive = false; };
   }, []);
 
   const leaderboard = useMemo(() => {
