@@ -6,6 +6,9 @@ const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
 const EASTER_MODE = false;
 
+// Hide player lists and show stats only
+const SHOW_LISTS = false;
+
 const MODE_LIST = [
   "Összes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
   "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
@@ -397,52 +400,54 @@ export default function Page() {
           {/* Leaderboard - shown only for Összes */}
           {activeMode === "Összes" && (
             <div className="mainCard">
-              {/* Info bar */}
-              <div className="infoBar">
-                <div className="infoBarLeft">
-                  <a className="infoDiscordLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord" title="Discord">
-                    <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-                      <path d="M19.82 5.7a16.5 16.5 0 0 0-4.12-1.3l-.2.4a14.75 14.75 0 0 1 3.85 1.53 12.93 12.93 0 0 0-3.92-1.26 15.52 15.52 0 0 0-6.87 0A12.95 12.95 0 0 0 4.65 6.3a14.74 14.74 0 0 1 3.84-1.52l-.2-.39a16.4 16.4 0 0 0-4.1 1.3C1.6 9.6.9 13.4 1.23 17.16a16.6 16.6 0 0 0 5.04 2.56l1.08-1.77c-.6-.2-1.17-.46-1.7-.76.14.1.28.18.43.27 3.28 1.88 6.83 1.88 10.08 0 .15-.09.29-.17.43-.27a10.2 10.2 0 0 1-1.7.76l1.08 1.77a16.5 16.5 0 0 0 5.04-2.56c.4-4.37-.67-8.14-2.7-11.46ZM8.87 14.83c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.8 2.08-1.8 2.08Zm6.26 0c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.79 2.08-1.8 2.08Z"/>
-                    </svg>
-                    <span>Discord</span>
-                  </a>
-                </div>
-              </div>
+              {SHOW_LISTS ? (
+                <>
+                  {/* Info bar */}
+                  <div className="infoBar">
+                    <div className="infoBarLeft">
+                      <a className="infoDiscordLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord" title="Discord">
+                        <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                          <path d="M19.82 5.7a16.5 16.5 0 0 0-4.12-1.3l-.2.4a14.75 14.75 0 0 1 3.85 1.53 12.93 12.93 0 0 0-3.92-1.26 15.52 15.52 0 0 0-6.87 0A12.95 12.95 0 0 0 4.65 6.3a14.74 14.74 0 0 1 3.84-1.52l-.2-.39a16.4 16.4 0 0 0-4.1 1.3C1.6 9.6.9 13.4 1.23 17.16a16.6 16.6 0 0 0 5.04 2.56l1.08-1.77c-.6-.2-1.17-.46-1.7-.76.14.1.28.18.43.27 3.28 1.88 6.83 1.88 10.08 0 .15-.09.29-.17.43-.27a10.2 10.2 0 0 1-1.7.76l1.08 1.77a16.5 16.5 0 0 0 5.04-2.56c.4-4.37-.67-8.14-2.7-11.46ZM8.87 14.83c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.8 2.08-1.8 2.08Zm6.26 0c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.79 2.08-1.8 2.08Z"/>
+                        </svg>
+                        <span>Discord</span>
+                      </a>
+                    </div>
+                  </div>
 
-              {/* Column headers */}
-              <div className="colHead">
-                <span className="colHash">#</span>
-                <span className="colSkinSpacer" aria-hidden="true"></span>
-                <span className="colPlayer">Játékos</span>
-                <span className="colTiers">Tierek</span>
-              </div>
+                  {/* Column headers */}
+                  <div className="colHead">
+                    <span className="colHash">#</span>
+                    <span className="colSkinSpacer" aria-hidden="true"></span>
+                    <span className="colPlayer">Játékos</span>
+                    <span className="colTiers">Tierek</span>
+                  </div>
 
-              {/* Player rows */}
-              {loading ? (
-                <div className="emptyState">
-                  <div className="emptyTitle">Betöltés...</div>
-                  <div className="emptySub">Kérlek várj.</div>
-                </div>
-              ) : leaderboard.length === 0 ? (
-                <div className="emptyState">
+                  {/* Player rows */}
+                  {loading ? (
+                    <div className="emptyState">
+                      <div className="emptyTitle">Betöltés...</div>
+                      <div className="emptySub">Kérlek várj.</div>
+                    </div>
+                  ) : leaderboard.length === 0 ? (
+                    <div className="emptyState">
                   <div className="emptyTitle">Nincs adat</div>
                   <div className="emptySub">Még nincs mentett teszt eredmény.</div>
                 </div>
-               ) : (
-                leaderboard.map((p, idx) => (
-                  <div
-                    key={p.username}
-                    id={p.username}
-                    className="playerRow"
-                    role="button"
-                    tabIndex={0}
-                    aria-haspopup="dialog"
-                    aria-expanded={showPlayerDetail ? "true" : "false"}
-                    onClick={() => handlePlayerClick(p)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handlePlayerClick(p);
+                ) : (
+                  leaderboard.map((p, idx) => (
+                    <div
+                      key={p.username}
+                      id={p.username}
+                      className="playerRow"
+                      role="button"
+                      tabIndex={0}
+                      aria-haspopup="dialog"
+                      aria-expanded={showPlayerDetail ? "true" : "false"}
+                      onClick={() => handlePlayerClick(p)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handlePlayerClick(p);
                       }
                     }}
                   >
@@ -504,6 +509,15 @@ export default function Page() {
                    </div>
                  ))
                )}
+                </>
+              ) : (
+                <div className="statsOnlyView">
+                  <div className="emptyState">
+                    <div className="emptyTitle">Rangsor szünetel</div>
+                    <div className="emptySub">A teljes rangsor jelenleg nem érhető el.</div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

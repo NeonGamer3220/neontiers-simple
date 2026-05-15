@@ -120,6 +120,24 @@ export default function AdminDashboard() {
         return;
       }
 
+      // Log this action to audit trail
+      try {
+        await fetch("/api/audit-log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            admin_name: "Admin", // TODO: get from session
+            action: "tier_save",
+            target_username: selectedPlayer.username,
+            gamemode: entry.gamemode,
+            new_rank: entry.rank,
+            new_points: Number(entry.points || 0),
+          }),
+        });
+      } catch (e) {
+        console.error("Audit log error:", e);
+      }
+
       await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username);
       setSelectedPlayer(refreshed);
@@ -176,6 +194,23 @@ export default function AdminDashboard() {
       if (!res.ok) {
         alert("Hiba a törlés során");
         return;
+      }
+
+      // Log this action to audit trail
+      try {
+        await fetch("/api/audit-log", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            admin_name: "Admin", // TODO: get from session
+            action: "tier_delete",
+            target_username: selectedPlayer.username,
+            gamemode: gamemode,
+            details: "Tier entry deleted by admin",
+          }),
+        });
+      } catch (e) {
+        console.error("Audit log error:", e);
       }
 
       await loadTests();

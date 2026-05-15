@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 export default function AdminLogsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [logType, setLogType] = useState("all"); // "all", "audit", "tests"
   const [tests, setTests] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [filterUsername, setFilterUsername] = useState("");
   const [filterGamemode, setFilterGamemode] = useState("");
 
@@ -17,20 +19,29 @@ export default function AdminLogsPage() {
         router.push("/admin");
         return;
       }
-      await loadTests();
+      await loadAllLogs();
       setLoading(false);
     };
     checkAuth();
   }, [router]);
 
-  const loadTests = async () => {
+  const loadAllLogs = async () => {
     try {
-      const res = await fetch("/api/tests");
-      const data = await res.json();
-      const allTests = Array.isArray(data?.tests) ? data.tests : [];
+      const [testsRes, auditRes] = await Promise.all([
+        fetch("/api/tests"),
+        fetch("/api/audit-log"),
+      ]);
+
+      const testsData = await testsRes.json();
+      const auditData = await auditRes.json();
+
+      const allTests = Array.isArray(testsData?.tests) ? testsData.tests : [];
       setTests(allTests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+
+      const allAudit = Array.isArray(auditData?.logs) ? auditData.logs : [];
+      setAuditLogs(allAudit.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
     } catch (err) {
-      console.error("Betöltési hiba:", err);
+      console.error("Log loading error:", err);
     }
   };
 
@@ -43,6 +54,11 @@ export default function AdminLogsPage() {
     const matchUsername = !filterUsername || t.username.toLowerCase().includes(filterUsername.toLowerCase());
     const matchGamemode = !filterGamemode || t.gamemode.toLowerCase().includes(filterGamemode.toLowerCase());
     return matchUsername && matchGamemode;
+  });
+
+  const filteredAudit = auditLogs.filter((log) => {
+    const matchUsername = !filterUsername || log.target_username?.toLowerCase().includes(filterUsername.toLowerCase());
+    return matchUsername;
   });
 
   if (loading) {
@@ -80,6 +96,27 @@ export default function AdminLogsPage() {
       </header>
 
       <main className="logsContent">
+        <div className="logTypeTabs">
+          <button
+            className={`logTypeTab ${logType === "all" ? "active" : ""}`}
+            onClick={() => setLogType("all")}
+          >
+            Összes ({tests.length + auditLogs.length})
+          </button>
+          <button
+            className={`logTypeTab ${logType === "tests" ? "active" : ""}`}
+            onClick={() => setLogType("tests")}
+          >
+            Tesztek ({tests.length})
+          </button>
+          <button
+            className={`logTypeTab ${logType === "audit" ? "active" : ""}`}
+            onClick={() => setLogType("audit")}
+          >
+            Admin akciók ({auditLogs.length})
+          </button>
+        </div>
+
         <div className="filtersSection">
           <div className="filterGroup">
             <label className="filterLabel">Játékos:</label>
@@ -91,47 +128,51 @@ export default function AdminLogsPage() {
               onChange={(e) => setFilterUsername(e.target.value)}
             />
           </div>
-          <div className="filterGroup">
-            <label className="filterLabel">Játékmód:</label>
-            <input
-              type="text"
-              className="filterInput"
-              placeholder="Játékmód..."
-              value={filterGamemode}
-              onChange={(e) => setFilterGamemode(e.target.value)}
-            />
-          </div>
+          {(logType === "all" || logType === "tests") && (
+            <div className="filterGroup">
+              <label className="filterLabel">Játékmód:</label>
+              <input
+                type="text"
+                className="filterInput"
+                placeholder="Játékmód..."
+                value={filterGamemode}
+                onChange={(e) => setFilterGamemode(e.target.value)}
+              />
+            </div>
+          )}
         </div>
 
-        <div className="logsTable">
-          <div className="tableHead">
-            <div className="tableCell colDate">Dátum</div>
-            <div className="tableCell colPlayer">Játékos</div>
-            <div className="tableCell colMode">Játékmód</div>
-            <div className="tableCell colRank">Tier</div>
-            <div className="tableCell colPoints">Pont</div>
-          </div>
-
-          {filteredTests.length === 0 ? (
-            <div className="emptyState">
-              <div className="emptyTitle">Nincs adat</div>
-              <div className="emptySub">Nem található a szűrésnek megfelelő teszt.</div>
+        {/* Test Results Table */}
+        {(logType === "all" || logType === "tests") && (
+          <div className="logsTable">
+            <div className="tableHead">
+              <div className="tableCell colDate">Dátum</div>
+              <div className="tableCell colPlayer">Játékos</div>
+              <div className="tableCell colMode">Játékmód</div>
+              <div className="tableCell colRank">Tier</div>
+              <div className="tableCell colPoints">Pont</div>
             </div>
-          ) : (
-            filteredTests.map((test, idx) => (
-              <div key={`${test.username}-${test.gamemode}-${idx}`} className="tableRow">
-                <div className="tableCell colDate">
-                  {new Date(test.created_at).toLocaleString("hu-HU", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                  })}
-                </div>
-                <div className="tableCell colPlayer">
-                  <div className="playerCell">
+
+            {filteredTests.length === 0 ? (
+              <div className="emptyState">
+                <div className="emptyTitle">Nincs teszt adat</div>
+                <div className="emptySub">Nem található a szűrésnek megfelelő teszt.</div>
+              </div>
+            ) : (
+              filteredTests.map((test, idx) => (
+                <div key={`${test.username}-${test.gamemode}-${idx}`} className="tableRow">
+                  <div className="tableCell colDate">
+                    {new Date(test.created_at).toLocaleString("hu-HU", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    })}
+                  </div>
+                  <div className="tableCell colPlayer">
+                    <div className="playerCell">
                     <img
                       src={`https://mc-heads.net/avatar/${encodeURIComponent(test.username)}/32`}
                       alt={test.username}
@@ -151,6 +192,59 @@ export default function AdminLogsPage() {
             ))
           )}
         </div>
+        )}
+
+        {/* Audit Log Table */}
+        {(logType === "all" || logType === "audit") && (
+          <div className="logsTable auditTable">
+            <div className="tableHead">
+              <div className="tableCell colDate">Dátum</div>
+              <div className="tableCell colAdmin">Admin</div>
+              <div className="tableCell colAction">Akció</div>
+              <div className="tableCell colPlayer">Cél játékos</div>
+              <div className="tableCell colMode">Mód</div>
+              <div className="tableCell colDetails">Részletek</div>
+            </div>
+
+            {filteredAudit.length === 0 ? (
+              <div className="emptyState">
+                <div className="emptyTitle">Nincs audit adat</div>
+                <div className="emptySub">Nincs admin tevékenység naplózva.</div>
+              </div>
+            ) : (
+              filteredAudit.map((log, idx) => (
+                <div key={`${log.admin_name}-${log.created_at}-${idx}`} className="tableRow auditRow">
+                  <div className="tableCell colDate">
+                    {new Date(log.created_at).toLocaleString("hu-HU", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    })}
+                  </div>
+                  <div className="tableCell colAdmin">{log.admin_name}</div>
+                  <div className="tableCell colAction">
+                    <span className={`actionBadge ${log.action}`}>
+                      {log.action === "tier_save" && "Mentés"}
+                      {log.action === "tier_delete" && "Törlés"}
+                      {log.action === "player_remove" && "Játékos eltávolítás"}
+                      {log.action === "admin_login" && "Bejelentkezés"}
+                      {!["tier_save", "tier_delete", "player_remove", "admin_login"].includes(log.action) && log.action}
+                    </span>
+                  </div>
+                  <div className="tableCell colPlayer">{log.target_username || "-"}</div>
+                  <div className="tableCell colMode">{log.gamemode || "-"}</div>
+                  <div className="tableCell colDetails">
+                    {log.new_rank && `${log.old_rank || "?"} → ${log.new_rank}`}
+                    {log.details && `${log.details}`}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </main>
 
       <style jsx>{`
@@ -436,6 +530,85 @@ export default function AdminLogsPage() {
         .rankBadge[data-rank="LT5"] {
           background: rgba(111, 99, 137, 0.25);
           color: #6f6389;
+        }
+
+        .logTypeTabs {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 20px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logTypeTab {
+          padding: 12px 16px;
+          background: none;
+          border: none;
+          color: rgba(255, 255, 255, 0.6);
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.2s;
+          border-bottom: 2px solid transparent;
+          position: relative;
+          bottom: -1px;
+        }
+
+        .logTypeTab:hover {
+          color: rgba(255, 255, 255, 0.8);
+        }
+
+        .logTypeTab.active {
+          color: #fff;
+          border-bottom-color: #c41e3a;
+        }
+
+        .auditTable {
+          margin-top: 24px;
+        }
+
+        .auditRow {
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .colAdmin {
+          flex: 0 0 120px;
+        }
+
+        .colAction {
+          flex: 0 0 120px;
+        }
+
+        .colDetails {
+          flex: 1;
+          min-width: 200px;
+        }
+
+        .actionBadge {
+          display: inline-block;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 600;
+        }
+
+        .actionBadge.tier_save {
+          background: rgba(40, 167, 69, 0.2);
+          color: #28a745;
+        }
+
+        .actionBadge.tier_delete {
+          background: rgba(196, 30, 58, 0.2);
+          color: #ff6b6b;
+        }
+
+        .actionBadge.player_remove {
+          background: rgba(196, 30, 58, 0.2);
+          color: #ff6b6b;
+        }
+
+        .actionBadge.admin_login {
+          background: rgba(58, 100, 196, 0.2);
+          color: #3a64c4;
         }
 
         .emptyState {
