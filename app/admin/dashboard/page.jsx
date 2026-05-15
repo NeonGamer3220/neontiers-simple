@@ -184,9 +184,21 @@ export default function AdminDashboard() {
 
   return (
     <div className="adminDashboard">
+      <header className="adminNavbar">
+        <div className="navbarLeft">
+          <h1 className="navbarTitle">Admin Panel</h1>
+        </div>
+        <nav className="navbarLinks">
+          <a href="/admin/dashboard" className="navbarLink active">Játékos kezelés</a>
+          <a href="/admin/logs" className="navbarLink">Log</a>
+        </nav>
+        <button className="logoutBtn" onClick={handleLogout}>
+          Kijelentkezés
+        </button>
+      </header>
+
       <header className="adminHeader">
         <div className="headerLeft">
-          <h1 className="headerTitle">Admin Panel</h1>
           <p className="headerSubtitle">Teszt eredmények kezelése</p>
         </div>
         <div className="headerStats">
@@ -199,9 +211,6 @@ export default function AdminDashboard() {
             <span className="headerStatLabel">Tier</span>
           </div>
         </div>
-        <button className="logoutBtn" onClick={handleLogout}>
-          Kijelentkezés
-        </button>
       </header>
 
       <main className="adminContent">
@@ -339,6 +348,61 @@ export default function AdminDashboard() {
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
+        .adminNavbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          background: rgba(11, 14, 20, 0.8);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          max-width: 1480px;
+          margin: 0 auto;
+          gap: 20px;
+        }
+
+        .navbarLeft {
+          flex: 0 0 auto;
+        }
+
+        .navbarTitle {
+          font-size: 18px;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        .navbarLinks {
+          flex: 1;
+          display: flex;
+          gap: 0;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .navbarLink {
+          padding: 10px 20px;
+          color: rgba(255, 255, 255, 0.65);
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 13px;
+          transition: all 0.2s;
+          border-bottom: 2px solid transparent;
+          cursor: pointer;
+          background: none;
+          border: none;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .navbarLink:hover {
+          color: #fff;
+        }
+
+        .navbarLink.active {
+          color: #fff;
+          border-bottom-color: #c41e3a;
+        }
+
         .adminHeader {
           display: flex;
           justify-content: space-between;
@@ -353,12 +417,6 @@ export default function AdminDashboard() {
 
         .headerLeft {
           flex: 1;
-        }
-
-        .headerTitle {
-          font-size: 28px;
-          font-weight: 700;
-          margin: 0 0 4px 0;
         }
 
         .headerSubtitle {

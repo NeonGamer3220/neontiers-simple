@@ -87,7 +87,7 @@ export async function GET(req) {
   if (username && gamemode) {
     const { data, error } = await supabase
       .from("tests")
-      .select("username,gamemode,rank,points,created_at")
+      .select("id,username,gamemode,rank,points,created_at")
       .ilike("username", username)
       .ilike("gamemode", gamemode)
       .maybeSingle();
@@ -100,7 +100,7 @@ export async function GET(req) {
   if (username) {
     const { data, error } = await supabase
       .from("tests")
-      .select("username,gamemode,rank,points,created_at")
+      .select("id,username,gamemode,rank,points,created_at")
       .ilike("username", username)
       .order("points", { ascending: false });
 
@@ -115,7 +115,7 @@ export async function GET(req) {
   if (mode && tier) {
     const { data, error } = await supabase
       .from("tests")
-      .select("username,gamemode,rank,points,created_at")
+      .select("id,username,gamemode,rank,points,created_at")
       .ilike("gamemode", mode)
       .ilike("rank", tier)
       .limit(100); // Fetch a batch to pick from
@@ -136,7 +136,7 @@ export async function GET(req) {
 
   const { data, error } = await supabase
     .from("tests")
-    .select("username,gamemode,rank,points,created_at")
+    .select("id,username,gamemode,rank,points,created_at")
     .order("points", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -192,7 +192,7 @@ export async function POST(req) {
   // 1) Előző rekord lekérése (ez kell a botnak!)
   const { data: prev, error: prevErr } = await supabase
     .from("tests")
-    .select("username,gamemode,rank,points,created_at")
+    .select("id,username,gamemode,rank,points,created_at")
     .ilike("username", username)
     .ilike("gamemode", gamemode)
     .maybeSingle();
@@ -212,7 +212,7 @@ export async function POST(req) {
   const { data: saved, error: saveErr } = await supabase
     .from("tests")
     .upsert(row, { onConflict: "username,gamemode" })
-    .select("username,gamemode,rank,points,created_at")
+    .select("id,username,gamemode,rank,points,created_at")
     .single();
 
   if (saveErr) return json({ error: saveErr.message }, 500);

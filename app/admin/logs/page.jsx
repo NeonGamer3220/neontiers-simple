@@ -1,0 +1,514 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function AdminLogsPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [tests, setTests] = useState([]);
+  const [filterUsername, setFilterUsername] = useState("");
+  const [filterGamemode, setFilterGamemode] = useState("");
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const res = await fetch("/api/admin/check");
+      if (!res.ok) {
+        router.push("/admin");
+        return;
+      }
+      await loadTests();
+      setLoading(false);
+    };
+    checkAuth();
+  }, [router]);
+
+  const loadTests = async () => {
+    try {
+      const res = await fetch("/api/tests");
+      const data = await res.json();
+      const allTests = Array.isArray(data?.tests) ? data.tests : [];
+      setTests(allTests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
+    } catch (err) {
+      console.error("Betöltési hiba:", err);
+    }
+  };
+
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    router.push("/admin");
+  };
+
+  const filteredTests = tests.filter((t) => {
+    const matchUsername = !filterUsername || t.username.toLowerCase().includes(filterUsername.toLowerCase());
+    const matchGamemode = !filterGamemode || t.gamemode.toLowerCase().includes(filterGamemode.toLowerCase());
+    return matchUsername && matchGamemode;
+  });
+
+  if (loading) {
+    return (
+      <div className="logsPage">
+        <div className="loadingState">Betöltés...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="logsPage">
+      <header className="adminNavbar">
+        <div className="navbarLeft">
+          <h1 className="navbarTitle">Admin Panel</h1>
+        </div>
+        <nav className="navbarLinks">
+          <a href="/admin/dashboard" className="navbarLink">Játékos kezelés</a>
+          <a href="/admin/logs" className="navbarLink active">Log</a>
+        </nav>
+        <button className="logoutBtn" onClick={handleLogout}>
+          Kijelentkezés
+        </button>
+      </header>
+
+      <header className="logsHeader">
+        <div className="headerLeft">
+          <h2 className="headerTitle">Összes teszt napló</h2>
+          <p className="headerSubtitle">Összes teszt eredmény dátummal, tierrel és játékmóddal</p>
+        </div>
+        <div className="headerStat">
+          <span className="headerStatValue">{filteredTests.length}</span>
+          <span className="headerStatLabel">Teszt</span>
+        </div>
+      </header>
+
+      <main className="logsContent">
+        <div className="filtersSection">
+          <div className="filterGroup">
+            <label className="filterLabel">Játékos:</label>
+            <input
+              type="text"
+              className="filterInput"
+              placeholder="Játékos neve..."
+              value={filterUsername}
+              onChange={(e) => setFilterUsername(e.target.value)}
+            />
+          </div>
+          <div className="filterGroup">
+            <label className="filterLabel">Játékmód:</label>
+            <input
+              type="text"
+              className="filterInput"
+              placeholder="Játékmód..."
+              value={filterGamemode}
+              onChange={(e) => setFilterGamemode(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="logsTable">
+          <div className="tableHead">
+            <div className="tableCell colDate">Dátum</div>
+            <div className="tableCell colPlayer">Játékos</div>
+            <div className="tableCell colMode">Játékmód</div>
+            <div className="tableCell colRank">Tier</div>
+            <div className="tableCell colPoints">Pont</div>
+          </div>
+
+          {filteredTests.length === 0 ? (
+            <div className="emptyState">
+              <div className="emptyTitle">Nincs adat</div>
+              <div className="emptySub">Nem található a szűrésnek megfelelő teszt.</div>
+            </div>
+          ) : (
+            filteredTests.map((test, idx) => (
+              <div key={`${test.username}-${test.gamemode}-${idx}`} className="tableRow">
+                <div className="tableCell colDate">
+                  {new Date(test.created_at).toLocaleString("hu-HU", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}
+                </div>
+                <div className="tableCell colPlayer">
+                  <div className="playerCell">
+                    <img
+                      src={`https://mc-heads.net/avatar/${encodeURIComponent(test.username)}/32`}
+                      alt={test.username}
+                      className="playerAvatar"
+                    />
+                    <span>{test.username}</span>
+                  </div>
+                </div>
+                <div className="tableCell colMode">{test.gamemode}</div>
+                <div className="tableCell colRank">
+                  <span className="rankBadge" data-rank={test.rank}>
+                    {test.rank}
+                  </span>
+                </div>
+                <div className="tableCell colPoints">{test.points}</div>
+              </div>
+            ))
+          )}
+        </div>
+      </main>
+
+      <style jsx>{`
+        .logsPage {
+          min-height: 100vh;
+          background: var(--bg, #0b0e14);
+          color: var(--text, #fffffff0);
+          font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        .adminNavbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          background: rgba(11, 14, 20, 0.8);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          max-width: 1480px;
+          margin: 0 auto;
+          gap: 20px;
+        }
+
+        .navbarLeft {
+          flex: 0 0 auto;
+        }
+
+        .navbarTitle {
+          font-size: 18px;
+          font-weight: 700;
+          margin: 0;
+        }
+
+        .navbarLinks {
+          flex: 1;
+          display: flex;
+          gap: 0;
+          list-style: none;
+          margin: 0;
+          padding: 0;
+        }
+
+        .navbarLink {
+          padding: 10px 20px;
+          color: rgba(255, 255, 255, 0.65);
+          text-decoration: none;
+          font-weight: 600;
+          font-size: 13px;
+          transition: all 0.2s;
+          border-bottom: 2px solid transparent;
+          cursor: pointer;
+          background: none;
+          border: none;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .navbarLink:hover {
+          color: #fff;
+        }
+
+        .navbarLink.active {
+          color: #fff;
+          border-bottom-color: #c41e3a;
+        }
+
+        .logoutBtn {
+          padding: 10px 20px;
+          background: rgba(196, 30, 58, 0.8);
+          border: 1px solid rgba(196, 30, 58, 0.5);
+          border-radius: 6px;
+          color: #fff;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .logoutBtn:hover {
+          background: rgba(196, 30, 58, 1);
+        }
+
+        .logsHeader {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 24px 20px;
+          background: rgba(11, 14, 20, 0.5);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          max-width: 1480px;
+          margin: 0 auto;
+          gap: 30px;
+        }
+
+        .headerLeft {
+          flex: 1;
+        }
+
+        .headerTitle {
+          font-size: 24px;
+          font-weight: 700;
+          margin: 0 0 4px 0;
+        }
+
+        .headerSubtitle {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.6);
+          margin: 0;
+        }
+
+        .headerStat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .headerStatValue {
+          font-size: 28px;
+          font-weight: 700;
+        }
+
+        .headerStatLabel {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
+        }
+
+        .logsContent {
+          max-width: 1480px;
+          margin: 0 auto;
+          padding: 30px 20px;
+        }
+
+        .filtersSection {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+
+        .filterGroup {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .filterLabel {
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(255, 255, 255, 0.7);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+
+        .filterInput {
+          padding: 10px 14px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 8px;
+          color: #fff;
+          font-family: inherit;
+          font-size: 14px;
+          transition: all 0.15s;
+        }
+
+        .filterInput:focus {
+          outline: none;
+          border-color: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .filterInput::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .logsTable {
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 12px;
+          overflow: hidden;
+        }
+
+        .tableHead {
+          display: grid;
+          grid-template-columns: 200px 1fr 150px 100px 80px;
+          gap: 16px;
+          padding: 14px 16px;
+          background: rgba(255, 255, 255, 0.04);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          font-weight: 700;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .tableRow {
+          display: grid;
+          grid-template-columns: 200px 1fr 150px 100px 80px;
+          gap: 16px;
+          padding: 14px 16px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          align-items: center;
+          transition: background 0.15s;
+        }
+
+        .tableRow:hover {
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        .colDate {
+          font-size: 13px;
+        }
+
+        .colPlayer {
+          font-size: 14px;
+        }
+
+        .colMode {
+          font-size: 13px;
+        }
+
+        .colRank {
+          font-size: 13px;
+        }
+
+        .colPoints {
+          text-align: right;
+          font-size: 14px;
+          font-weight: 600;
+        }
+
+        .playerCell {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .playerAvatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 6px;
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .rankBadge {
+          display: inline-block;
+          padding: 4px 10px;
+          background: rgba(213, 179, 85, 0.2);
+          border-radius: 4px;
+          font-weight: 700;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.3px;
+        }
+
+        .rankBadge[data-rank="HT1"],
+        .rankBadge[data-rank="LT1"] {
+          background: rgba(213, 179, 85, 0.25);
+          color: #d5b355;
+        }
+
+        .rankBadge[data-rank="HT2"],
+        .rankBadge[data-rank="LT2"] {
+          background: rgba(164, 179, 199, 0.25);
+          color: #a4b3c7;
+        }
+
+        .rankBadge[data-rank="HT3"],
+        .rankBadge[data-rank="LT3"] {
+          background: rgba(221, 136, 73, 0.25);
+          color: #dd8849;
+        }
+
+        .rankBadge[data-rank="HT4"],
+        .rankBadge[data-rank="LT4"] {
+          background: rgba(183, 170, 223, 0.25);
+          color: #b7aadf;
+        }
+
+        .rankBadge[data-rank="HT5"],
+        .rankBadge[data-rank="LT5"] {
+          background: rgba(111, 99, 137, 0.25);
+          color: #6f6389;
+        }
+
+        .emptyState {
+          padding: 40px;
+          text-align: center;
+        }
+
+        .emptyTitle {
+          font-size: 18px;
+          font-weight: 700;
+          color: #fff;
+          margin-bottom: 8px;
+        }
+
+        .emptySub {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .loadingState {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+          .tableHead,
+          .tableRow {
+            grid-template-columns: 1fr;
+          }
+
+          .tableHead {
+            display: none;
+          }
+
+          .tableRow {
+            gap: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+          }
+
+          .tableCell::before {
+            display: block;
+            font-weight: 600;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+          }
+
+          .colDate::before {
+            content: "Dátum";
+          }
+          .colPlayer::before {
+            content: "Játékos";
+          }
+          .colMode::before {
+            content: "Játékmód";
+          }
+          .colRank::before {
+            content: "Tier";
+          }
+          .colPoints::before {
+            content: "Pont";
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
