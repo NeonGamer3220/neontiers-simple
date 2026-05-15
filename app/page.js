@@ -412,7 +412,7 @@ export default function Page() {
                       {p.entries.map((r) => {
                         const baseColor = rankBadgeColor(r.rank);
                         const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
-                        const displayRank = displayMode(r.gamemode);
+                        const modeName = displayMode(r.gamemode);
                         return (
                           <span
                             key={`${r.gamemode}:${r.rank}`}
@@ -425,13 +425,13 @@ export default function Page() {
                               '--tier-surface': hexToRgba(baseColor, 0.22),
                               '--tier-text': baseColor,
                             }}
-                            aria-label={`${displayRank} ${r.rank}`}
+                            aria-label={`${modeName} ${r.rank}`}
                           >
-                            {MODE_ICONS[displayRank] && (
+                            {MODE_ICONS[modeName] && (
                               <img
                                 className="tierIcon"
-                                src={MODE_ICONS[displayRank]}
-                                alt={`${displayRank} ikon`}
+                                src={MODE_ICONS[modeName]}
+                                alt={`${modeName} ikon`}
                                 width={30}
                                 height={30}
                                 loading="lazy"
