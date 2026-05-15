@@ -10,6 +10,7 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedPlayers, setSearchedPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [editStates, setEditStates] = useState({});
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -136,6 +137,25 @@ export default function AdminDashboard() {
         ...entries[index],
         [field]: field === "points" ? Number(value) : value,
       };
+      return { ...prev, entries };
+    });
+  };
+
+  const toggleRetired = (index) => {
+    setSelectedPlayer((prev) => {
+      if (!prev) return prev;
+      const entries = [...prev.entries];
+      const entry = entries[index];
+      const isCurrentlyRetired = entry.rank.startsWith("R");
+      
+      if (isCurrentlyRetired) {
+        // Remove "R" prefix to unretire
+        entry.rank = entry.rank.slice(1);
+      } else {
+        // Add "R" prefix to retire
+        entry.rank = "R" + entry.rank;
+      }
+      
       return { ...prev, entries };
     });
   };
@@ -280,59 +300,67 @@ export default function AdminDashboard() {
               <div className="playerTiersSection">
                 <h3 className="tiersSectionTitle">Tierek szerkesztése</h3>
                 <div className="playerTiersList">
-                  {selectedPlayer.entries.map((entry, index) => (
-                    <div key={`${entry.gamemode}-${entry.id}`} className="tierEntryCard">
-                      <div className="tierEntryHeader">
-                        <div>
-                          <div className="tierEntryMode">{entry.gamemode}</div>
-                          {entry.created_at && (
-                            <div className="tierEntryCreated">Mentve: {new Date(entry.created_at).toLocaleString()}</div>
-                          )}
+                  {selectedPlayer.entries.map((entry, index) => {
+                    const isRetired = entry.rank.startsWith("R");
+                    const displayRank = isRetired ? entry.rank.slice(1) : entry.rank;
+                    
+                    return (
+                      <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""}`}>
+                        <div className="tierEntryCompact">
+                          <div className="tierEntryModeInfo">
+                            <div className="tierEntryMode">{entry.gamemode}</div>
+                          </div>
+                          
+                          <div className="tierEntryControls">
+                            <select
+                              value={displayRank}
+                              onChange={(e) => updateEntryField(index, "rank", e.target.value)}
+                              className="tierSelectCompact"
+                              disabled={isRetired}
+                            >
+                              <option value="HT1">HT1</option>
+                              <option value="LT1">LT1</option>
+                              <option value="HT2">HT2</option>
+                              <option value="LT2">LT2</option>
+                              <option value="HT3">HT3</option>
+                              <option value="LT3">LT3</option>
+                              <option value="HT4">HT4</option>
+                              <option value="LT4">LT4</option>
+                              <option value="HT5">HT5</option>
+                              <option value="LT5">LT5</option>
+                              <option value="Unranked">Unranked</option>
+                            </select>
+                            
+                            <input
+                              type="number"
+                              value={entry.points}
+                              onChange={(e) => updateEntryField(index, "points", e.target.value)}
+                              className="tierInputCompact"
+                              disabled={isRetired}
+                            />
+                            
+                            <label className="retireCheckbox" title={isRetired ? "Aktív" : "Retire"}>
+                              <input
+                                type="checkbox"
+                                checked={isRetired}
+                                onChange={() => toggleRetired(index)}
+                              />
+                              <span className="checkboxLabel">{isRetired ? "↻" : "⊕"}</span>
+                            </label>
+                            
+                            <button 
+                              className="saveEntryBtnCompact" 
+                              onClick={() => handleSaveEntry(entry)}
+                              disabled={isRetired}
+                              title="Mentés"
+                            >
+                              💾
+                            </button>
+                          </div>
                         </div>
                       </div>
-
-                      <div className="tierEditorRow">
-                        <label className="tierLabel">
-                          Rang
-                          <select
-                            value={entry.rank}
-                            onChange={(e) => updateEntryField(index, "rank", e.target.value)}
-                            className="tierSelect"
-                          >
-                            <option value="HT1">HT1</option>
-                            <option value="LT1">LT1</option>
-                            <option value="HT2">HT2</option>
-                            <option value="LT2">LT2</option>
-                            <option value="HT3">HT3</option>
-                            <option value="LT3">LT3</option>
-                            <option value="HT4">HT4</option>
-                            <option value="LT4">LT4</option>
-                            <option value="HT5">HT5</option>
-                            <option value="LT5">LT5</option>
-                            <option value="Unranked">Unranked</option>
-                          </select>
-                        </label>
-                        <label className="tierLabel">
-                          Pont
-                          <input
-                            type="number"
-                            value={entry.points}
-                            onChange={(e) => updateEntryField(index, "points", e.target.value)}
-                            className="tierInput"
-                          />
-                        </label>
-                      </div>
-
-                      <div className="tierEntryActions">
-                        <button className="saveEntryBtn" onClick={() => handleSaveEntry(entry)}>
-                          💾 Mentés
-                        </button>
-                        <button className="deleteEntryBtn" onClick={() => handleDeleteEntry(entry.gamemode)}>
-                          🗑️ Törlés
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -643,33 +671,123 @@ export default function AdminDashboard() {
         .tierEntryCard {
           background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 14px;
-          padding: 18px;
+          border-radius: 10px;
+          padding: 10px 12px;
           display: grid;
-          gap: 12px;
+          gap: 0;
+          transition: all 0.2s;
         }
 
-        .tierEntryHeader {
-          display: flex;
-          justify-content: space-between;
+        .tierEntryCard.retired {
+          opacity: 0.6;
+          background: rgba(255, 255, 255, 0.02);
+        }
+
+        .tierEntryCompact {
+          display: grid;
+          grid-template-columns: 120px 1fr;
+          gap: 12px;
           align-items: center;
         }
 
+        .tierEntryModeInfo {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
         .tierEntryMode {
-          font-size: 16px;
+          font-size: 13px;
           font-weight: 700;
         }
 
-        .tierEntryCreated {
-          color: rgba(255, 255, 255, 0.55);
-          font-size: 12px;
-          margin-top: 4px;
+        .tierEntryControls {
+          display: grid;
+          grid-template-columns: 70px 60px 36px 36px;
+          gap: 8px;
+          align-items: center;
         }
 
-        .tierEditorRow {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 12px;
+        .tierSelectCompact,
+        .tierInputCompact {
+          padding: 6px 8px;
+          font-size: 12px;
+          border-radius: 6px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          font-family: inherit;
+          outline: none;
+          transition: all 0.15s;
+        }
+
+        .tierSelectCompact:focus,
+        .tierInputCompact:focus {
+          border-color: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .tierSelectCompact:disabled,
+        .tierInputCompact:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .retireCheckbox {
+          display: flex;
+          align-items: center;
+          cursor: pointer;
+          position: relative;
+          height: 30px;
+        }
+
+        .retireCheckbox input {
+          display: none;
+        }
+
+        .checkboxLabel {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 30px;
+          height: 30px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          border-radius: 6px;
+          background: rgba(255, 255, 255, 0.04);
+          transition: all 0.2s;
+          font-size: 14px;
+          user-select: none;
+        }
+
+        .retireCheckbox input:checked ~ .checkboxLabel {
+          background: rgba(196, 30, 58, 0.2);
+          border-color: rgba(196, 30, 58, 0.5);
+          color: #ff6b6b;
+        }
+
+        .saveEntryBtnCompact {
+          padding: 6px 8px;
+          border-radius: 6px;
+          border: 1px solid rgba(40, 167, 69, 0.4);
+          background: rgba(40, 167, 69, 0.15);
+          color: #fff;
+          cursor: pointer;
+          font-size: 14px;
+          transition: all 0.15s;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .saveEntryBtnCompact:hover:not(:disabled) {
+          background: rgba(40, 167, 69, 0.3);
+          border-color: rgba(40, 167, 69, 0.6);
+        }
+
+        .saveEntryBtnCompact:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .tierLabel {
@@ -739,6 +857,88 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: center;
           font-size: 18px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInLeft {
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.8; }
+        }
+
+        .adminNavbar {
+          animation: slideInLeft 0.3s ease-out;
+        }
+
+        .adminHeader {
+          animation: slideInLeft 0.4s ease-out;
+        }
+
+        .adminContent {
+          animation: fadeIn 0.4s ease-out;
+        }
+
+        .searchSection {
+          animation: fadeIn 0.5s ease-out;
+        }
+
+        .playerDetailsSection {
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .tierEntryCard {
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .navbarLink {
+          position: relative;
+        }
+
+        .navbarLink::after {
+          content: "";
+          position: absolute;
+          bottom: -2px;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background: #c41e3a;
+          transition: width 0.3s ease;
+        }
+
+        .navbarLink:hover::after {
+          width: 100%;
+        }
+
+        .searchResultItem {
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        .searchInput:focus {
+          animation: pulse 0.5s ease-out;
+        }
+
+        button:not(:disabled):active {
+          transform: scale(0.98);
+          transition: transform 0.1s;
+        }
+
+        .tierSelectCompact:focus,
+        .tierInputCompact:focus {
+          box-shadow: 0 0 0 2px rgba(196, 30, 58, 0.2);
+        }
+
+        .retireCheckbox:hover .checkboxLabel {
+          border-color: rgba(196, 30, 58, 0.4);
+          background: rgba(196, 30, 58, 0.1);
         }
       `}</style>
     </div>

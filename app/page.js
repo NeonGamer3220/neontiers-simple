@@ -122,6 +122,7 @@ export default function Page() {
    const [showTierBoard, setShowTierBoard] = useState(false);
    const [selectedPlayer, setSelectedPlayer] = useState(null);
    const [showPlayerDetail, setShowPlayerDetail] = useState(false);
+   const [singleModeFilter, setSingleModeFilter] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -148,6 +149,29 @@ export default function Page() {
       }
     }
     load();
+    
+    // Parse URL for mode parameter: /mode=mace,vanilla or ?mode=mace,vanilla
+    try {
+      const sp = new URLSearchParams(window.location.search || "");
+      let modeParam = sp.get("mode");
+      if (!modeParam && window.location.pathname.includes("mode=")) {
+        const match = window.location.pathname.match(/mode=([^/?]+)/);
+        if (match) modeParam = match[1];
+      }
+      if (modeParam) {
+        const modes = modeParam.split(",").map(m => m.trim().toLowerCase());
+        if (modes.length === 1) {
+          const displayName = displayMode(modes[0]);
+          if (displayName && displayName !== "Összes") {
+            setActiveMode(displayName);
+            setSingleModeFilter(null);
+          }
+        } else {
+          setSingleModeFilter(modes);
+        }
+      }
+    } catch (e) {}
+    
     return () => { alive = false; };
   }, []);
 
@@ -178,12 +202,20 @@ export default function Page() {
     }
 
     const latestRows = Array.from(latestByUserMode.values());
-    const filteredByMode = activeMode === "Összes"
-      ? latestRows
-      : latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
+    
+    // Apply gamemode filter
+    let filtered = latestRows;
+    if (singleModeFilter && singleModeFilter.length > 0) {
+      // Filter to rows matching ANY of the modes in the filter
+      filtered = latestRows.filter(r => 
+        singleModeFilter.some(m => r.gamemode.toLowerCase() === m.toLowerCase())
+      );
+    } else if (activeMode !== "Összes") {
+      filtered = latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
+    }
 
     const byUser = new Map();
-    for (const r of filteredByMode) {
+    for (const r of filtered) {
       if (!byUser.has(r.username)) byUser.set(r.username, []);
       byUser.get(r.username).push(r);
     }
@@ -198,7 +230,7 @@ export default function Page() {
     const searched = !q ? players : players.filter((p) => p.username.toLowerCase().includes(q));
     searched.sort((a, b) => b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username));
     return searched;
-  }, [tests, activeMode, query]);
+  }, [tests, activeMode, query, singleModeFilter]);
 
   const openTierBoard = (mode) => {
     if (mode !== "Összes") {
@@ -683,6 +715,11 @@ export default function Page() {
                      const baseColor = rankBadgeColor(entry.rank);
                      const pts = safeInt(RANK_POINTS[entry.rank] || entry.points, 0);
                      const modeName = displayMode(entry.gamemode);
+                     
+                     // If viewing single-mode, show all entries; else filter to matching ones
+                     const shouldShow = !singleModeFilter || singleModeFilter.some(m => entry.gamemode.toLowerCase() === m.toLowerCase());
+                     if (!shouldShow) return null;
+                     
                      return (
                        <div
                          key={`${entry.gamemode}-${idx}`}
