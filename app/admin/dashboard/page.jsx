@@ -39,6 +39,12 @@ export default function AdminDashboard() {
     }
   };
 
+  const getStats = () => {
+    const uniquePlayers = new Set(tests.map(t => t.username)).size;
+    const totalTiers = tests.length;
+    return { uniquePlayers, totalTiers };
+  };
+
   const handleDelete = async (testId) => {
     if (!confirm("Biztos vagy benne hogy törlöd ezt a tesztet?")) return;
 
@@ -74,6 +80,16 @@ export default function AdminDashboard() {
         <div className="headerLeft">
           <h1 className="headerTitle">Admin Panel</h1>
           <p className="headerSubtitle">Teszt eredmények kezelése</p>
+        </div>
+        <div className="headerStats">
+          <div className="headerStat">
+            <span className="headerStatValue">{getStats().uniquePlayers}</span>
+            <span className="headerStatLabel">Játékos</span>
+          </div>
+          <div className="headerStat">
+            <span className="headerStatValue">{getStats().totalTiers}</span>
+            <span className="headerStatLabel">Tier</span>
+          </div>
         </div>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés
@@ -171,6 +187,7 @@ export default function AdminDashboard() {
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
           max-width: 1480px;
           margin: 0 auto;
+          gap: 30px;
         }
 
         .headerLeft {
@@ -187,6 +204,32 @@ export default function AdminDashboard() {
           font-size: 13px;
           color: rgba(255, 255, 255, 0.6);
           margin: 0;
+        }
+
+        .headerStats {
+          display: flex;
+          gap: 20px;
+        }
+
+        .headerStat {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .headerStatValue {
+          font-size: 24px;
+          font-weight: 700;
+          color: var(--text);
+        }
+
+        .headerStatLabel {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.6);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          font-weight: 600;
         }
 
         .logoutBtn {
