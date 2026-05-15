@@ -242,45 +242,34 @@ export default function Page() {
     return () => { document.body.style.overflow = ""; };
   }, [showTierBoard]);
 
-  // Build mode players for tier board modal
-  const modePlayers = useMemo(() => {
-    if (!tierBoardMode) return [];
-    const rows = tests
-      .map((r) => ({
-        id: r?.id,
-        username: String(r?.username || "").trim(),
-        gamemode: String(r?.gamemode || "").trim(),
-        rank: String(r?.rank || "").trim(),
-        points: r?.points != null
-          ? safeInt(r.points, 0)
-          : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
-        created_at: r?.created_at ? String(r.created_at) : "",
-      }))
-      .filter((r) => r.username && r.gamemode && r.rank);
+   // Build mode players for tier board modal (inline — stable reference)
+   const eachModePlayer = () => {
+     if (!tierBoardMode) return [];
+     const rows = tests
+       .map((r) => ({
+         id: r?.id,
+         username: String(r?.username || "").trim(),
+         gamemode: String(r?.gamemode || "").trim(),
+         rank: String(r?.rank || "").trim(),
+         points: r?.points != null
+           ? safeInt(r.points, 0)
+           : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
+       }))
+       .filter((r) => r.username && r.gamemode && r.rank);
 
-    const latestByUserMode = new Map();
-    for (const r of rows) {
-      const key = `${r.username}__${r.gamemode}`;
-      const prev = latestByUserMode.get(key);
-      if (!prev) { latestByUserMode.set(key, r); continue; }
-      const prevTime = prev.created_at ? Date.parse(prev.created_at) : 0;
-      const curTime = r.created_at ? Date.parse(r.created_at) : 0;
-      if (curTime > prevTime) latestByUserMode.set(key, r);
-      else if (curTime === prevTime && safeInt(r.id, 0) > safeInt(prev.id, 0))
-        latestByUserMode.set(key, r);
-    }
+     const latestByUserMode = new Map();
+     for (const r of rows) {
+       const key = `${r.username}__${r.gamemode}`;
+       const prev = latestByUserMode.get(key);
+       if (!prev) { latestByUserMode.set(key, r); continue; }
+     }
 
-    const latestRows = Array.from(latestByUserMode.values());
-    const filtered = tierBoardMode === "Összes"
-      ? latestRows
-      : latestRows.filter((r) => r.gamemode.toLowerCase() === tierBoardMode.toLowerCase());
-
-    return filtered.map(r => ({
-      username: r.username,
-      rank: r.rank,
-      points: r.points,
-    }));
-  }, [tests, tierBoardMode]);
+     const latestRows = Array.from(latestByUserMode.values());
+     const filtered = tierBoardMode === "Összes"
+       ? latestRows
+       : latestRows.filter((r) => r.gamemode.toLowerCase() === tierBoardMode.toLowerCase());
+     return filtered;
+   };
 
    return (
      <div className={`page ${showTierBoard ? 'modal-open' : ''}`}>
@@ -489,25 +478,23 @@ export default function Page() {
                       <div className="modeTierList">
                         {tierPlayers.length > 0 ? (
                            tierPlayers.map((p, i) => {
-                             const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
-                             const rank = entry.rank;
+                              const entry = (p.entries || []).find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                              const rank = entry ? entry.rank : safeInt(RANK_POINTS["LT1"], 40);
                              const badgeColor = rankBadgeColor(rank);
                              return (
-                               <div
-                                 key={`${p.username}-${i}`}
-                                 className="modeTierPlayer"
-                                 onClick={() => handlePlayerClick(p)}
-                                 aria-haspopup="dialog"
-                                 aria-expanded={showPlayerDetail ? "true" : "false"}
-                                 style={{
-                                   '--player-accent': badgeColor,
-                                   '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                   '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                   '--player-rank-surface': `${badgeColor}33`,
-                                   '--player-rank-border': `${badgeColor}44`,
-                                   '--player-rank-text': badgeColor,
-                                 }}
-                               >
+                                <div
+                                  key={`${p.username}-${i}`}
+                                  className="modeTierPlayer"
+                                  onClick={() => handlePlayerClick(p)}
+                                  style={{
+                                    '--player-accent': badgeColor,
+                                    '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                    '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                    '--player-rank-surface': `${badgeColor}33`,
+                                    '--player-rank-border': `${badgeColor}44`,
+                                    '--player-rank-text': badgeColor,
+                                  }}
+                                >
                                 <img
                                   className="modeTierSkin"
                                   src={skinUrl(p.username)}
@@ -540,7 +527,7 @@ export default function Page() {
         {(() => {
           if (!showTierBoard || !tierBoardMode) return null;
           const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-          modePlayers.forEach((p) => {
+          eachModePlayer().forEach((p) => {
             const t = tierFromRank(p.rank);
             if (t && tiers[t]) tiers[t].push(p);
           });
