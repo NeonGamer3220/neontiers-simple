@@ -2,19 +2,14 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [tests, setTests] = useState([]);
-  const [adminName, setAdminName] = useState("");
-  const [selectedTest, setSelectedTest] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchedPlayers, setSearchedPlayers] = useState([]);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -39,23 +34,134 @@ export default function AdminDashboard() {
     }
   };
 
+  const safeInt = (n, fallback = 0) => {
+    const x = Number(n);
+    return Number.isFinite(x) ? x : fallback;
+  };
+
+  const findBestRank = (ranks) => {
+    const rankOrder = ["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"];
+    for (const r of rankOrder) {
+      if (ranks.includes(r)) return r;
+    }
+    return ranks[0] || "N/A";
+  };
+
   const getStats = () => {
-    const uniquePlayers = new Set(tests.map(t => t.username)).size;
+    const uniquePlayers = new Set(tests.map((t) => String(t.username).trim().toLowerCase())).size;
     const totalTiers = tests.length;
     return { uniquePlayers, totalTiers };
   };
 
-  const handleDelete = async (testId) => {
-    if (!confirm("Biztos vagy benne hogy törlöd ezt a tesztet?")) return;
+  const getPlayerData = (username) => {
+    const playerTests = tests.filter((t) => t.username.toLowerCase() === username.toLowerCase());
+    if (playerTests.length === 0) return null;
+
+    const entries = playerTests.map((t) => ({
+      gamemode: t.gamemode,
+      rank: t.rank,
+      points: t.points || 0,
+      id: t.id,
+      created_at: t.created_at || null,
+    }));
+
+    const totalPoints = entries.reduce((sum, e) => sum + safeInt(e.points, 0), 0);
+    const bestRank = findBestRank(entries.map((e) => e.rank));
+
+    return {
+      username,
+      entries,
+      totalPoints,
+      bestRank,
+      totalModes: entries.length,
+      modes: entries.map((e) => e.gamemode),
+    };
+  };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    if (query.length === 0) {
+      setSearchedPlayers([]);
+      return;
+    }
+
+    const uniquePlayers = [...new Set(tests.map((t) => t.username))];
+    const filtered = uniquePlayers.filter((p) => p.toLowerCase().includes(query.toLowerCase())).slice(0, 10);
+
+    setSearchedPlayers(filtered);
+  };
+
+  const selectPlayer = (username) => {
+    const playerData = getPlayerData(username);
+    if (playerData) {
+      setSelectedPlayer(playerData);
+    }
+    setSearchQuery("");
+    setSearchedPlayers([]);
+  };
+
+  const handleSaveEntry = async (entry) => {
+    try {
+      const res = await fetch("/api/tests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: selectedPlayer.username,
+          gamemode: entry.gamemode,
+          rank: entry.rank,
+          points: Number(entry.points || 0),
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Hiba a mentés során");
+        return;
+      }
+
+      await loadTests();
+      const refreshed = getPlayerData(selectedPlayer.username);
+      setSelectedPlayer(refreshed);
+      alert("Mentve!");
+    } catch (err) {
+      alert("Hálózati hiba");
+    }
+  };
+
+  const updateEntryField = (index, field, value) => {
+    setSelectedPlayer((prev) => {
+      if (!prev) return prev;
+      const entries = [...prev.entries];
+      entries[index] = {
+        ...entries[index],
+        [field]: field === "points" ? Number(value) : value,
+      };
+      return { ...prev, entries };
+    });
+  };
+
+  const handleDeleteEntry = async (gamemode) => {
+    if (!confirm(`Biztos hogy törlöd a "${gamemode}" tesztet?`)) return;
 
     try {
-      const res = await fetch(`/api/tests/remove/${testId}`, { method: "DELETE" });
-      if (res.ok) {
-        await loadTests();
-        setSelectedTest(null);
-      } else {
+      const res = await fetch("/api/tests/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: selectedPlayer.username,
+          gamemode: gamemode,
+        }),
+      });
+
+      if (!res.ok) {
         alert("Hiba a törlés során");
+        return;
       }
+
+      await loadTests();
+      const refreshed = getPlayerData(selectedPlayer.username);
+      setSelectedPlayer(refreshed);
+      alert("Törölve!");
     } catch (err) {
       alert("Hálózati hiba");
     }
@@ -74,6 +180,8 @@ export default function AdminDashboard() {
     );
   }
 
+  const stats = getStats();
+
   return (
     <div className="adminDashboard">
       <header className="adminHeader">
@@ -83,11 +191,11 @@ export default function AdminDashboard() {
         </div>
         <div className="headerStats">
           <div className="headerStat">
-            <span className="headerStatValue">{getStats().uniquePlayers}</span>
+            <span className="headerStatValue">{stats.uniquePlayers}</span>
             <span className="headerStatLabel">Játékos</span>
           </div>
           <div className="headerStat">
-            <span className="headerStatValue">{getStats().totalTiers}</span>
+            <span className="headerStatValue">{stats.totalTiers}</span>
             <span className="headerStatLabel">Tier</span>
           </div>
         </div>
@@ -97,73 +205,126 @@ export default function AdminDashboard() {
       </header>
 
       <main className="adminContent">
-        <div className="testsSection">
-          <h2 className="sectionTitle">Összes teszt ({tests.length})</h2>
-          
-          <div className="testsGrid">
-            {tests.length === 0 ? (
-              <div className="emptyState">Nincs teszt adat</div>
-            ) : (
-              tests.map((test) => (
-                <div
-                  key={test.id}
-                  className={`testCard ${selectedTest?.id === test.id ? "active" : ""}`}
-                  onClick={() => setSelectedTest(test)}
-                >
-                  <div className="testCardHeader">
-                    <h3 className="testCardTitle">{test.username}</h3>
-                    <span className="testCardMode">{test.gamemode}</span>
-                  </div>
-                  <div className="testCardBody">
-                    <div className="testStat">
-                      <span className="testLabel">Rang</span>
-                      <span className="testValue">{test.rank}</span>
-                    </div>
-                    <div className="testStat">
-                      <span className="testLabel">Pontok</span>
-                      <span className="testValue">{test.points || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+        <div className="searchSection">
+          <div className="searchContainer">
+            <svg className="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input
+              type="text"
+              className="searchInput"
+              placeholder="Játékos keresése..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              autoComplete="off"
+            />
           </div>
+
+          {searchedPlayers.length > 0 && (
+            <div className="searchResults">
+              {searchedPlayers.map((player) => (
+                <button key={player} className="searchResultItem" onClick={() => selectPlayer(player)}>
+                  {player}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {selectedTest && (
-          <div className="detailsSection">
-            <h2 className="sectionTitle">Teszt részletei</h2>
-            <div className="detailsCard">
-              <div className="detailsGrid">
-                <div className="detailItem">
-                  <span className="detailLabel">Játékos</span>
-                  <span className="detailValue">{selectedTest.username}</span>
-                </div>
-                <div className="detailItem">
-                  <span className="detailLabel">Mód</span>
-                  <span className="detailValue">{selectedTest.gamemode}</span>
-                </div>
-                <div className="detailItem">
-                  <span className="detailLabel">Rang</span>
-                  <span className="detailValue">{selectedTest.rank}</span>
-                </div>
-                <div className="detailItem">
-                  <span className="detailLabel">Pontok</span>
-                  <span className="detailValue">{selectedTest.points || 0}</span>
-                </div>
-                <div className="detailItem">
-                  <span className="detailLabel">ID</span>
-                  <span className="detailValue">{selectedTest.id}</span>
+        {selectedPlayer && (
+          <div className="playerDetailsSection">
+            <button className="closeDetailsBtn" onClick={() => setSelectedPlayer(null)}>
+              ✕ Bezárás
+            </button>
+
+            <div className="playerDetailsCard">
+              <div className="playerDetailsHeader">
+                <img
+                  src={`https://mc-heads.net/avatar/${encodeURIComponent(selectedPlayer.username)}/96`}
+                  alt={selectedPlayer.username}
+                  className="playerDetailsSkin"
+                />
+                <div className="playerDetailsInfo">
+                  <h2 className="playerDetailsName">{selectedPlayer.username}</h2>
+                  <div className="playerDetailsStats">
+                    <div className="playerDetailStat">
+                      <span className="detailLabel">Összes pont</span>
+                      <span className="detailValue">{selectedPlayer.totalPoints}</span>
+                    </div>
+                    <div className="playerDetailStat">
+                      <span className="detailLabel">Legjobb Tier</span>
+                      <span className="detailValue">{selectedPlayer.bestRank}</span>
+                    </div>
+                    <div className="playerDetailStat">
+                      <span className="detailLabel">Tesztelt módok</span>
+                      <span className="detailValue">{selectedPlayer.totalModes}</span>
+                    </div>
+                    <div className="playerDetailStat">
+                      <span className="detailLabel">Módok</span>
+                      <span className="detailValue tierModes">{selectedPlayer.modes.join(", ")}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="detailsActions">
-                <button
-                  className="deleteBtn"
-                  onClick={() => handleDelete(selectedTest.id)}
-                >
-                  Teszt törlése
-                </button>
+              <div className="playerTiersSection">
+                <h3 className="tiersSectionTitle">Tierek szerkesztése</h3>
+                <div className="playerTiersList">
+                  {selectedPlayer.entries.map((entry, index) => (
+                    <div key={`${entry.gamemode}-${entry.id}`} className="tierEntryCard">
+                      <div className="tierEntryHeader">
+                        <div>
+                          <div className="tierEntryMode">{entry.gamemode}</div>
+                          {entry.created_at && (
+                            <div className="tierEntryCreated">Mentve: {new Date(entry.created_at).toLocaleString()}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="tierEditorRow">
+                        <label className="tierLabel">
+                          Rang
+                          <select
+                            value={entry.rank}
+                            onChange={(e) => updateEntryField(index, "rank", e.target.value)}
+                            className="tierSelect"
+                          >
+                            <option value="HT1">HT1</option>
+                            <option value="LT1">LT1</option>
+                            <option value="HT2">HT2</option>
+                            <option value="LT2">LT2</option>
+                            <option value="HT3">HT3</option>
+                            <option value="LT3">LT3</option>
+                            <option value="HT4">HT4</option>
+                            <option value="LT4">LT4</option>
+                            <option value="HT5">HT5</option>
+                            <option value="LT5">LT5</option>
+                            <option value="Unranked">Unranked</option>
+                          </select>
+                        </label>
+                        <label className="tierLabel">
+                          Pont
+                          <input
+                            type="number"
+                            value={entry.points}
+                            onChange={(e) => updateEntryField(index, "points", e.target.value)}
+                            className="tierInput"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="tierEntryActions">
+                        <button className="saveEntryBtn" onClick={() => handleSaveEntry(entry)}>
+                          💾 Mentés
+                        </button>
+                        <button className="deleteEntryBtn" onClick={() => handleDeleteEntry(entry.gamemode)}>
+                          🗑️ Törlés
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -173,8 +334,8 @@ export default function AdminDashboard() {
       <style jsx>{`
         .adminDashboard {
           min-height: 100vh;
-          background: var(--bg);
-          color: var(--text);
+          background: var(--bg, #0b0e14);
+          color: var(--text, #fffffff0);
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
@@ -221,7 +382,6 @@ export default function AdminDashboard() {
         .headerStatValue {
           font-size: 24px;
           font-weight: 700;
-          color: var(--text);
         }
 
         .headerStatLabel {
@@ -252,104 +412,267 @@ export default function AdminDashboard() {
           margin: 0 auto;
           padding: 30px 20px;
           display: grid;
-          grid-template-columns: 1fr 400px;
           gap: 30px;
         }
 
-        @media (max-width: 1024px) {
-          .adminContent {
-            grid-template-columns: 1fr;
-          }
+        .searchSection {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
 
-        .testsSection,
-        .detailsSection {
-          background: rgba(11, 14, 20, 0.5);
+        .searchContainer {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 12px;
-          padding: 24px;
+          padding: 14px 16px;
         }
 
-        .sectionTitle {
-          font-size: 18px;
-          font-weight: 600;
-          margin: 0 0 20px 0;
+        .searchIcon {
+          width: 20px;
+          height: 20px;
+          color: rgba(255, 255, 255, 0.65);
+          flex-shrink: 0;
         }
 
-        .testsGrid {
+        .searchInput {
+          width: 100%;
+          background: transparent;
+          border: none;
+          color: #fff;
+          font-size: 15px;
+          outline: none;
+        }
+
+        .searchInput::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .searchResults {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-          gap: 12px;
-          max-height: 600px;
+          gap: 8px;
+          max-height: 300px;
           overflow-y: auto;
         }
 
-        .testCard {
-          background: rgba(255, 255, 255, 0.03);
+        .searchResultItem {
+          text-align: left;
+          padding: 12px 14px;
+          background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          padding: 16px;
+          border-radius: 10px;
+          color: #fff;
           cursor: pointer;
           transition: all 0.2s;
+          font-family: inherit;
+          font-size: 14px;
         }
 
-        .testCard:hover {
-          background: rgba(255, 255, 255, 0.06);
+        .searchResultItem:hover {
+          background: rgba(255, 255, 255, 0.08);
           border-color: rgba(255, 255, 255, 0.2);
         }
 
-        .testCard.active {
-          background: rgba(196, 30, 58, 0.15);
-          border-color: rgba(196, 30, 58, 0.4);
+        .playerDetailsSection {
+          background: rgba(11, 14, 20, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 20px;
+          padding: 24px;
+          display: grid;
+          gap: 20px;
         }
 
-        .testCardHeader {
+        .closeDetailsBtn {
+          align-self: flex-end;
+          padding: 10px 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 999px;
+          color: #fff;
+          cursor: pointer;
+          transition: all 0.15s;
+          font-family: inherit;
+        }
+
+        .closeDetailsBtn:hover {
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .playerDetailsCard {
+          display: grid;
+          gap: 24px;
+        }
+
+        .playerDetailsHeader {
           display: flex;
-          justify-content: space-between;
+          gap: 20px;
           align-items: flex-start;
-          margin-bottom: 12px;
         }
 
-        .testCardTitle {
-          font-size: 14px;
-          font-weight: 600;
-          margin: 0;
+        .playerDetailsSkin {
+          width: 96px;
+          height: 96px;
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          background: rgba(255, 255, 255, 0.06);
+          flex-shrink: 0;
+        }
+
+        .playerDetailsInfo {
           flex: 1;
         }
 
-        .testCardMode {
-          font-size: 11px;
-          background: rgba(255, 255, 255, 0.1);
-          padding: 4px 8px;
-          border-radius: 4px;
-          white-space: nowrap;
-          margin-left: 8px;
+        .playerDetailsName {
+          font-size: 28px;
+          margin: 0 0 12px 0;
+          font-weight: 700;
         }
 
-        .testCardBody {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
+        .playerDetailsStats {
+          display: grid;
+          gap: 10px;
         }
 
-        .testStat {
-          display: flex;
-          justify-content: space-between;
-          font-size: 12px;
+        .playerDetailStat {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          background: rgba(255, 255, 255, 0.04);
+          padding: 12px 16px;
+          border-radius: 10px;
+          font-size: 14px;
         }
 
-        .testLabel {
-          color: rgba(255, 255, 255, 0.6);
-        }
-
-        .testValue {
+        .detailLabel {
+          color: rgba(255, 255, 255, 0.65);
           font-weight: 600;
         }
 
-        .emptyState {
-          text-align: center;
-          padding: 40px 20px;
-          color: rgba(255, 255, 255, 0.5);
+        .detailValue {
+          font-weight: 700;
+          color: #fff;
+          text-align: right;
+        }
+
+        .tierModes {
+          word-break: break-word;
+          text-align: right;
+        }
+
+        .playerTiersSection {
+          display: grid;
+          gap: 14px;
+        }
+
+        .tiersSectionTitle {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 700;
+        }
+
+        .playerTiersList {
+          display: grid;
+          gap: 14px;
+        }
+
+        .tierEntryCard {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 14px;
+          padding: 18px;
+          display: grid;
+          gap: 12px;
+        }
+
+        .tierEntryHeader {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .tierEntryMode {
+          font-size: 16px;
+          font-weight: 700;
+        }
+
+        .tierEntryCreated {
+          color: rgba(255, 255, 255, 0.55);
+          font-size: 12px;
+          margin-top: 4px;
+        }
+
+        .tierEditorRow {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .tierLabel {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          color: rgba(255, 255, 255, 0.65);
+          font-size: 13px;
+          font-weight: 600;
+        }
+
+        .tierSelect,
+        .tierInput {
+          width: 100%;
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          font-size: 14px;
+          outline: none;
+          font-family: inherit;
+        }
+
+        .tierSelect option {
+          color: #000;
+        }
+
+        .tierEntryActions {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .saveEntryBtn,
+        .deleteEntryBtn {
+          padding: 12px 18px;
+          border: none;
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: inherit;
+          font-size: 14px;
+        }
+
+        .saveEntryBtn {
+          background: rgba(40, 167, 69, 0.85);
+        }
+
+        .saveEntryBtn:hover {
+          background: rgba(40, 167, 69, 1);
+        }
+
+        .deleteEntryBtn {
+          background: rgba(196, 30, 58, 0.85);
+        }
+
+        .deleteEntryBtn:hover {
+          background: rgba(196, 30, 58, 1);
         }
 
         .loadingState {
@@ -358,61 +681,6 @@ export default function AdminDashboard() {
           align-items: center;
           justify-content: center;
           font-size: 18px;
-        }
-
-        .detailsCard {
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          padding: 20px;
-        }
-
-        .detailsGrid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 12px;
-          margin-bottom: 20px;
-        }
-
-        .detailItem {
-          display: flex;
-          justify-content: space-between;
-          padding: 12px;
-          background: rgba(255, 255, 255, 0.02);
-          border-radius: 6px;
-          font-size: 13px;
-        }
-
-        .detailLabel {
-          color: rgba(255, 255, 255, 0.6);
-        }
-
-        .detailValue {
-          font-weight: 600;
-          word-break: break-all;
-        }
-
-        .detailsActions {
-          display: flex;
-          gap: 10px;
-        }
-
-        .deleteBtn {
-          flex: 1;
-          padding: 10px 16px;
-          background: rgba(196, 30, 58, 0.2);
-          border: 1px solid rgba(196, 30, 58, 0.4);
-          border-radius: 6px;
-          color: #ff6b6b;
-          font-weight: 600;
-          font-size: 13px;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .deleteBtn:hover {
-          background: rgba(196, 30, 58, 0.3);
-          border-color: rgba(196, 30, 58, 0.6);
         }
       `}</style>
     </div>
