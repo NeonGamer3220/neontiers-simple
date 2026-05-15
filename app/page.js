@@ -342,6 +342,18 @@ export default function Page() {
 
         {/* Main content */}
         <main className="mainWrap">
+          {/* Stats Bar */}
+          <div className="statsBar">
+            <div className="statCard">
+              <div className="statValue">{leaderboard.length}</div>
+              <div className="statLabel">Játékos</div>
+            </div>
+            <div className="statCard">
+              <div className="statValue">{leaderboard.reduce((sum, p) => sum + p.entries.length, 0)}</div>
+              <div className="statLabel">Tier</div>
+            </div>
+          </div>
+
           {/* Leaderboard - shown only for Összes */}
           {activeMode === "Összes" && (
             <div className="mainCard">
@@ -857,6 +869,38 @@ export default function Page() {
            padding-left: 20px;
            padding-right: 20px;
            position: relative;
+         }
+
+         .statsBar {
+           display: grid;
+           grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+           gap: 16px;
+           margin-top: 20px;
+           margin-bottom: 20px;
+         }
+
+         .statCard {
+           background: var(--bg-panel);
+           border: 1px solid var(--border);
+           border-radius: 12px;
+           padding: 20px;
+           text-align: center;
+           box-shadow: 0 8px 24px #00000030;
+         }
+
+         .statValue {
+           font-size: 32px;
+           font-weight: 800;
+           color: var(--text);
+           margin-bottom: 8px;
+         }
+
+         .statLabel {
+           font-size: 12px;
+           color: var(--muted);
+           text-transform: uppercase;
+           letter-spacing: 0.08em;
+           font-weight: 600;
          }
 
          .mainCard {
