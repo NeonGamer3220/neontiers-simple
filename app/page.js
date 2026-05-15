@@ -660,7 +660,7 @@ export default function Page() {
                    {selectedPlayer.entries.map((entry, idx) => {
                      const baseColor = rankBadgeColor(entry.rank);
                      const pts = safeInt(RANK_POINTS[entry.rank] || entry.points, 0);
-                     const displayMode = displayMode(entry.gamemode);
+                     const modeName = displayMode(entry.gamemode);
                      return (
                        <div
                          key={`${entry.gamemode}-${idx}`}
@@ -674,15 +674,15 @@ export default function Page() {
                            '--tier-text': baseColor,
                          }}
                        >
-                         {MODE_ICONS[displayMode] && (
+                         {MODE_ICONS[modeName] && (
                            <img
                              className="detailTierIcon"
-                             alt={`${displayMode} ikon`}
+                             alt={`${modeName} ikon`}
                              width={26}
                              height={26}
                              loading="lazy"
                              decoding="async"
-                             src={MODE_ICONS[displayMode]}
+                             src={MODE_ICONS[modeName]}
                            />
                          )}
                          <span className="detailTierRank">{entry.rank}</span>
