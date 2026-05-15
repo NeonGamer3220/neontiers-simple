@@ -874,7 +874,7 @@ export default function Page() {
            margin: 0 auto;
            padding-left: 20px;
            padding-right: 20px;
-           margin-top: -1px;
+           margin-top: 24px;
            position: relative;
            z-index: 1;
          }
