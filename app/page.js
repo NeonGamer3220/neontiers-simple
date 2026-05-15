@@ -9,7 +9,7 @@ const EASTER_MODE = false;
 const MODE_LIST = [
   "Összes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
   "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
-  "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stickfight",
+  "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stick Fight", "Trident",
 ];
 
 const MODE_ICONS = {
@@ -29,7 +29,8 @@ const MODE_ICONS = {
   "SpearMace": "/images/spear.png",
   "SpearElytra": "/images/spear.png",
   "ShieldlessUHC": "/images/shieldlessuhc.png",
-  "Stickfight": "/images/stickfight.png",
+  "Stick Fight": "/images/stickfight.png",
+  "Trident": "/images/trident.png",
 };
 
 const MODE_DISPLAY_MAP = {
@@ -38,7 +39,8 @@ const MODE_DISPLAY_MAP = {
   "cart": "Cart", "creeper": "Creeper", "diasmp": "DiaSMP",
   "ogvanilla": "OGVanilla", "shieldlessuhc": "ShieldlessUHC",
   "spearmace": "SpearMace", "spearelytra": "SpearElytra",
-  "stickfight": "Stickfight",
+  "stickfight": "Stick Fight",
+  "trident": "Trident",
 };
 
 function displayMode(mode) {
