@@ -46,6 +46,30 @@ const MODE_ICONS = {
   Trident: "/images/trident.png",
 };
 
+const MODE_COLORS = {
+  Vanilla: "#f8d04a",
+  UHC: "#ff6b6b",
+  Pot: "#7ee2ff",
+  NethPot: "#b17cff",
+  SMP: "#4edd8d",
+  Sword: "#ffb86c",
+  Axe: "#f06d6d",
+  Mace: "#d17dff",
+  Cart: "#74c0ff",
+  Creeper: "#54d06b",
+  DiaSMP: "#33d7c7",
+  OGVanilla: "#f9b636",
+  ShieldlessUHC: "#ff8f7a",
+  SpearMace: "#a47cff",
+  SpearElytra: "#55c4ea",
+  "Stick Fight": "#65ffb6",
+  Trident: "#4fa7ff",
+};
+
+function modeColor(mode) {
+  return MODE_COLORS[mode] || "#ffffff";
+}
+
 function findBestRank(ranks) {
   for (const rank of RANK_ORDER) {
     if (ranks.includes(rank)) return rank;
@@ -297,10 +321,13 @@ export default function AdminHighscorePage() {
                       className="modeSelect"
                       value={gamemode}
                       onChange={(e) => setGamemode(e.target.value)}
+                      style={{ color: modeColor(gamemode) }}
                     >
-                      <option value="">Válassz játékmódot...</option>
+                      <option value="" style={{ color: "#ffffff" }}>
+                        Válassz játékmódot...
+                      </option>
                       {MODE_OPTIONS.map((mode) => (
-                        <option key={mode} value={mode}>
+                        <option key={mode} value={mode} style={{ color: modeColor(mode) }}>
                           {mode}
                         </option>
                       ))}
