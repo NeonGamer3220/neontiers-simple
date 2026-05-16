@@ -141,16 +141,21 @@ export default function AdminDashboard() {
 
   const handleSaveEntry = async (entry) => {
     try {
+      // Don't send id for new entries (untested modes)
+      const payload = {
+        username: selectedPlayer.username,
+        gamemode: entry.gamemode,
+        rank: entry.rank,
+        points: Number(entry.points || 0),
+      };
+      if (entry.id) {
+        payload.id = entry.id;
+      }
+      
       const res = await fetch("/api/tests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: entry.id,
-          username: selectedPlayer.username,
-          gamemode: entry.gamemode,
-          rank: entry.rank,
-          points: Number(entry.points || 0),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -183,11 +188,11 @@ export default function AdminDashboard() {
     });
   };
 
-  const toggleRetired = (index) => {
+const toggleRetired = (index) => {
     setSelectedPlayer((prev) => {
       if (!prev) return prev;
       const entries = [...prev.entries];
-      const entry = entries[index];
+      const entry = { ...entries[index] };
       const isCurrentlyRetired = entry.rank.startsWith("R");
       
       if (isCurrentlyRetired) {
@@ -198,6 +203,7 @@ export default function AdminDashboard() {
         entry.rank = "R" + entry.rank;
       }
       
+      entries[index] = entry;
       return { ...prev, entries };
     });
   };
@@ -376,24 +382,24 @@ export default function AdminDashboard() {
                           </div>
                           
                           <div className="tierEntryControls">
-                            <select
-                              value={displayRank}
-                              onChange={(e) => updateEntryField(index, "rank", e.target.value)}
-                              className="tierSelectCompact"
-                              disabled={isRetired}
-                            >
-                              <option value="HT1">HT1</option>
-                              <option value="LT1">LT1</option>
-                              <option value="HT2">HT2</option>
-                              <option value="LT2">LT2</option>
-                              <option value="HT3">HT3</option>
-                              <option value="LT3">LT3</option>
-                              <option value="HT4">HT4</option>
-                              <option value="LT4">LT4</option>
-                              <option value="HT5">HT5</option>
-                              <option value="LT5">LT5</option>
-                              <option value="Unranked">Unranked</option>
-                            </select>
+<select
+                               value={displayRank}
+                               onChange={(e) => updateEntryField(index, "rank", e.target.value)}
+                               className="tierSelectCompact"
+                               disabled={isRetired}
+                             >
+                               <option value="HT1" style={{color: "#d5b355"}}>HT1</option>
+                               <option value="LT1" style={{color: "#d5b355"}}>LT1</option>
+                               <option value="HT2" style={{color: "#a4b3c7"}}>HT2</option>
+                               <option value="LT2" style={{color: "#a4b3c7"}}>LT2</option>
+                               <option value="HT3" style={{color: "#dd8849"}}>HT3</option>
+                               <option value="LT3" style={{color: "#dd8849"}}>LT3</option>
+                               <option value="HT4" style={{color: "#b7aadf"}}>HT4</option>
+                               <option value="LT4" style={{color: "#b7aadf"}}>LT4</option>
+                               <option value="HT5" style={{color: "#6f6389"}}>HT5</option>
+                               <option value="LT5" style={{color: "#6f6389"}}>LT5</option>
+                               <option value="Unranked" style={{color: "#888d95"}}>Unranked</option>
+                             </select>
                             
                             <input
                               type="number"
