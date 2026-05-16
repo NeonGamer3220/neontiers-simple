@@ -126,43 +126,53 @@ export async function POST(req) {
     saveErr = error;
   }
 
-  if (saveErr) {
+if (saveErr) {
     return json({ error: saveErr.message }, 500);
   }
 
-// Audit log
-   const admin_name = getAdminName();
-   if (admin_name) {
-     await supabase.from("audit_logs").insert({
-       admin_name,
-       action: "high_score_save",
-       target_username: username,
-       gamemode,
-       old_rank: prev?.rank || null,
-       new_rank: rank,
-       old_points: prev?.points || null,
-       new_points: tierPoints,
-       details: { result, fight_notes },
-     });
-   }
+  // Audit log
+  const admin_name = getAdminName();
+  if (admin_name) {
+    try {
+      await supabase.from("audit_logs").insert({
+        admin_name,
+        action: "high_score_save",
+        target_username: username,
+        gamemode,
+        old_rank: prev?.rank || null,
+        new_rank: rank,
+        old_points: prev?.points || null,
+        new_points: tierPoints,
+        details: { result, fight_notes },
+      });
+    } catch (e) {
+      console.error("Audit log error:", e?.message || e);
+    }
+  }
 
   // Insert into discord_notifications table for the bot to pick up
-  const { error: notifyErr } = await supabase.from("discord_notifications").insert({
-    username,
-    gamemode,
-    tested_tier: rank,
-    result: result || "Sikeres",
-    fight_notes,
-    processed: false,
-  });
-
-  if (notifyErr) {
-    console.error("Failed to create notification:", notifyErr.message);
+  let notificationCreated = false;
+  try {
+    const { error: notifyErr } = await supabase.from("discord_notifications").insert({
+      username,
+      gamemode,
+      tested_tier: rank,
+      result: result || "Sikeres",
+      fight_notes,
+      processed: false,
+    });
+    if (notifyErr) {
+      console.error("Failed to create notification:", notifyErr.message);
+    } else {
+      notificationCreated = true;
+    }
+  } catch (e) {
+    console.error("Notification error:", e?.message || e);
   }
 
   return json({
     ok: true,
     saved,
-    notification_created: !notifyErr,
+    notification_created: notificationCreated,
   });
 }
