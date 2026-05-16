@@ -3,6 +3,26 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const MODE_OPTIONS = [
+  "Vanilla",
+  "UHC",
+  "Pot",
+  "NethPot",
+  "SMP",
+  "Sword",
+  "Axe",
+  "Mace",
+  "Cart",
+  "Creeper",
+  "DiaSMP",
+  "OGVanilla",
+  "ShieldlessUHC",
+  "SpearMace",
+  "SpearElytra",
+  "Stick Fight",
+  "Trident",
+];
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -11,6 +31,7 @@ export default function AdminDashboard() {
   const [searchedPlayers, setSearchedPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [editStates, setEditStates] = useState({});
+  const [showUntested, setShowUntested] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -54,9 +75,9 @@ export default function AdminDashboard() {
     return { uniquePlayers, totalTiers };
   };
 
-  const getPlayerData = (username) => {
+  const getPlayerData = (username, includeUntested = false) => {
     const playerTests = tests.filter((t) => t.username.toLowerCase() === username.toLowerCase());
-    if (playerTests.length === 0) return null;
+    if (playerTests.length === 0 && !includeUntested) return null;
 
     const entries = playerTests.map((t) => ({
       gamemode: t.gamemode,
@@ -65,6 +86,23 @@ export default function AdminDashboard() {
       id: t.id,
       created_at: t.created_at || null,
     }));
+
+    // Include untested gamemodes
+    if (includeUntested) {
+      const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
+      for (const mode of MODE_OPTIONS) {
+        if (!testedModes.has(mode.toLowerCase())) {
+          entries.push({
+            gamemode: mode,
+            rank: "Unranked",
+            points: 0,
+            id: null,
+            created_at: null,
+            isUntested: true,
+          });
+        }
+      }
+    }
 
     const totalPoints = entries.reduce((sum, e) => sum + safeInt(e.points, 0), 0);
     const bestRank = findBestRank(entries.map((e) => e.rank));
@@ -93,7 +131,7 @@ export default function AdminDashboard() {
   };
 
   const selectPlayer = (username) => {
-    const playerData = getPlayerData(username);
+    const playerData = getPlayerData(username, showUntested);
     if (playerData) {
       setSelectedPlayer(playerData);
     }
@@ -125,7 +163,7 @@ export default function AdminDashboard() {
       // Server-side audit logging will record this action (admin cookie used)
 
       await loadTests();
-      const refreshed = getPlayerData(selectedPlayer.username);
+      const refreshed = getPlayerData(selectedPlayer.username, showUntested);
       setSelectedPlayer(refreshed);
       alert("Mentve!");
     } catch (err) {
@@ -186,7 +224,7 @@ export default function AdminDashboard() {
       // Server-side audit logging will record this action (admin cookie used)
 
       await loadTests();
-      const refreshed = getPlayerData(selectedPlayer.username);
+      const refreshed = getPlayerData(selectedPlayer.username, showUntested);
       setSelectedPlayer(refreshed);
       alert("Törölve!");
     } catch (err) {
@@ -305,18 +343,36 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="playerTiersSection">
-                <h3 className="tiersSectionTitle">Tierek szerkesztése</h3>
-                <div className="playerTiersList">
+<div className="playerTiersSection">
+                 <div className="tiersSectionHeader">
+                   <h3 className="tiersSectionTitle">Tierek szerkesztése</h3>
+                   {selectedPlayer && (
+                     <button 
+                       className={`toggleUntestedBtn ${showUntested ? 'active' : ''}`}
+                       onClick={() => {
+                         setShowUntested(!showUntested);
+                         if (selectedPlayer) {
+                           const refreshed = getPlayerData(selectedPlayer.username, !showUntested);
+                           setSelectedPlayer(refreshed);
+                         }
+                       }}
+                       title="Mutasd a tesztelt nélküli módokat is"
+                     >
+                       {showUntested ? 'Elrejt' : 'Mutat'} teszt nélküli
+                     </button>
+                   )}
+                 </div>
+                 <div className="playerTiersList">
                   {selectedPlayer.entries.map((entry, index) => {
                     const isRetired = entry.rank.startsWith("R");
+                    const isUntested = entry.isUntested;
                     const displayRank = isRetired ? entry.rank.slice(1) : entry.rank;
                     
                     return (
-                      <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""}`}>
+                      <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
                         <div className="tierEntryCompact">
                           <div className="tierEntryModeInfo">
-                            <div className="tierEntryMode">{entry.gamemode}</div>
+                            <div className="tierEntryMode">{entry.gamemode}{isUntested && <span className="untestedBadge">új</span>}</div>
                           </div>
                           
                           <div className="tierEntryControls">
@@ -952,6 +1008,60 @@ export default function AdminDashboard() {
         .retireCheckbox:hover .checkboxLabel {
           border-color: rgba(196, 30, 58, 0.4);
           background: rgba(196, 30, 58, 0.1);
+        }
+
+        .tiersSectionHeader {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 12px;
+        }
+
+        .toggleUntestedBtn {
+          padding: 8px 14px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .toggleUntestedBtn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .toggleUntestedBtn.active {
+          background: rgba(79, 167, 255, 0.2);
+          border-color: rgba(79, 167, 255, 0.5);
+          color: #4fa7ff;
+        }
+
+        .tierEntryCard.untested {
+          opacity: 0.6;
+          background: rgba(255, 255, 255, 0.02);
+          border-style: dashed;
+        }
+
+        .tierEntryCard.untested:hover {
+          opacity: 0.8;
+        }
+
+        .tierEntryMode {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .untestedBadge {
+          font-size: 10px;
+          background: rgba(79, 167, 255, 0.3);
+          color: #4fa7ff;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 600;
         }
       `}</style>
     </div>
