@@ -140,14 +140,13 @@ const MODE_ICONS = {
   "Sword":      "/images/sword.png",
   "Axe":        "/images/axe.png",
   "Mace":       "/images/mace.png",
-  "Cart":      "/images/cart.png",
+"Cart":      "/images/cart.png",
   "Creeper":   "/images/creeper.png",
   "DiaSMP":    "/images/diasmp.png",
   "OGVanilla": "/images/ogvanilla.png",
   "ShieldlessUHC": "/images/shieldlessuhc.png",
   "SpearMace": "/images/spear.png",
   "SpearElytra":  "/images/spear.png",
-  "ShieldlessUHC": "/images/shieldlessuhc.png",
   "Stick Fight":  "/images/stickfight.png",
   "Trident":   "/images/trident.png",
 };
@@ -417,14 +416,13 @@ const toggleRetired = (index) => {
     return `${clean.slice(0,8)}-${clean.slice(8,12)}-${clean.slice(12,16)}-${clean.slice(16,20)}-${clean.slice(20)}`;
   }
 
-  const handleRefreshName = async () => {
+const handleRefreshName = async () => {
     if (!newNameInput.trim()) { setToast({ type: "error", text: "Addj meg egy érvényes játékosnevet!" }); return; }
     try {
-      const res = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(newNameInput.trim())}`);
+      const res = await fetch(`/api/mojang?username=${encodeURIComponent(newNameInput.trim())}`);
       if (!res.ok) { setToast({ type: "error", text: "Nem található a játékos a Mojang adatbázisában." }); return; }
       const data = await res.json();
       setToast({ type: "ok", text: `Név frissítve: ${data.name}` });
-      // update locally
       const refreshed = getPlayerData(data.name, showUntested);
       setSelectedPlayer(refreshed);
       setNewNameInput("");
@@ -688,7 +686,7 @@ const toggleRetired = (index) => {
                         {MODE_ICONS[entry.gamemode] && (
                           <img src={MODE_ICONS[entry.gamemode]} alt={entry.gamemode} className="tierModeCircleImg" />
                         )}
-                        <span className="tierModeCircleLabel">{entry.gamemode}{isUntested && <span className="untestedBadge">új</span>}</span>
+                        <span className="tierModeCircleLabel">{entry.gamemode}</span>
                       </div>
 
                       {/* tier selector */}
