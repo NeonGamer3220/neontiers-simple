@@ -130,22 +130,21 @@ export async function POST(req) {
     return json({ error: saveErr.message }, 500);
   }
 
-  // Audit log
-  const admin_name = getAdminName();
-  if (admin_name) {
-    await supabase.from("audit_logs").insert({
-      admin_name,
-      action: "high_score_save",
-      target_username: username,
-      gamemode,
-      old_rank: prev?.rank || null,
-      new_rank: rank,
-      old_points: prev?.points || null,
-      new_points: tierPoints,
-      details: { result, fight_notes },
-      created_at: new Date().toISOString(),
-    });
-  }
+// Audit log
+   const admin_name = getAdminName();
+   if (admin_name) {
+     await supabase.from("audit_logs").insert({
+       admin_name,
+       action: "high_score_save",
+       target_username: username,
+       gamemode,
+       old_rank: prev?.rank || null,
+       new_rank: rank,
+       old_points: prev?.points || null,
+       new_points: tierPoints,
+       details: { result, fight_notes },
+     });
+   }
 
   // Insert into discord_notifications table for the bot to pick up
   const { error: notifyErr } = await supabase.from("discord_notifications").insert({
