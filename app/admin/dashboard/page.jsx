@@ -140,6 +140,7 @@ export default function AdminDashboard() {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [editStates, setEditStates] = useState({});
   const [showUntested, setShowUntested] = useState(true);
+  const [toast, setToast] = useState(null); // { text, type }
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -153,6 +154,13 @@ export default function AdminDashboard() {
     };
     checkAuth();
   }, [router]);
+
+  // Auto-dismiss toast after 2 s
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2000);
+    return () => clearTimeout(t);
+  }, [toast]);
 
   const loadTests = async () => {
     try {
@@ -268,9 +276,9 @@ export default function AdminDashboard() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
+       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "Hiba a mentés során");
+        setToast({ type: "error", text: data.error || "Hiba a mentés során" });
         return;
       }
 
@@ -280,7 +288,7 @@ export default function AdminDashboard() {
       await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username, showUntested);
       setSelectedPlayer(refreshed);
-      alert("Mentve!");
+      setToast({ type: "ok", text: "Mentve!" });
     } catch (err) {
       alert("Hálózati hiba");
     }
@@ -337,7 +345,7 @@ const toggleRetired = (index) => {
       });
 
       if (!res.ok) {
-        alert("Hiba a törlés során");
+       setToast({ type: "error", text: "Hiba a törlés során" });
         return;
       }
 
@@ -347,9 +355,9 @@ const toggleRetired = (index) => {
       await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username, showUntested);
       setSelectedPlayer(refreshed);
-      alert("Törölve!");
+      setToast({ type: "ok", text: "Törölve!" });
     } catch (err) {
-      alert("Hálózati hiba");
+      setToast({ type: "error", text: "Hálózati hiba" });
     }
   };
 
@@ -370,6 +378,16 @@ const toggleRetired = (index) => {
 
   return (
     <div className="adminDashboard">
+
+      {/* Toast notification */}
+      {toast && (
+        <div
+          className={`toast ${toast.type === "error" ? "toastError" : "toastOk"}`}
+        >
+          {toast.text}
+        </div>
+      )}
+
       <header className="adminNavbar">
         <div className="navbarLeft">
           <h1 className="navbarTitle">Admin Panel</h1>
@@ -1196,12 +1214,47 @@ const toggleRetired = (index) => {
         }
 
         .untestedBadge {
-          font-size: 10px;
+           font-size: 10px;
           background: rgba(79, 167, 255, 0.3);
           color: #4fa7ff;
           padding: 2px 6px;
           border-radius: 4px;
           font-weight: 600;
+        }
+
+        /* Toast notification */
+        .toast {
+          position: fixed;
+          bottom: 28px;
+          right: 28px;
+          z-index: 999;
+          padding: 14px 22px;
+          border-radius: 12px;
+          font-size: 15px;
+          font-weight: 700;
+          color: #fff;
+          animation: toastSlideIn 0.3s ease-out;
+          box-shadow: 0 12px 40px #0000006e;
+          pointer-events: none;
+        }
+
+        .toastOk {
+          background: rgba(35, 165, 90, 0.92);
+        }
+
+        .toastError {
+          background: rgba(196, 30, 58, 0.92);
+        }
+
+        @keyframes toastSlideIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px) scale(0.92);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
       `}</style>
     </div>
