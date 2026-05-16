@@ -108,6 +108,15 @@ export async function POST(req) {
   const rank = normRank(tested_tier);
   const tierPoints = RANK_POINTS[rank] ?? 0;
 
+  // Get Discord ID from linked_accounts for ping
+  const { data: linkedAccount } = await supabase
+    .from("linked_accounts")
+    .select("discord_id")
+    .ilike("minecraft_name", username)
+    .maybeSingle();
+
+  const discordPing = linkedAccount?.discord_id ? `<@${linkedAccount.discord_id}>` : "";
+
   // Get previous record for audit
   const { data: prev } = await supabase
     .from("tests")
@@ -195,11 +204,11 @@ if (saveErr) {
   // Send immediate webhook to Discord if configured
    if (DISCORD_WEBHOOK_URL) {
      try {
-       const modeIcon = MODE_ICONS[gamemode] || "🎮";
-       const resultText = result || "Sikeres";
-       const displayUsername = discord_name || username;
-       
-       const header = `${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`;
+const modeIcon = MODE_ICONS[gamemode] || "🎮";
+        const resultText = result || "Sikeres";
+        const displayUsername = discord_name || username;
+        
+        const header = `${discordPing} ${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`;
        const modeLine = `**__${gamemode}__** ${modeIcon}`;
        
        const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
