@@ -235,6 +235,13 @@ export default function Page() {
     return searched;
   }, [tests, activeMode, query, singleModeFilter]);
 
+  // Map usernames to their current position in the filtered leaderboard
+  const rankMap = useMemo(() => {
+    const m = new Map();
+    leaderboard.forEach((p, i) => m.set(p.username, i + 1));
+    return m;
+  }, [leaderboard]);
+
   const openTierBoard = (mode) => {
     if (mode !== "Összes") {
       setTierBoardMode(mode);
@@ -712,8 +719,9 @@ export default function Page() {
                    />
                  </div>
                </div>
-               <div className="detailRight">
+                <div className="detailRight">
                  <div className="detailUsername" id="player-modal-title">{selectedPlayer.username}</div>
+                 <div className="detailPosition">Pozíció: {rankMap.get(selectedPlayer.username) || "-"}</div>
                  <div className="detailStats">
                    <div className="detailStat">
                      <span className="detailStatValue">{totalPoints}</span>
@@ -1603,6 +1611,13 @@ export default function Page() {
            padding-bottom: 16px;
            border-bottom: 1px solid rgba(255,255,255,0.08);
          }
+
+        .detailPosition {
+          font-size: 14px;
+          color: rgba(255,255,255,0.85);
+          font-weight: 700;
+          margin-top: 6px;
+        }
 
          .detailStat {
            display: flex;
