@@ -175,6 +175,9 @@ export async function POST(req) {
   const gamemode = normMode(gamemodeRaw);
   const rank = normRank(rankRaw);
 
+  // Accept optional id from admin client to perform safe updates
+  const id = pick(body, ["id", "test_id", "row_id"]);
+
   if (!username || !gamemode || !rank) {
     return json(
       {
@@ -200,8 +203,7 @@ export async function POST(req) {
 
   if (prevErr) return json({ error: prevErr.message }, 500);
 
-  // 2) Upsert: csak 1 sor legyen user+mode-ra (különben duplikál)
-  // FONTOS: Supabase-ben legyen UNIQUE constraint a (username, gamemode)-ra.
+  // 2) If admin provided an `id`, perform an UPDATE to avoid upsert id/null issues
   const row = {
     username,
     gamemode,
@@ -210,11 +212,38 @@ export async function POST(req) {
     created_at: new Date().toISOString(),
   };
 
-  const { data: saved, error: saveErr } = await supabase
-    .from("tests")
-    .upsert(row, { onConflict: "username,gamemode" })
-    .select("id,username,gamemode,rank,points,created_at")
-    .single();
+  let saved = null;
+  let saveErr = null;
+
+  if (id) {
+    // Update by id (safer for admin edits)
+    const { data, error } = await supabase
+      .from("tests")
+      .update(row)
+      .eq("id", id)
+      .select("id,username,gamemode,rank,points,created_at")
+      .maybeSingle();
+    saved = data;
+    saveErr = error;
+    // If update did not find a row, fall back to upsert to create one
+    if (!saved && !saveErr) {
+      const ups = await supabase
+        .from("tests")
+        .upsert(row, { onConflict: "username,gamemode" })
+        .select("id,username,gamemode,rank,points,created_at")
+        .maybeSingle();
+      saved = ups.data;
+      saveErr = ups.error;
+    }
+  } else {
+    const res = await supabase
+      .from("tests")
+      .upsert(row, { onConflict: "username,gamemode" })
+      .select("id,username,gamemode,rank,points,created_at")
+      .maybeSingle();
+    saved = res.data;
+    saveErr = res.error;
+  }
 
   if (saveErr) return json({ error: saveErr.message }, 500);
 
