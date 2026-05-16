@@ -107,6 +107,7 @@ export default function AdminDashboard() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: entry.id,
           username: selectedPlayer.username,
           gamemode: entry.gamemode,
           rank: entry.rank,
