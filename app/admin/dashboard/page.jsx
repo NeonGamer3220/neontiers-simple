@@ -117,6 +117,20 @@ const MODE_OPTIONS = [
   "Trident",
 ];
 
+const RANK_POINTS = {
+  LT5:  1,
+  HT5:  2,
+  LT4:  3,
+  HT4:  4,
+  LT3:  6,
+  HT3: 10,
+  LT2: 16,
+  HT2: 28,
+  LT1: 40,
+  HT1: 60,
+  Unranked: 0,
+};
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -276,10 +290,15 @@ export default function AdminDashboard() {
     setSelectedPlayer((prev) => {
       if (!prev) return prev;
       const entries = [...prev.entries];
+      const current = entries[index];
       entries[index] = {
-        ...entries[index],
+        ...current,
         [field]: field === "points" ? Number(value) : value,
       };
+      // Auto-sync points whenever the rank changes
+      if (field === "rank") {
+        entries[index].points = RANK_POINTS[value] ?? 0;
+      }
       return { ...prev, entries };
     });
   };
