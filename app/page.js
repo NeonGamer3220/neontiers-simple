@@ -190,7 +190,7 @@ export default function Page() {
           : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
         created_at: r?.created_at ? String(r.created_at) : "",
       }))
-      .filter((r) => r.username && r.gamemode && r.rank && !String(r.rank).startsWith("R"));
+      .filter((r) => r.username && r.gamemode && r.rank);
 
     const latestByUserMode = new Map();
     for (const r of rows) {
