@@ -6,6 +6,27 @@ import { cookies } from "next/headers";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "";
+
+const MODE_ICONS = {
+  Vanilla: "🌾",
+  UHC: "💀",
+  Pot: "🧪",
+  NethPot: "🕷️",
+  SMP: "🌍",
+  Sword: "⚔️",
+  Axe: "🪓",
+  Mace: "🔨",
+  Cart: "🛒",
+  Creeper: "💣",
+  DiaSMP: "💎",
+  OGVanilla: "🌿",
+  ShieldlessUHC: "🛡️",
+  SpearMace: "🗡️",
+  SpearElytra: "🪶",
+  "Stick Fight": "🪵",
+  Trident: "🔱",
+};
 
 const supabase =
   SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
@@ -150,29 +171,59 @@ if (saveErr) {
     }
   }
 
-  // Insert into discord_notifications table for the bot to pick up
-  let notificationCreated = false;
-  try {
-    const { error: notifyErr } = await supabase.from("discord_notifications").insert({
-      username,
-      gamemode,
-      tested_tier: rank,
-      result: result || "Sikeres",
-      fight_notes,
-      processed: false,
-    });
-    if (notifyErr) {
-      console.error("Failed to create notification:", notifyErr.message);
-    } else {
-      notificationCreated = true;
-    }
-  } catch (e) {
-    console.error("Notification error:", e?.message || e);
-  }
+// Insert into discord_notifications table for the bot to pick up
+   let notificationCreated = false;
+   let notificationId = null;
+   try {
+     const { data: notifyData, error: notifyErr } = await supabase.from("discord_notifications").insert({
+       username,
+       gamemode,
+       tested_tier: rank,
+       result: result || "Sikeres",
+       fight_notes,
+       processed: false,
+     }).select("id").maybeSingle();
+     if (notifyErr) {
+       console.error("Failed to create notification:", notifyErr.message);
+     } else {
+       notificationCreated = true;
+       notificationId = notifyData?.id;
+     }
+   } catch (e) {
+     console.error("Notification error:", e?.message || e);
+   }
 
-  return json({
-    ok: true,
-    saved,
-    notification_created: notificationCreated,
-  });
+  // Send immediate webhook to Discord bot if configured
+   if (DISCORD_WEBHOOK_URL && notificationCreated) {
+     try {
+       const modeIcon = MODE_ICONS[gamemode] || "🎮";
+       const resultText = result || "Sikeres";
+       
+       const header = `${username} - **${resultText} volt ${rank} teszten.**`;
+       const modeLine = `**__Gamemode__** ${modeIcon} ${gamemode}`;
+       
+       const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+       const fightSections = orderedTiers
+         .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
+         .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`);
+       
+       const message = [header, "", modeLine, "", ...fightSections].join("\n\n");
+       
+       await fetch(DISCORD_WEBHOOK_URL, {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+           content: message,
+         }),
+       });
+     } catch (e) {
+       console.error("Webhook error:", e?.message || e);
+     }
+   }
+
+   return json({
+     ok: true,
+     saved,
+     notification_created: notificationCreated,
+   });
 }
