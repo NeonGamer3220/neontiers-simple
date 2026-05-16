@@ -290,7 +290,7 @@ export default function AdminDashboard() {
       setSelectedPlayer(refreshed);
       setToast({ type: "ok", text: "Mentve!" });
     } catch (err) {
-      alert("Hálózati hiba");
+      setToast({ type: "error", text: "Hálózati hiba" });
     }
   };
 
