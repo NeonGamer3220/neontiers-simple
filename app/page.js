@@ -6,8 +6,8 @@ const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
 const EASTER_MODE = false;
 
-// Hide player lists and show stats only
-const SHOW_LISTS = false;
+// Show player lists and leaderboard
+const SHOW_LISTS = true;
 
 const MODE_LIST = [
   "Összes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
