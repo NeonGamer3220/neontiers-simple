@@ -232,14 +232,23 @@ export default function AdminLogsPage() {
                       {log.action === "tier_delete" && "Törlés"}
                       {log.action === "player_remove" && "Játékos eltávolítás"}
                       {log.action === "admin_login" && "Bejelentkezés"}
-                      {!["tier_save", "tier_delete", "player_remove", "admin_login"].includes(log.action) && log.action}
+                      {log.action === "high_score_save" && "Magas eredmény"}
+                      {!["tier_save", "tier_delete", "player_remove", "admin_login", "high_score_save"].includes(log.action) && log.action}
                     </span>
                   </div>
                   <div className="tableCell colPlayer">{log.target_username || "-"}</div>
                   <div className="tableCell colMode">{log.gamemode || "-"}</div>
                   <div className="tableCell colDetails">
-                    {log.new_rank && `${log.old_rank || "?"} → ${log.new_rank}`}
-                    {log.details && `${log.details}`}
+                    {log.new_rank && log.old_rank && log.old_rank !== log.new_rank && (
+                      <div>{log.old_rank} → {log.new_rank}</div>
+                    )}
+                    {log.details?.fight_notes && Object.keys(log.details.fight_notes).length > 0 && (
+                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>
+                        {Object.entries(log.details.fight_notes).filter(([_, v]) => v?.trim()).map(([k, v]) => (
+                          <div key={k}>{k}: {v?.substring(0, 30)}{v?.length > 30 ? "..." : ""}</div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
