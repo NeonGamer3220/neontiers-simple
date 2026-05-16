@@ -141,6 +141,11 @@ export default function AdminDashboard() {
   const [editStates, setEditStates] = useState({});
   const [showUntested, setShowUntested] = useState(true);
   const [toast, setToast] = useState(null); // { text, type }
+  const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
+  const [newNameInput, setNewNameInput] = useState("");
+  const [bannedUntil, setBannedUntil] = useState(null);   // ISO date string or null
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [banDays, setBanDays] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -356,6 +361,79 @@ const toggleRetired = (index) => {
     } catch (err) {
       setToast({ type: "error", text: "Hálózati hiba" });
     }
+   };
+
+  // ── UUID & name refresh from Mojang ──
+  useEffect(() => {
+    if (!selectedPlayer) return;
+    const ac = new AbortController();
+    fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(selectedPlayer.username)}`, { signal: ac.signal })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.id) setSelectedPlayerUUID(formatUUID(d.id)); })
+      .catch(() => {});
+    return () => ac.abort();
+  }, [selectedPlayer]);
+
+  function formatUUID(raw) {
+    const clean = raw.replace(/-/g, "");
+    return `${clean.slice(0,8)}-${clean.slice(8,12)}-${clean.slice(12,16)}-${clean.slice(16,20)}-${clean.slice(20)}`;
+  }
+
+  const handleRefreshName = async () => {
+    if (!newNameInput.trim()) { setToast({ type: "error", text: "Addj meg egy érvényes játékosnevet!" }); return; }
+    try {
+      const res = await fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(newNameInput.trim())}`);
+      if (!res.ok) { setToast({ type: "error", text: "Nem található a játékos a Mojang adatbázisában." }); return; }
+      const data = await res.json();
+      setToast({ type: "ok", text: `Név frissítve: ${data.name}` });
+      // update locally
+      const refreshed = getPlayerData(data.name, showUntested);
+      setSelectedPlayer(refreshed);
+      setNewNameInput("");
+    } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
+  };
+
+  // ── Ban / Unban ──
+  const openBanModal = () => setBanModalOpen(true);
+
+  const confirmBan = async () => {
+    if (!banDays || isNaN(Number(banDays)) || Number(banDays) < 1) {
+      setToast({ type: "error", text: "Add meg érvényes napszámot!" });
+      return;
+    }
+    try {
+      const until = new Date();
+      until.setDate(until.getDate() + Number(banDays));
+      await fetch("/api/ban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: selectedPlayer.username, banned_until: until.toISOString() }),
+      });
+      setBannedUntil(until.toISOString());
+      setBanModalOpen(false);
+      setBanDays("");
+      setToast({ type: "ok", text: `${banDays} napra kitiltva.` });
+    } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
+  };
+
+  const handleUnban = async () => {
+    try {
+      await fetch("/api/ban", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: selectedPlayer.username }) });
+      setBannedUntil(null);
+      setToast({ type: "ok", text: "Kitiltás feloldva." });
+    } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
+  };
+
+  // ── Remove player (from main site, keep DB) ──
+  const handleRemovePlayer = async () => {
+    if (!confirm(`Biztos hogy eltávolítod "${selectedPlayer.username}" játékosadatát a weboldalról?`)) return;
+    if (!confirm("Ez a művelet nem vonható vissza. Folytatod?")) return;
+    try {
+      await fetch("/api/admin/remove-player", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: selectedPlayer.username }) });
+      await loadTests();
+      setSelectedPlayer(null);
+      setToast({ type: "ok", text: "Játékos eltávolítva a weboldalról." });
+    } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
   };
 
   const handleLogout = async () => {
@@ -373,8 +451,35 @@ const toggleRetired = (index) => {
 
   const stats = getStats();
 
+  // ── computed ──
+  const bannedDaysLeft = bannedUntil
+    ? Math.max(0, Math.ceil((new Date(bannedUntil) - new Date()) / 86400000))
+    : 0;
+
   return (
     <div className="adminDashboard">
+
+      {/* Ban confirmation modal */}
+      {banModalOpen && (
+        <div className="banModalOverlay" onClick={() => setBanModalOpen(false)}>
+          <div className="banModal" onClick={(e) => e.stopPropagation()}>
+            <h3 className="banModalTitle">Kitiltás</h3>
+            <p className="banModalText">Hány napra szeretnéd kitiltani <b>{selectedPlayer?.username}</b>?</p>
+            <input
+              type="number"
+              className="pdNameInput"
+              placeholder="Napok száma…"
+              value={banDays}
+              onChange={(e) => setBanDays(e.target.value)}
+              min="1"
+            />
+            <div className="banModalBtns">
+              <button className="pdBanBtn" onClick={confirmBan}>Kitiltás</button>
+              <button className="pdCancelBtn" onClick={() => { setBanModalOpen(false); setBanDays(""); }}>Mégse</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast notification */}
       {toast && (
@@ -451,104 +556,112 @@ const toggleRetired = (index) => {
             </button>
 
             <div className="playerDetailsCard">
-              <div className="playerDetailsHeader">
+              {/* ─── HEAD + NAME + UUID ─── */}
+              <div className="pdRow pdRowHead">
                 <img
                   src={`https://mc-heads.net/avatar/${encodeURIComponent(selectedPlayer.username)}/96`}
                   alt={selectedPlayer.username}
                   className="playerDetailsSkin"
                 />
-                <div className="playerDetailsInfo">
+                <div className="pdNameBlock">
                   <h2 className="playerDetailsName">{selectedPlayer.username}</h2>
-                  <div className="playerDetailsStats">
-                    <div className="playerDetailStat">
-                      <span className="detailLabel">Összes pont</span>
-                      <span className="detailValue">{selectedPlayer.totalPoints}</span>
-                    </div>
-                    <div className="playerDetailStat">
-                      <span className="detailLabel">Legjobb Tier</span>
-                      <span className="detailValue">{selectedPlayer.bestRank}</span>
-                    </div>
-                    <div className="playerDetailStat">
-                      <span className="detailLabel">Tesztelt módok</span>
-                      <span className="detailValue">{selectedPlayer.totalModes}</span>
-                    </div>
-                    <div className="playerDetailStat">
-                      <span className="detailLabel">Módok</span>
-                      <span className="detailValue tierModes">{selectedPlayer.modes.join(", ")}</span>
-                    </div>
+                  <span className="pdUuid">{selectedPlayer.uuid || "Minecraft UUID betöltése…"}</span>
+                  <div className="pdNameRefresh">
+                    <input
+                      type="text"
+                      className="pdNameInput"
+                      placeholder="Minecraft név frissítése…"
+                      value={newNameInput}
+                      onChange={(e) => setNewNameInput(e.target.value)}
+                    />
+                    <button className="pdRefreshBtn" onClick={handleRefreshName}>
+                      Név frissítése
+                    </button>
+                  </div>
+                  <div className="pdActionBtns">
+                    {bannedUntil ? (
+                       <button className="pdUnbanBtn" onClick={handleUnban}>
+                         Feloldás
+                       </button>
+                    ) : (
+                       <button className="pdBanBtn" onClick={openBanModal}>
+                         Kitiltás
+                       </button>
+                    )}
+                    <button className="pdRemoveBtn" onClick={handleRemovePlayer}>
+                      Eltávolítás
+                    </button>
                   </div>
                 </div>
               </div>
 
-<div className="playerTiersSection">
-                 <div className="tiersSectionHeader">
-                   <h3 className="tiersSectionTitle">Tierek szerkesztése</h3>
-                   {selectedPlayer && (
-                     <button 
-                       className={`toggleUntestedBtn ${showUntested ? 'active' : ''}`}
-                       onClick={() => {
-                         setShowUntested(!showUntested);
-                         if (selectedPlayer) {
-                           const refreshed = getPlayerData(selectedPlayer.username, !showUntested);
-                           setSelectedPlayer(refreshed);
-                         }
-                       }}
-                       title="Mutasd a tesztelt nélküli módokat is"
-                     >
-                       {showUntested ? 'Elrejt' : 'Mutat'} teszt nélküli
-                     </button>
-                   )}
-                 </div>
-                 <div className="playerTiersList">
-                  {selectedPlayer.entries.map((entry, index) => {
-                    const isRetired = entry.rank.startsWith("R");
-                    const isUntested = entry.isUntested;
-                    const displayRank = isRetired ? entry.rank.slice(1) : entry.rank;
-                    
-                    return (
-                      <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
-                        <div className="tierEntryCompact">
-                          <div className="tierEntryModeInfo">
-                            <div className="tierEntryMode">{entry.gamemode}{isUntested && <span className="untestedBadge">új</span>}</div>
-                          </div>
-                          
-                          <div className="tierEntryControls">
-<TierSelect
-                             value={displayRank}
-                             onChange={(rank) => updateEntryField(index, "rank", rank)}
-                             disabled={isRetired}
-                           />
-                            
-                             <input
-                               type="number"
-                               value={entry.points}
-                               onChange={(e) => updateEntryField(index, "points", e.target.value)}
-                               className="tierInputCompact"
-                               disabled={isRetired}
-                             />
-                             
-                            <label className="retireCheckbox" title={isRetired ? "Aktív" : "Retire"}>
-                              <input
-                                type="checkbox"
-                                checked={isRetired}
-                                onChange={() => toggleRetired(index)}
-                              />
-                              <span className="checkboxLabel">{isRetired ? "↻" : "⊕"}</span>
-                            </label>
-                            
-<button 
-                            className="saveEntryBtnCompact" 
-                            onClick={() => handleSaveEntry(entry)}
-                            title="Mentés"
-                          >
-                            💾
-                          </button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* ─── STAT BUBBLES ─── */}
+              <div className="pdRow pdBubbles">
+                <div className="pdBubble">
+                  <span className="pdBubbleLabel">Összpont</span>
+                  <span className="pdBubbleValue">{selectedPlayer.totalPoints}</span>
                 </div>
+                <div className="pdBubble">
+                  <span className="pdBubbleLabel">Tesztelt módok</span>
+                  <span className="pdBubbleValue">{selectedPlayer.totalModes}</span>
+                </div>
+                <div className="pdBubble">
+                  <span className="pdBubbleLabel">Legjobb Tier</span>
+                  <span className="pdBubbleValue tierBadgeInline">{selectedPlayer.bestRank}</span>
+                </div>
+                <div className={`pdBubble ${bannedUntil ? "pdBubbleBan" : ""}`}>
+                  <span className="pdBubbleLabel">Globális Állapot</span>
+                  <span className="pdBubbleValue">{bannedUntil ? `Kitiltva ${bannedDaysLeft} napra` : "Aktív"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ─── GAMEMODE TIER MANAGEMENT ─── */}
+            <div className="playerTiersSection">
+              <div className="tiersSectionHeader">
+                <h3 className="tiersSectionTitle">Játékmódok</h3>
+                <span className="tiersSubtitle">Tier kezelés admin joggal.</span>
+                {selectedPlayer && (
+                  <button
+                    className={`toggleUntestedBtn ${showUntested ? 'active' : ''}`}
+                    onClick={() => {
+                      setShowUntested(!showUntested);
+                      if (selectedPlayer) {
+                        const refreshed = getPlayerData(selectedPlayer.username, !showUntested);
+                        setSelectedPlayer(refreshed);
+                      }
+                    }}
+                    title="Mutasd a tesztelt nélküli módokat is"
+                  >
+                    {showUntested ? 'Elrejt' : 'Mutat'} teszt nélküli
+                  </button>
+                )}
+              </div>
+              <div className="playerTiersList">
+                {selectedPlayer.entries.map((entry, index) => {
+                  const isRetired = entry.rank.startsWith("R");
+                  const isUntested = entry.isUntested;
+                  const displayRank = isRetired ? entry.rank.slice(1) : entry.rank;
+
+                  return (
+                    <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
+                      <div className="tierModeCircle">
+                        {MODE_ICONS[entry.gamemode] && (
+                          <img src={MODE_ICONS[entry.gamemode]} alt={entry.gamemode} className="tierModeCircleImg" />
+                        )}
+                        <span className="tierModeCircleLabel">{entry.gamemode}</span>
+                      </div>
+                      <div className="tierPointsLabel">
+                        <span className="tierPointsNum">{entry.points} pont</span>
+                      </div>
+                      <div className="tierSaveBtnWrapper">
+                        <button className="saveEntryBtnRound" onClick={() => handleSaveEntry(entry)}>
+                          💾
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -1248,10 +1361,351 @@ const toggleRetired = (index) => {
             opacity: 0;
             transform: translateY(20px) scale(0.92);
           }
-          to {
+           to {
             opacity: 1;
             transform: translateY(0) scale(1);
           }
+        }
+
+        /* ─── Player card ─── */
+        .playerDetailsCard {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .pdRow {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+
+        .pdRowHead {
+          gap: 20px;
+        }
+
+        .pdNameBlock {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          min-width: 0;
+        }
+
+        .playerDetailsName {
+          margin: 0;
+          font-size: 22px;
+          font-weight: 800;
+        }
+
+        .pdUuid {
+          font-size: 11px;
+          color: rgba(255,255,255,0.4);
+          font-family: monospace;
+          letter-spacing: 0.04em;
+        }
+
+        .pdNameRefresh {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .pdNameInput {
+          padding: 7px 12px;
+          font-size: 13px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.05);
+          color: #fff;
+          font-family: inherit;
+          outline: none;
+          min-width: 200px;
+          transition: border-color 0.15s;
+        }
+
+        .pdNameInput:focus {
+          border-color: rgba(255,255,255,0.25);
+        }
+
+        .pdRefreshBtn {
+          padding: 7px 16px;
+          border-radius: 8px;
+          border: none;
+          background: rgba(196,30,58,0.85);
+          color: #fff;
+          font-weight: 700;
+          font-size: 13px;
+          cursor: pointer;
+          transition: background 0.15s;
+          font-family: inherit;
+        }
+
+        .pdRefreshBtn:hover {
+          background: rgba(196,30,58,1);
+        }
+
+        .pdActionBtns {
+          display: flex;
+          gap: 10px;
+          margin-top: 4px;
+        }
+
+        .pdBanBtn {
+          padding: 8px 18px;
+          border-radius: 8px;
+          border: none;
+          background: rgba(196,30,58,0.85);
+          color: #fff;
+          font-weight: 700;
+          font-size: 13px;
+          cursor: pointer;
+          transition: background 0.15s;
+          font-family: inherit;
+        }
+
+        .pdBanBtn:hover {
+          background: rgba(196,30,58,1);
+        }
+
+        .pdUnbanBtn {
+          padding: 8px 18px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.07);
+          color: #fff;
+          font-weight: 700;
+          font-size: 13px;
+          cursor: pointer;
+          transition: background 0.15s;
+          font-family: inherit;
+        }
+
+        .pdUnbanBtn:hover {
+          background: rgba(255,255,255,0.12);
+        }
+
+        .pdRemoveBtn {
+          padding: 8px 18px;
+          border-radius: 8px;
+          border: 1px solid rgba(196,30,58,0.5);
+          background: rgba(196,30,58,0.15);
+          color: #ff6b6b;
+          font-weight: 700;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.15s;
+          font-family: inherit;
+        }
+
+        .pdRemoveBtn:hover {
+          background: rgba(196,30,58,0.25);
+          border-color: rgba(196,30,58,0.8);
+        }
+
+        /* ─── Stat bubbles ─── */
+        .pdBubbles {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .pdBubble {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          padding: 10px 18px;
+          border-radius: 12px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          min-width: 100px;
+        }
+
+        .pdBubbleLabel {
+          font-size: 10.5px;
+          font-weight: 600;
+          color: rgba(255,255,255,0.55);
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+        }
+
+        .pdBubbleValue {
+          font-size: 20px;
+          font-weight: 800;
+        }
+
+        .pdBubbleBan {
+          border-color: rgba(196,30,58,0.5);
+          background: rgba(196,30,58,0.12);
+        }
+
+        .pdBubbleBan .pdBubbleValue {
+          color: #ff6b6b;
+        }
+
+        .tierBadgeInline {
+          padding: 3px 10px;
+          border-radius: 6px;
+          font-size: 16px;
+        }
+
+        /* ─── Gamemode circles ─── */
+        .playerTiersList {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 14px;
+        }
+
+        .tierEntryCard {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 10px 16px;
+          border-radius: 14px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.08);
+          transition: border-color 0.15s, background 0.15s;
+          min-width: 220px;
+        }
+
+        .tierEntryCard:hover {
+          border-color: rgba(255,255,255,0.15);
+          background: rgba(255,255,255,0.06);
+        }
+
+        .tierEntryCard.retired {
+          opacity: 0.55;
+          border-style: dashed;
+        }
+
+        .tierModeCircle {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          min-width: 64px;
+        }
+
+        .tierModeCircleImg {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.06);
+          padding: 6px;
+          object-fit: contain;
+        }
+
+        .tierModeCircleLabel {
+          font-size: 10px;
+          font-weight: 700;
+          text-align: center;
+          white-space: nowrap;
+        }
+
+        .tierPointsLabel {
+          flex: 1;
+          text-align: center;
+        }
+
+        .tierPointsNum {
+          font-size: 15px;
+          font-weight: 800;
+        }
+
+        .tierSaveBtnWrapper {
+          display: flex;
+          align-items: center;
+        }
+
+        .saveEntryBtnRound {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: none;
+          background: rgba(196,30,58,0.85);
+          cursor: pointer;
+          font-size: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 0.15s, transform 0.1s;
+          line-height: 1;
+        }
+
+        .saveEntryBtnRound:hover {
+          background: rgba(196,30,58,1);
+          transform: scale(1.08);
+        }
+
+        .tiersSectionHeader {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 14px;
+          flex-wrap: wrap;
+        }
+
+        .tiersSubtitle {
+          font-size: 12px;
+          color: rgba(255,255,255,0.45);
+          margin: 0;
+        }
+
+        /* ─── Ban modal ─── */
+        .banModalOverlay {
+          position: fixed;
+          inset: 0;
+          z-index: 1000;
+          background: rgba(0,0,0,0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.2s ease-out;
+        }
+
+        .banModal {
+          background: #111620;
+          border: 1px solid rgba(196,30,58,0.4);
+          border-radius: 16px;
+          padding: 28px;
+          width: 380px;
+          max-width: 90vw;
+          box-shadow: 0 24px 80px #000000b0;
+          animation: modalSlideIn 0.22s ease-out;
+        }
+
+        .banModalTitle {
+          margin: 0 0 10px 0;
+          font-size: 20px;
+          font-weight: 800;
+          color: #ff6b6b;
+        }
+
+        .banModalText {
+          margin: 0 0 18px 0;
+          font-size: 14px;
+          color: rgba(255,255,255,0.75);
+        }
+
+        .banModalBtns {
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
+        }
+
+        @keyframes modalSlideIn {
+          from { opacity: 0; transform: scale(0.9) translateY(12px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* ─── Misc cleanups ─── */
+        .playerDetailsSkin { border-radius: 50%; }
+        .closeDetailsBtn { flex-shrink: 0; }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
