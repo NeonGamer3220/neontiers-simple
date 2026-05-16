@@ -200,7 +200,7 @@ if (saveErr) {
        const displayUsername = discord_name || username;
        
        const header = `${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`;
-       const modeLine = `**__Gamemode__** ${modeIcon} ${gamemode}`;
+       const modeLine = `**__${gamemode}__** ${modeIcon}`;
        
        const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
        const fightSections = orderedTiers
