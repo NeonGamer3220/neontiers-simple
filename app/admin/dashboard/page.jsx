@@ -390,6 +390,7 @@ const toggleRetired = (index) => {
           <h1 className="navbarTitle">Admin Panel</h1>
         </div>
         <nav className="navbarLinks">
+          <a href="/" className="navbarLink">Főoldal</a>
           <a href="/admin/dashboard" className="navbarLink active">Játékos kezelés</a>
           <a href="/admin/magas-eredmeny" className="navbarLink">Magas Eredmény Kezelés</a>
           <a href="/admin/logs" className="navbarLink">Log</a>
