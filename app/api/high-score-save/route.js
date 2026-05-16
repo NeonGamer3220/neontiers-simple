@@ -201,37 +201,37 @@ if (saveErr) {
      console.error("Notification error:", e?.message || e);
    }
 
-  // Send immediate webhook to Discord if configured
+// Send immediate webhook to Discord if configured
    if (DISCORD_WEBHOOK_URL) {
      try {
-const modeIcon = MODE_ICONS[gamemode] || "🎮";
-        const resultText = result || "Sikeres";
-        const displayUsername = discord_name || username;
-        
-        const header = discordPing 
-          ? `${discordPing} ${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`
-          : `${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`;
+       const modeIcon = MODE_ICONS[gamemode] || "🎮";
+       const resultText = result || "Sikeres";
+       const displayUsername = discord_name || username;
+       
+       const header = discordPing 
+         ? `${discordPing} **${resultText} volt ${rank} teszten.**`
+         : `**${resultText} volt ${rank} teszten.**`;
 
-        const modeLine = `**__${gamemode}__** ${modeIcon}`;
+       const modeLine = `**${gamemode}** ${modeIcon}`;
+      
+       const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+       const fightSections = orderedTiers
+         .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
+         .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`)
+         .join("\n");
        
-const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
-        const fightSections = orderedTiers
-          .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
-          .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`)
-          .join("\n");
-        
-        const message = [header, "", modeLine, "", fightSections].join("\n\n");
-       
-       await fetch(DISCORD_WEBHOOK_URL, {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({
-           content: message,
-         }),
-       });
-     } catch (e) {
-       console.error("Webhook error:", e?.message || e);
-     }
+       const message = [header, "", modeLine, "", fightSections].join("\n");
+      
+      await fetch(DISCORD_WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: message,
+        }),
+      });
+    } catch (e) {
+      console.error("Webhook error:", e?.message || e);
+    }
    }
 
    return json({
