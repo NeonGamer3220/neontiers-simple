@@ -53,6 +53,31 @@ function findBestRank(ranks) {
   return ranks[0] || "N/A";
 }
 
+const TIER_COLORS = {
+  HT1: "#d5b355",
+  LT1: "#d5b355",
+  HT2: "#a4b3c7",
+  LT2: "#a4b3c7",
+  HT3: "#dd8849",
+  LT3: "#dd8849",
+  HT4: "#b7aadf",
+  LT4: "#b7aadf",
+  HT5: "#6f6389",
+  LT5: "#6f6389",
+};
+
+function tierColor(tier) {
+  return TIER_COLORS[tier] || "#ffffff";
+}
+
+function hexToRgba(hex, alpha) {
+  const clean = hex.replace("#", "");
+  const r = parseInt(clean.slice(0, 2), 16);
+  const g = parseInt(clean.slice(2, 4), 16);
+  const b = parseInt(clean.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 export default function AdminHighscorePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -239,12 +264,32 @@ export default function AdminHighscorePage() {
                   </div>
                   <div className="inputGroup">
                     <label>Tesztelt Tier</label>
-                    <input
-                      type="text"
-                      value={testedTier}
-                      onChange={(e) => setTestedTier(e.target.value)}
-                      placeholder="LT2"
-                    />
+                    <div className="tierSelectRow">
+                      <select
+                        className="modeSelect tierSelect"
+                        value={testedTier}
+                        onChange={(e) => setTestedTier(e.target.value)}
+                      >
+                        <option value="">Válassz tiert...</option>
+                        {Object.keys(TIER_COLORS).map((tier) => (
+                          <option key={tier} value={tier} style={{ color: tierColor(tier) }}>
+                            {tier}
+                          </option>
+                        ))}
+                      </select>
+                      {testedTier && (
+                        <span
+                          className="tierPreviewBadge"
+                          style={{
+                            borderColor: tierColor(testedTier),
+                            color: tierColor(testedTier),
+                            background: hexToRgba(tierColor(testedTier), 0.18),
+                          }}
+                        >
+                          {testedTier}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="inputGroup">
                     <label>Játékmód</label>
@@ -540,6 +585,29 @@ export default function AdminHighscorePage() {
           outline: none;
           font-family: inherit;
           appearance: none;
+        }
+
+        .tierSelectRow {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+
+        .tierSelect {
+          flex: 1;
+        }
+
+        .tierPreviewBadge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 92px;
+          padding: 10px 12px;
+          border-radius: 999px;
+          border: 1px solid;
+          font-weight: 700;
+          font-size: 13px;
+          background: rgba(255, 255, 255, 0.08);
         }
 
         .modeIconSmall {
