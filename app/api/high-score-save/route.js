@@ -9,22 +9,22 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "";
 
 const MODE_ICONS = {
-  Vanilla: "🌾",
-  UHC: "💀",
-  Pot: "🧪",
-  NethPot: "🕷️",
-  SMP: "🌍",
-  Sword: "⚔️",
-  Axe: "🪓",
-  Mace: "🔨",
-  Cart: "🛒",
-  Creeper: "💣",
-  DiaSMP: "💎",
-  OGVanilla: "🌿",
-  ShieldlessUHC: "🛡️",
-  SpearMace: "🗡️",
-  SpearElytra: "🪶",
-  "Stick Fight": "🪵",
+  Vanilla: "<:Vanilla:1489191023308574730>",
+  UHC: "<:UHC:1489191005902209134>",
+  Pot: "<:Pot:1489190923333013597>",
+  NethPot: "<:NethPot:1489190890550464543>",
+  SMP: "<:SMP:1489190957306871938>",
+  Sword: "<:Sword:1489190989150163034>",
+  Axe: "<:Axe:1489190775085338817>",
+  Mace: "<:Mace:1489190873777438791>",
+  Cart: "<:Cart:1489190821390581860>",
+  Creeper: "<:Creeper:1489190838763393104>",
+  DiaSMP: "<:DiaSMP:1489190856903757884>",
+  OGVanilla: "<:OGVanilla:1489190908477046804>",
+  ShieldlessUHC: "<:ShieldlessUHC:1489190941872095292>",
+  SpearMace: "<:SpearMace:1489190973400416359>",
+  SpearElytra: "<:SpearElytra:1489190973400416359>",
+  "Stick Fight": "<:StickFight:1502574877536948334>",
   Trident: "🔱",
 };
 
@@ -98,6 +98,7 @@ export async function POST(req) {
     tested_tier,
     result,
     fight_notes,
+    discord_name,
   } = body;
 
   if (!username || !gamemode || !tested_tier) {
@@ -196,8 +197,9 @@ if (saveErr) {
      try {
        const modeIcon = MODE_ICONS[gamemode] || "🎮";
        const resultText = result || "Sikeres";
+       const displayUsername = discord_name || username;
        
-       const header = `${username} - **${resultText} volt ${rank} teszten.**`;
+       const header = `${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`;
        const modeLine = `**__Gamemode__** ${modeIcon} ${gamemode}`;
        
        const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
@@ -205,7 +207,7 @@ if (saveErr) {
          .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
          .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`);
        
-       const message = [header, "", modeLine, "", ...fightSections].join("\n\n");
+       const message = [header, "", modeLine, "", ...fightSections].join("\n");
        
        await fetch(DISCORD_WEBHOOK_URL, {
          method: "POST",
