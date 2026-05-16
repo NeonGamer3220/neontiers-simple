@@ -190,7 +190,7 @@ export default function Page() {
           : safeInt(RANK_POINTS[String(r?.rank || "").trim()] || 0, 0),
         created_at: r?.created_at ? String(r.created_at) : "",
       }))
-      .filter((r) => r.username && r.gamemode && r.rank);
+      .filter((r) => r.username && r.gamemode && r.rank && !String(r.rank).startsWith("R"));
 
     const latestByUserMode = new Map();
     for (const r of rows) {
@@ -230,8 +230,23 @@ export default function Page() {
     });
 
     const q = query.trim().toLowerCase();
-    const searched = !q ? players : players.filter((p) => p.username.toLowerCase().includes(q));
-    searched.sort((a, b) => b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username));
+    let searched = !q ? players : players.filter((p) => p.username.toLowerCase().includes(q));
+
+    // Improve search ranking: exact match > startsWith > includes > total points
+    if (q) {
+      searched.sort((a, b) => {
+        const an = a.username.toLowerCase();
+        const bn = b.username.toLowerCase();
+        const ae = an === q ? 0 : an.startsWith(q) ? 1 : an.includes(q) ? 2 : 3;
+        const be = bn === q ? 0 : bn.startsWith(q) ? 1 : bn.includes(q) ? 2 : 3;
+        if (ae !== be) return ae - be;
+        if (a.total !== b.total) return b.total - a.total;
+        return a.username.localeCompare(b.username);
+      });
+    } else {
+      searched.sort((a, b) => b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username));
+    }
+
     return searched;
   }, [tests, activeMode, query, singleModeFilter]);
 

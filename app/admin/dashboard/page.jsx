@@ -121,22 +121,7 @@ export default function AdminDashboard() {
       }
 
       // Log this action to audit trail
-      try {
-        await fetch("/api/audit-log", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            admin_name: "Admin", // TODO: get from session
-            action: "tier_save",
-            target_username: selectedPlayer.username,
-            gamemode: entry.gamemode,
-            new_rank: entry.rank,
-            new_points: Number(entry.points || 0),
-          }),
-        });
-      } catch (e) {
-        console.error("Audit log error:", e);
-      }
+      // Server-side audit logging will record this action (admin cookie used)
 
       await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username);
@@ -197,21 +182,7 @@ export default function AdminDashboard() {
       }
 
       // Log this action to audit trail
-      try {
-        await fetch("/api/audit-log", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            admin_name: "Admin", // TODO: get from session
-            action: "tier_delete",
-            target_username: selectedPlayer.username,
-            gamemode: gamemode,
-            details: "Tier entry deleted by admin",
-          }),
-        });
-      } catch (e) {
-        console.error("Audit log error:", e);
-      }
+      // Server-side audit logging will record this action (admin cookie used)
 
       await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username);
@@ -629,6 +600,9 @@ export default function AdminDashboard() {
         .playerDetailsCard {
           display: grid;
           gap: 24px;
+          transition: transform 0.18s ease, opacity 0.18s ease;
+          transform: translateY(0);
+          opacity: 1;
         }
 
         .playerDetailsHeader {
@@ -710,8 +684,10 @@ export default function AdminDashboard() {
           padding: 10px 12px;
           display: grid;
           gap: 0;
-          transition: all 0.2s;
+          transition: background 0.15s, transform 0.12s;
         }
+
+        .tierEntryCard:hover { transform: translateY(-3px); background: rgba(255,255,255,0.06); }
 
         .tierEntryCard.retired {
           opacity: 0.6;

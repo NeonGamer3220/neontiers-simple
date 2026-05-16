@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -74,10 +75,27 @@ function requireAdmin(authHeader) {
 export async function POST(req) {
   const missing = requireSupabase();
   if (missing) return missing;
+  // Allow admin cookie OR admin API key
+  let admin_name = null;
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("admin_session");
+    if (session && session.value) {
+      try {
+        const parsed = JSON.parse(session.value);
+        admin_name = parsed?.admin_name || null;
+      } catch (e) {}
+    }
+  } catch (e) {
+    // ignore
+  }
 
-  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-  const authError = requireAdmin(authHeader);
-  if (authError) return authError;
+  if (!admin_name) {
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+    const authError = requireAdmin(authHeader);
+    if (authError) return authError;
+    admin_name = "service";
+  }
 
   let body = null;
   try {
@@ -124,6 +142,24 @@ export async function POST(req) {
       .map((r) => `${r.gamemode}: ${r.rank} (${r.points}pt)`)
       .join(", ");
 
+    // Insert audit record
+    try {
+      await supabase.from("audit_logs").insert({
+        admin_name,
+        action: "tier_delete",
+        target_username: username,
+        gamemode,
+        old_rank: existing && existing.length === 1 ? existing[0].rank : null,
+        new_rank: null,
+        old_points: existing && existing.length === 1 ? existing[0].points : null,
+        new_points: null,
+        details,
+        created_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error("Audit insert failed:", e?.message || e);
+    }
+
     return json({
       ok: true,
       removedCount: existing.length,
@@ -160,6 +196,24 @@ export async function POST(req) {
   const details = existing
     .map((r) => `${r.gamemode}: ${r.rank} (${r.points}pt)`)
     .join(", ");
+
+  // Insert audit record for full-delete
+  try {
+    await supabase.from("audit_logs").insert({
+      admin_name,
+      action: "tier_delete",
+      target_username: username,
+      gamemode: modesList,
+      old_rank: null,
+      new_rank: null,
+      old_points: null,
+      new_points: null,
+      details,
+      created_at: new Date().toISOString(),
+    });
+  } catch (e) {
+    console.error("Audit insert failed:", e?.message || e);
+  }
 
   return json({
     ok: true,

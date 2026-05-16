@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -216,6 +217,39 @@ export async function POST(req) {
     .single();
 
   if (saveErr) return json({ error: saveErr.message }, 500);
+
+  // Server-side audit logging when admin session is present
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("admin_session");
+    let admin_name = null;
+    if (session && session.value) {
+      try {
+        const parsed = JSON.parse(session.value);
+        admin_name = parsed?.admin_name || null;
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
+
+    if (admin_name) {
+      await supabase.from("audit_logs").insert({
+        admin_name,
+        action: "tier_save",
+        target_username: username,
+        gamemode,
+        old_rank: prev ? prev.rank : null,
+        new_rank: rank,
+        old_points: prev ? prev.points : null,
+        new_points: points,
+        details: null,
+        created_at: new Date().toISOString(),
+      });
+    }
+  } catch (e) {
+    // non-fatal: don't block main flow if audit insert fails
+    console.error("Audit log insert failed:", e?.message || e);
+  }
 
   return json(
     {

@@ -178,12 +178,9 @@ export default function AdminLoginPage() {
         .formInput:focus {
           outline: none;
           border-color: #c41e3a;
-          background: rgba(196, 30, 58, 0.1);
-          box-shadow: 0 0 0 2px rgba(196, 30, 58, 0.2);
-        }
-
-        .formInput::placeholder {
-          color: rgba(255, 255, 255, 0.4);
+          background: rgba(255, 255, 255, 0.1);
+          box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15);
+          animation: focusRing 0.3s ease-out;
         }
 
         .formInput:disabled {
@@ -192,33 +189,34 @@ export default function AdminLoginPage() {
         }
 
         .formError {
-          padding: 12px 16px;
+          padding: 12px 14px;
           background: rgba(196, 30, 58, 0.15);
           border: 1px solid rgba(196, 30, 58, 0.4);
           border-radius: 8px;
           color: #ff6b6b;
           font-size: 13px;
-          text-align: center;
+          font-weight: 600;
+          animation: slideInError 0.3s ease-out;
         }
 
         .formButton {
-          padding: 12px 24px;
+          padding: 12px 20px;
           background: linear-gradient(135deg, #c41e3a 0%, #8b1429 100%);
           border: none;
           border-radius: 8px;
           color: #fff;
-          font-weight: 600;
+          font-weight: 700;
           font-size: 14px;
           cursor: pointer;
           transition: all 0.2s;
+          margin-top: 10px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          margin-top: 10px;
         }
 
         .formButton:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 8px 20px rgba(196, 30, 58, 0.4);
+          box-shadow: 0 8px 24px rgba(196, 30, 58, 0.3);
         }
 
         .formButton:active:not(:disabled) {
@@ -226,8 +224,57 @@ export default function AdminLoginPage() {
         }
 
         .formButton:disabled {
-          opacity: 0.6;
+          opacity: 0.7;
           cursor: not-allowed;
+        }
+
+        @keyframes focusRing {
+          from {
+            box-shadow: 0 0 0 0 rgba(196, 30, 58, 0.15);
+          }
+          to {
+            box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15);
+          }
+        }
+
+        @keyframes slideInError {
+          from {
+            opacity: 0;
+            transform: translateY(-8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes fadeInCard {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .adminCard {
+          animation: fadeInCard 0.4s ease-out;
+        }
+
+        @media (max-width: 480px) {
+          .adminCard {
+            padding: 30px 20px;
+          }
+
+          .adminTitle {
+            font-size: 24px;
+          }
+
+          .formButton {
+            padding: 14px 18px;
+          }
         }
       `}</style>
     </div>

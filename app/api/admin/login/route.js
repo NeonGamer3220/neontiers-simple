@@ -55,6 +55,25 @@ export async function POST(req) {
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
 
+    // Insert audit record for admin login (best-effort)
+    try {
+      const sup = createClient(supabaseUrl, supabaseServiceRole, { auth: { persistSession: false } });
+      await sup.from("audit_logs").insert({
+        admin_name: data.admin_name,
+        action: "admin_login",
+        target_username: null,
+        gamemode: null,
+        old_rank: null,
+        new_rank: null,
+        old_points: null,
+        new_points: null,
+        details: null,
+        created_at: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error("Failed to write admin_login audit:", e?.message || e);
+    }
+
     return Response.json({ success: true });
   } catch (err) {
     console.error("Login error:", err);
