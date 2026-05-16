@@ -683,17 +683,44 @@ const toggleRetired = (index) => {
 
                   return (
                     <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
+                      {/* circular icon + name */}
                       <div className="tierModeCircle">
                         {MODE_ICONS[entry.gamemode] && (
                           <img src={MODE_ICONS[entry.gamemode]} alt={entry.gamemode} className="tierModeCircleImg" />
                         )}
-                        <span className="tierModeCircleLabel">{entry.gamemode}</span>
+                        <span className="tierModeCircleLabel">{entry.gamemode}{isUntested && <span className="untestedBadge">új</span>}</span>
                       </div>
-                      <div className="tierPointsLabel">
-                        <span className="tierPointsNum">{entry.points} pont</span>
-                      </div>
-                      <div className="tierSaveBtnWrapper">
-                        <button className="saveEntryBtnRound" onClick={() => handleSaveEntry(entry)}>
+
+                      {/* tier selector */}
+                      <div className="tierEntryControls">
+                        <TierSelect
+                          value={displayRank}
+                          onChange={(rank) => updateEntryField(index, "rank", rank)}
+                          disabled={isRetired}
+                        />
+
+                        <input
+                          type="number"
+                          value={entry.points}
+                          onChange={(e) => updateEntryField(index, "points", e.target.value)}
+                          className="tierInputCompact"
+                          disabled={isRetired}
+                        />
+
+                        <label className="retireCheckbox" title={isRetired ? "Aktív" : "Retire"}>
+                          <input
+                            type="checkbox"
+                            checked={isRetired}
+                            onChange={() => toggleRetired(index)}
+                          />
+                          <span className="checkboxLabel">{isRetired ? "↻" : "⊕"}</span>
+                        </label>
+
+                        <button
+                          className="saveEntryBtnCompact"
+                          onClick={() => handleSaveEntry(entry)}
+                          title="Mentés"
+                        >
                           💾
                         </button>
                       </div>
@@ -1618,19 +1645,19 @@ const toggleRetired = (index) => {
         }
 
         .tierModeCircle {
-          display: flex;
+          display: inline-flex;
           flex-direction: column;
           align-items: center;
-          gap: 4px;
-          min-width: 64px;
+          gap: 3px;
+          margin-right: 10px;
         }
 
         .tierModeCircleImg {
-          width: 48px;
-          height: 48px;
+          width: 46px;
+          height: 46px;
           border-radius: 50%;
           background: rgba(255,255,255,0.06);
-          padding: 6px;
+          padding: 5px;
           object-fit: contain;
         }
 
@@ -1639,41 +1666,6 @@ const toggleRetired = (index) => {
           font-weight: 700;
           text-align: center;
           white-space: nowrap;
-        }
-
-        .tierPointsLabel {
-          flex: 1;
-          text-align: center;
-        }
-
-        .tierPointsNum {
-          font-size: 15px;
-          font-weight: 800;
-        }
-
-        .tierSaveBtnWrapper {
-          display: flex;
-          align-items: center;
-        }
-
-        .saveEntryBtnRound {
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          border: none;
-          background: rgba(196,30,58,0.85);
-          cursor: pointer;
-          font-size: 16px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 0.15s, transform 0.1s;
-          line-height: 1;
-        }
-
-        .saveEntryBtnRound:hover {
-          background: rgba(196,30,58,1);
-          transform: scale(1.08);
         }
 
         .tiersSectionHeader {
