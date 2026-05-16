@@ -98,7 +98,6 @@ export async function POST(req) {
     tested_tier,
     result,
     fight_notes,
-    discord_name,
   } = body;
 
   if (!username || !gamemode || !tested_tier) {
@@ -206,7 +205,6 @@ if (saveErr) {
      try {
        const modeIcon = MODE_ICONS[gamemode] || "🎮";
        const resultText = result || "Sikeres";
-       const displayUsername = discord_name || username;
        
        const header = discordPing 
          ? `${discordPing} **${resultText} volt ${rank} teszten.**`
