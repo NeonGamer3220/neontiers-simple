@@ -1210,7 +1210,7 @@ export default function Page() {
 
         .tierTooltip {
           display: none;
-          position: fixed;
+          position: absolute;
           white-space: nowrap;
           background: #11161ffa;
           border: 1px solid #ffffff1f;
@@ -1224,7 +1224,7 @@ export default function Page() {
           box-shadow: 0 18px 40px #0000005c;
           pointer-events: none;
           z-index: 140;
-          transform: translate(-50%);
+          transform: translateX(-50%);
           bottom: calc(100% + 8px);
           left: 50%;
         }
@@ -1681,7 +1681,7 @@ export default function Page() {
 
          .detailTier .tierTooltip {
            display: none;
-           position: fixed;
+           position: absolute;
            white-space: nowrap;
            background: #11161ffa;
            border: 1px solid #ffffff1f;
@@ -1695,7 +1695,7 @@ export default function Page() {
            box-shadow: 0 18px 40px #0000005c;
            pointer-events: none;
            z-index: 170;
-           transform: translate(-50%);
+           transform: translateX(-50%);
            bottom: calc(100% + 8px);
            left: 50%;
          }
