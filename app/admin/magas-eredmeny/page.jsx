@@ -6,6 +6,46 @@ import { useRouter } from "next/navigation";
 const TIER_FIELDS = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
 const RANK_ORDER = ["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"];
 
+const MODE_OPTIONS = [
+  "Vanilla",
+  "UHC",
+  "Pot",
+  "NethPot",
+  "SMP",
+  "Sword",
+  "Axe",
+  "Mace",
+  "Cart",
+  "Creeper",
+  "DiaSMP",
+  "OGVanilla",
+  "ShieldlessUHC",
+  "SpearMace",
+  "SpearElytra",
+  "Stick Fight",
+  "Trident",
+];
+
+const MODE_ICONS = {
+  Vanilla: "/images/vanilla.png",
+  UHC: "/images/uhc.png",
+  Pot: "/images/pot.png",
+  NethPot: "/images/nethpot.png",
+  SMP: "/images/smp.png",
+  Sword: "/images/sword.png",
+  Axe: "/images/axe.png",
+  Mace: "/images/mace.png",
+  Cart: "/images/cart.png",
+  Creeper: "/images/creeper.png",
+  DiaSMP: "/images/diasmp.png",
+  OGVanilla: "/images/ogvanilla.png",
+  ShieldlessUHC: "/images/shieldlessuhc.png",
+  SpearMace: "/images/spear.png",
+  SpearElytra: "/images/spear.png",
+  "Stick Fight": "/images/stickfight.png",
+  Trident: "/images/trident.png",
+};
+
 function findBestRank(ranks) {
   for (const rank of RANK_ORDER) {
     if (ranks.includes(rank)) return rank;
@@ -20,6 +60,7 @@ export default function AdminHighscorePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [gamemode, setGamemode] = useState("");
   const [result, setResult] = useState("");
   const [testedTier, setTestedTier] = useState("");
   const [fightNotes, setFightNotes] = useState({
@@ -82,6 +123,7 @@ export default function AdminHighscorePage() {
       bestRank,
     });
     setTestedTier(bestRank);
+    setGamemode("");
     setResult("");
     setFightNotes({ LT3: "", HT3: "", LT2: "", HT2: "", LT1: "", HT1: "" });
     setSearchQuery("");
@@ -94,6 +136,10 @@ export default function AdminHighscorePage() {
 
   const handleSave = () => {
     if (!selectedPlayer) return;
+    if (!gamemode) {
+      alert("Kérlek válassz játékmódot.");
+      return;
+    }
 
     const filledNotes = TIER_FIELDS.some((tier) => fightNotes[tier].trim().length > 0);
     const isHighTier = testedTier.startsWith("HT3") || testedTier.startsWith("HT2") || testedTier.startsWith("HT1");
@@ -167,7 +213,12 @@ export default function AdminHighscorePage() {
             <div className="highscoreTopBar">
               <div>
                 <h2 className="playerTitle">{selectedPlayer.username}</h2>
-                <div className="playerMeta">{selectedPlayer.bestRank} · {selectedPlayer.totalPoints} pont</div>
+                <div className="playerMeta">
+                  {gamemode && MODE_ICONS[gamemode] && (
+                    <img src={MODE_ICONS[gamemode]} alt={gamemode} className="modeIconSmall" />
+                  )}
+                  {selectedPlayer.bestRank} · {selectedPlayer.totalPoints} pont
+                </div>
               </div>
               <button className="saveButton" onClick={handleSave}>
                 Mentés
@@ -194,6 +245,21 @@ export default function AdminHighscorePage() {
                       onChange={(e) => setTestedTier(e.target.value)}
                       placeholder="LT2"
                     />
+                  </div>
+                  <div className="inputGroup">
+                    <label>Játékmód</label>
+                    <select
+                      className="modeSelect"
+                      value={gamemode}
+                      onChange={(e) => setGamemode(e.target.value)}
+                    >
+                      <option value="">Válassz játékmódot...</option>
+                      {MODE_OPTIONS.map((mode) => (
+                        <option key={mode} value={mode}>
+                          {mode}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -448,6 +514,7 @@ export default function AdminHighscorePage() {
         }
 
         .inputGroup input,
+        .inputGroup select,
         .fightGroup textarea {
           width: 100%;
           border-radius: 14px;
@@ -460,6 +527,38 @@ export default function AdminHighscorePage() {
           min-height: 48px;
           resize: vertical;
           font-family: inherit;
+        }
+
+        .modeSelect {
+          width: 100%;
+          padding: 14px 16px;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          background: rgba(255, 255, 255, 0.04);
+          color: #fff;
+          font-size: 14px;
+          outline: none;
+          font-family: inherit;
+          appearance: none;
+        }
+
+        .modeIconSmall {
+          width: 24px;
+          height: 24px;
+          margin-right: 10px;
+          vertical-align: middle;
+        }
+
+        .playerMeta {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .playerMeta img {
+          width: 24px;
+          height: 24px;
         }
 
         .fightGrid {
