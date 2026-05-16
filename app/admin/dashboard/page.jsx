@@ -515,6 +515,7 @@ const toggleRetired = (index) => {
 <TierSelect
                              value={displayRank}
                              onChange={(rank) => updateEntryField(index, "rank", rank)}
+                             disabled={isRetired}
                            />
                             
                              <input
@@ -522,6 +523,7 @@ const toggleRetired = (index) => {
                                value={entry.points}
                                onChange={(e) => updateEntryField(index, "points", e.target.value)}
                                className="tierInputCompact"
+                               disabled={isRetired}
                              />
                              
                             <label className="retireCheckbox" title={isRetired ? "Aktív" : "Retire"}>
@@ -533,14 +535,13 @@ const toggleRetired = (index) => {
                               <span className="checkboxLabel">{isRetired ? "↻" : "⊕"}</span>
                             </label>
                             
-                            <button 
-                              className="saveEntryBtnCompact" 
-                              onClick={() => handleSaveEntry(entry)}
-                              disabled={isRetired}
-                              title="Mentés"
-                            >
-                              💾
-                            </button>
+<button 
+                            className="saveEntryBtnCompact" 
+                            onClick={() => handleSaveEntry(entry)}
+                            title="Mentés"
+                          >
+                            💾
+                          </button>
                           </div>
                         </div>
                       </div>
