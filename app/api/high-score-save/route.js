@@ -58,6 +58,18 @@ function json(data, status = 200) {
   });
 }
 
+// Generate a deterministic surrogate numeric id for a username+gamemode pair.
+function surrogateIdFor(username, gamemode) {
+  const digest = username.toLowerCase() + "|" + gamemode.toLowerCase();
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < digest.length; i++) {
+    hash ^= digest.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  const positive = Math.abs(hash | 0) >>> 0;
+  return positive + 2_000_000_000;
+}
+
 function normRank(s) {
   const r = String(s || "").trim();
   if (!r) return "";
@@ -124,14 +136,12 @@ export async function POST(req) {
     .ilike("gamemode", gamemode)
     .maybeSingle();
 
-  // Save to main tests table — only update if a previous record exists
-  // NOTE: new first-time entries are created via the /api/tests endpoint.
-  // Attempting UPSERT without an existing row hits a NOT NULL id constraint
-  // when the tests table id column has no DB-level default.
+  // Save to main tests table — update if prev exists, insert otherwise
   let saved = null;
   let saveErr = null;
 
   if (prev?.id) {
+    // Existing entry → update
     const { data: upd, error: updErr } = await supabase
       .from("tests")
       .update(row)
@@ -140,6 +150,16 @@ export async function POST(req) {
       .maybeSingle();
     saved = upd;
     saveErr = updErr;
+  } else if (!saved && !saveErr) {
+    // First-time entry → insert with a deterministic surrogate id
+    const surrogateId = surrogateIdFor(username, gamemode);
+    const { data: ins, error: insErr } = await supabase
+      .from("tests")
+      .insert({ ...row, id: surrogateId })
+      .select("id,username,gamemode,rank,points,created_at")
+      .maybeSingle();
+    saved = ins;
+    saveErr = insErr;
   }
 
 if (saveErr) {

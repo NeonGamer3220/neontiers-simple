@@ -40,6 +40,22 @@ function json(data, status = 200) {
   });
 }
 
+// Generate a deterministic surrogate numeric id for a username+gamemode pair.
+// Uses a simple hash of the lowercased concatenation so the same pair
+// always maps to the same id (avoids duplicate keys on retry).
+function surrogateIdFor(username, gamemode) {
+  const digest = username.toLowerCase() + "|" + gamemode.toLowerCase();
+  let hash = 0x811c9dc5; // FNV-1a init (32-bit offset basis)
+  for (let i = 0; i < digest.length; i++) {
+    hash ^= digest.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  // Force into positive signed-32-bit range, then offset well past
+  // any existing row ids so we never collide with real DB ids.
+  const positive = Math.abs(hash | 0) >>> 0;
+  return positive + 2_000_000_000;
+}
+
 function pick(obj, keys) {
   for (const k of keys) {
     if (obj && obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== "") {
@@ -236,13 +252,28 @@ export async function POST(req) {
       saveErr = ups.error;
     }
   } else {
+    // No id provided → upsert using a deterministic surrogate id on
+    // username+gamemode so that both new entries and re-saves (e.g. dash
+    // edit) work without requiring a client-side id at all.
+    const surrogateId = surrogateIdFor(username, gamemode);
+    const insertRow = { ...row, id: surrogateId };
     const res = await supabase
       .from("tests")
-      .upsert(row, { onConflict: "username,gamemode" })
+      .upsert(insertRow, { onConflict: "id" })
       .select("id,username,gamemode,rank,points,created_at")
       .maybeSingle();
     saved = res.data;
     saveErr = res.error;
+    // Fall back to username+gamemode conflict if id-based upsert finds nothing
+    if (!saved && !saveErr) {
+      const ups2 = await supabase
+        .from("tests")
+        .upsert(insertRow, { onConflict: "username,gamemode" })
+        .select("id,username,gamemode,rank,points,created_at")
+        .maybeSingle();
+      saved = ups2.data;
+      saveErr = ups2.error;
+    }
   }
 
   if (saveErr) return json({ error: saveErr.message }, 500);
