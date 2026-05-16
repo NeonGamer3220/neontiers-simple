@@ -217,6 +217,7 @@ export default function AdminDashboard() {
         </div>
         <nav className="navbarLinks">
           <a href="/admin/dashboard" className="navbarLink active">Játékos kezelés</a>
+          <a href="/admin/magas-eredmeny" className="navbarLink">Magas Eredmény Kezelés</a>
           <a href="/admin/logs" className="navbarLink">Log</a>
         </nav>
         <button className="logoutBtn" onClick={handleLogout}>
