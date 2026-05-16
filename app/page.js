@@ -522,6 +522,7 @@ export default function Page() {
                             <span className="tierLabel">{r.rank}</span>
                             <span className="tierTooltip" aria-hidden="true">
                               <span className="tierTooltipRank">{r.rank}</span>
+                              <span>{modeName}</span>
                               <span>{pts} pont</span>
                             </span>
                           </span>
@@ -784,6 +785,7 @@ export default function Page() {
                          <span className="detailTierRank">{entry.rank}</span>
                          <span className="tierTooltip" aria-hidden="true">
                            <span className="tierTooltipRank">{entry.rank}</span>
+                           <span>{modeName}</span>
                            <span>{pts} pont</span>
                          </span>
                        </div>
