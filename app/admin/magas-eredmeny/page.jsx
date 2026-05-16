@@ -183,7 +183,7 @@ export default function AdminHighscorePage() {
     setFightNotes((prev) => ({ ...prev, [tier]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedPlayer) return;
     if (!gamemode) {
       alert("Kérlek válassz játékmódot.");
@@ -198,7 +198,30 @@ export default function AdminHighscorePage() {
       return;
     }
 
-    alert("Magas eredmény mentve! (jelenleg csak a UI rész működik)");
+    try {
+      const res = await fetch("/api/high-score-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: selectedPlayer.username,
+          gamemode,
+          tested_tier: testedTier,
+          result: result || "Sikeres",
+          fight_notes: fightNotes,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Hiba a mentés során");
+        return;
+      }
+
+      alert("Magas eredmény mentve!" + (data.notification_created ? " Bot értesítés kész." : ""));
+    } catch (err) {
+      alert("Hálózati hiba");
+    }
   };
 
   const handleLogout = async () => {
