@@ -100,14 +100,31 @@ export async function POST(req) {
     gamemode,
     rank,
     points: tierPoints,
-    created_at: new Date().toISOString(),
   };
 
-  const { data: saved, error: saveErr } = await supabase
-    .from("tests")
-    .upsert(row, { onConflict: "username,gamemode" })
-    .select("id,username,gamemode,rank,points,created_at")
-    .maybeSingle();
+  let saved = null;
+  let saveErr = null;
+
+  if (prev?.id) {
+    const { data, error } = await supabase
+      .from("tests")
+      .update(row)
+      .eq("id", prev.id)
+      .select("id,username,gamemode,rank,points,created_at")
+      .maybeSingle();
+    saved = data;
+    saveErr = error;
+  }
+
+  if (!saved && !saveErr) {
+    const { data, error } = await supabase
+      .from("tests")
+      .upsert(row, { onConflict: "username,gamemode" })
+      .select("id,username,gamemode,rank,points,created_at")
+      .maybeSingle();
+    saved = data;
+    saveErr = error;
+  }
 
   if (saveErr) {
     return json({ error: saveErr.message }, 500);
@@ -138,7 +155,6 @@ export async function POST(req) {
     result: result || "Sikeres",
     fight_notes,
     processed: false,
-    created_at: new Date().toISOString(),
   });
 
   if (notifyErr) {
