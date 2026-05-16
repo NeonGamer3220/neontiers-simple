@@ -302,11 +302,8 @@ export default function AdminDashboard() {
       entries[index] = {
         ...current,
         [field]: field === "points" ? Number(value) : value,
+        ...(field === "rank" ? { points: RANK_POINTS[value] ?? 0 } : {}),
       };
-      // Auto-sync points whenever the rank changes
-      if (field === "rank") {
-        entries[index].points = RANK_POINTS[value] ?? 0;
-      }
       return { ...prev, entries };
     });
   };
