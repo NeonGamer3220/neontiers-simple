@@ -208,15 +208,19 @@ const modeIcon = MODE_ICONS[gamemode] || "🎮";
         const resultText = result || "Sikeres";
         const displayUsername = discord_name || username;
         
-        const header = `${discordPing} ${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`;
-       const modeLine = `**__${gamemode}__** ${modeIcon}`;
+        const header = discordPing 
+          ? `${discordPing} ${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`
+          : `${displayUsername} - ${username} - **${resultText} volt ${rank} teszten.**`;
+
+        const modeLine = `**__${gamemode}__** ${modeIcon}`;
        
-       const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
-       const fightSections = orderedTiers
-         .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
-         .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`);
-       
-       const message = [header, "", modeLine, "", ...fightSections].join("\n");
+const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+        const fightSections = orderedTiers
+          .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
+          .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`)
+          .join("\n");
+        
+        const message = [header, "", modeLine, "", fightSections].join("\n\n");
        
        await fetch(DISCORD_WEBHOOK_URL, {
          method: "POST",
