@@ -141,15 +141,17 @@ export default function AdminDashboard() {
 
   const handleSaveEntry = async (entry) => {
     try {
-      // Don't send id for new entries (untested modes)
+      // Build payload - only include id if it's a valid positive number
       const payload = {
         username: selectedPlayer.username,
         gamemode: entry.gamemode,
         rank: entry.rank,
         points: Number(entry.points || 0),
       };
-      if (entry.id) {
-        payload.id = entry.id;
+      // Only add id if it's a valid number (not null/undefined)
+      const entryId = Number(entry.id);
+      if (Number.isFinite(entryId) && entryId > 0) {
+        payload.id = entryId;
       }
       
       const res = await fetch("/api/tests", {
