@@ -124,36 +124,22 @@ export async function POST(req) {
     .ilike("gamemode", gamemode)
     .maybeSingle();
 
-  // Save to main tests table
-  const row = {
-    username,
-    gamemode,
-    rank,
-    points: tierPoints,
-  };
-
+  // Save to main tests table — only update if a previous record exists
+  // NOTE: new first-time entries are created via the /api/tests endpoint.
+  // Attempting UPSERT without an existing row hits a NOT NULL id constraint
+  // when the tests table id column has no DB-level default.
   let saved = null;
   let saveErr = null;
 
   if (prev?.id) {
-    const { data, error } = await supabase
+    const { data: upd, error: updErr } = await supabase
       .from("tests")
       .update(row)
       .eq("id", prev.id)
       .select("id,username,gamemode,rank,points,created_at")
       .maybeSingle();
-    saved = data;
-    saveErr = error;
-  }
-
-  if (!saved && !saveErr) {
-    const { data, error } = await supabase
-      .from("tests")
-      .upsert(row, { onConflict: "username,gamemode" })
-      .select("id,username,gamemode,rank,points,created_at")
-      .maybeSingle();
-    saved = data;
-    saveErr = error;
+    saved = upd;
+    saveErr = updErr;
   }
 
 if (saveErr) {
