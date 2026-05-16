@@ -145,8 +145,9 @@ const MODE_ICONS = {
   "DiaSMP":    "/images/diasmp.png",
   "OGVanilla": "/images/ogvanilla.png",
   "ShieldlessUHC": "/images/shieldlessuhc.png",
-  "SpearMace": "/images/spearmace.png",
-  "SpearElytra":  "/images/spearelytra.png",
+  "SpearMace": "/images/spear.png",
+  "SpearElytra":  "/images/spear.png",
+  "ShieldlessUHC": "/images/shieldlessuhc.png",
   "Stick Fight":  "/images/stickfight.png",
   "Trident":   "/images/trident.png",
 };
@@ -404,7 +405,7 @@ const toggleRetired = (index) => {
   useEffect(() => {
     if (!selectedPlayer) return;
     const ac = new AbortController();
-    fetch(`https://api.mojang.com/users/profiles/minecraft/${encodeURIComponent(selectedPlayer.username)}`, { signal: ac.signal })
+    fetch(`/api/mojang?username=${encodeURIComponent(selectedPlayer.username)}`, { signal: ac.signal })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.id) setSelectedPlayerUUID(formatUUID(d.id)); })
       .catch(() => {});
