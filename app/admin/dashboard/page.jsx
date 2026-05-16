@@ -1,7 +1,101 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const TIER_RANKS = [
+  { value: "HT1", color: "#d5b355" },
+  { value: "LT1", color: "#d5b355" },
+  { value: "HT2", color: "#a4b3c7" },
+  { value: "LT2", color: "#a4b3c7" },
+  { value: "HT3", color: "#dd8849" },
+  { value: "LT3", color: "#dd8849" },
+  { value: "HT4", color: "#b7aadf" },
+  { value: "LT4", color: "#b7aadf" },
+  { value: "HT5", color: "#6f6389" },
+  { value: "LT5", color: "#6f6389" },
+  { value: "Unranked", color: "#888d95" },
+];
+
+function TierSelect({ value, onChange, disabled = false }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const selectedColor = TIER_RANKS.find(r => r.value === value)?.color || "#888d95";
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  return (
+    <div
+      ref={ref}
+      className="tierSelectCompact tierSelectWithOptions"
+      style={{ position: "relative" }}
+    >
+      <button
+        type="button"
+        className="tierSelectButton"
+        disabled={disabled}
+        onClick={() => !disabled && setOpen(!open)}
+        style={{
+          width: "100%",
+          minWidth: 0,
+          padding: "5px 8px",
+          fontSize: "11.5px",
+          fontWeight: 800,
+          borderRadius: "6px",
+          border: `1.5px solid ${disabled ? "rgba(255,255,255,0.1)" : selectedColor}`,
+          background: disabled ? "rgba(255,255,255,0.02)" : selectedColor + "22",
+          color: disabled ? "rgba(255,255,255,0.3)" : "#fff",
+          fontFamily: "Montserrat, inherit",
+          outline: "none",
+          cursor: disabled ? "not-allowed" : "pointer",
+          textAlign: "left",
+          transition: "all 0.15s",
+          letterSpacing: "0.02em",
+        }}
+      >
+        <span style={{ opacity: 0.6 }}>▶</span> {value}
+      </button>
+      {open && !disabled && (
+        <div className="tierOptionsDropdown">
+          {TIER_RANKS.map((rank) => {
+            const isActive = rank.value === value;
+            return (
+            <div
+              key={rank.value}
+              className="tierOptionItem"
+              onClick={() => {
+                onChange(rank.value);
+                setOpen(false);
+              }}
+              style={{
+                background: isActive ? rank.color + "33" : "rgba(255,255,255,0.03)",
+                color: isActive ? "#fff" : "rgba(255,255,255,0.7)",
+                fontWeight: isActive ? 800 : 600,
+                fontSize: "11.5px",
+                padding: "6px 10px",
+                cursor: "pointer",
+                fontFamily: "Montserrat, inherit",
+                transition: "all 0.1s",
+                borderBottom: "1px solid rgba(255,255,255,0.05)",
+              }}
+            >
+              <span style={{ color: rank.color, marginRight: "6px", fontSize: "10px" }}>◆</span>
+              {rank.value}
+            </div>
+          );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const MODE_OPTIONS = [
   "Vanilla",
@@ -384,24 +478,11 @@ const toggleRetired = (index) => {
                           </div>
                           
                           <div className="tierEntryControls">
-<select
-                               value={displayRank}
-                               onChange={(e) => updateEntryField(index, "rank", e.target.value)}
-                               className="tierSelectCompact"
-                               disabled={isRetired}
-                             >
-                               <option value="HT1" style={{color: "#d5b355"}}>HT1</option>
-                               <option value="LT1" style={{color: "#d5b355"}}>LT1</option>
-                               <option value="HT2" style={{color: "#a4b3c7"}}>HT2</option>
-                               <option value="LT2" style={{color: "#a4b3c7"}}>LT2</option>
-                               <option value="HT3" style={{color: "#dd8849"}}>HT3</option>
-                               <option value="LT3" style={{color: "#dd8849"}}>LT3</option>
-                               <option value="HT4" style={{color: "#b7aadf"}}>HT4</option>
-                               <option value="LT4" style={{color: "#b7aadf"}}>LT4</option>
-                               <option value="HT5" style={{color: "#6f6389"}}>HT5</option>
-                               <option value="LT5" style={{color: "#6f6389"}}>LT5</option>
-                               <option value="Unranked" style={{color: "#888d95"}}>Unranked</option>
-                             </select>
+<TierSelect
+                             value={displayRank}
+                             onChange={(rank) => updateEntryField(index, "rank", rank)}
+                             disabled={isRetired}
+                           />
                             
                             <input
                               type="number"
@@ -785,7 +866,6 @@ const toggleRetired = (index) => {
           align-items: center;
         }
 
-        .tierSelectCompact,
         .tierInputCompact {
           padding: 6px 8px;
           font-size: 12px;
@@ -796,18 +876,52 @@ const toggleRetired = (index) => {
           font-family: inherit;
           outline: none;
           transition: all 0.15s;
+          flex: 1;
         }
 
-        .tierSelectCompact:focus,
         .tierInputCompact:focus {
           border-color: rgba(255, 255, 255, 0.2);
           background: rgba(255, 255, 255, 0.08);
         }
 
-        .tierSelectCompact:disabled,
         .tierInputCompact:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+        }
+
+        .tierSelectWithOptions .tierSelectButton {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .tierOptionsDropdown {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          right: 0;
+          background: #0b0d16;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 8px;
+          z-index: 30;
+          overflow: hidden;
+          box-shadow: 0 8px 32px #0000005c;
+          min-width: 120px;
+        }
+
+        .tierOptionItem {
+          padding: 7px 12px;
+          cursor: pointer;
+          transition: background 0.1s, color 0.1s;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tierOptionItem:last-child {
+          border-bottom: none;
+        }
+
+        .tierOptionItem:hover {
+          background: rgba(255, 255, 255, 0.08);
         }
 
         .retireCheckbox {
@@ -1008,7 +1122,6 @@ const toggleRetired = (index) => {
           transition: transform 0.1s;
         }
 
-        .tierSelectCompact:focus,
         .tierInputCompact:focus {
           box-shadow: 0 0 0 2px rgba(196, 30, 58, 0.2);
         }
