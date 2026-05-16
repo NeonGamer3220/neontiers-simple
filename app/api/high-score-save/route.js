@@ -173,28 +173,26 @@ if (saveErr) {
 
 // Insert into discord_notifications table for the bot to pick up
    let notificationCreated = false;
-   let notificationId = null;
    try {
-     const { data: notifyData, error: notifyErr } = await supabase.from("discord_notifications").insert({
+     const { error: notifyErr } = await supabase.from("discord_notifications").insert({
        username,
        gamemode,
        tested_tier: rank,
        result: result || "Sikeres",
        fight_notes,
        processed: false,
-     }).select("id").maybeSingle();
+     });
      if (notifyErr) {
        console.error("Failed to create notification:", notifyErr.message);
      } else {
        notificationCreated = true;
-       notificationId = notifyData?.id;
      }
    } catch (e) {
      console.error("Notification error:", e?.message || e);
    }
 
-  // Send immediate webhook to Discord bot if configured
-   if (DISCORD_WEBHOOK_URL && notificationCreated) {
+  // Send immediate webhook to Discord if configured
+   if (DISCORD_WEBHOOK_URL) {
      try {
        const modeIcon = MODE_ICONS[gamemode] || "🎮";
        const resultText = result || "Sikeres";
