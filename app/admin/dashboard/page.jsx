@@ -131,6 +131,26 @@ const RANK_POINTS = {
   Unranked: 0,
 };
 
+const MODE_ICONS = {
+  "Vanilla":    "/images/vanilla.png",
+  "UHC":        "/images/uhc.png",
+  "Pot":        "/images/pot.png",
+  "NethPot":    "/images/nethpot.png",
+  "SMP":        "/images/smp.png",
+  "Sword":      "/images/sword.png",
+  "Axe":        "/images/axe.png",
+  "Mace":       "/images/mace.png",
+  "Cart":      "/images/cart.png",
+  "Creeper":   "/images/creeper.png",
+  "DiaSMP":    "/images/diasmp.png",
+  "OGVanilla": "/images/ogvanilla.png",
+  "ShieldlessUHC": "/images/shieldlessuhc.png",
+  "SpearMace": "/images/spearmace.png",
+  "SpearElytra":  "/images/spearelytra.png",
+  "Stick Fight":  "/images/stickfight.png",
+  "Trident":   "/images/trident.png",
+};
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -251,10 +271,27 @@ export default function AdminDashboard() {
     setSearchedPlayers(filtered);
   };
 
-  const selectPlayer = (username) => {
+  const selectPlayer = async (username) => {
     const playerData = getPlayerData(username, showUntested);
     if (playerData) {
       setSelectedPlayer(playerData);
+      setNewNameInput("");
+      setBanDays("");
+      setBanModalOpen(false);
+      // fetch ban data
+      try {
+        const res = await fetch(`/api/ban?username=${encodeURIComponent(username)}`);
+        if (res.ok) {
+          const banData = await res.json();
+          if (banData?.banned && banData?.expires_at) {
+            const exp = new Date(banData.expires_at);
+            if (exp > new Date()) setBannedUntil(banData.expires_at);
+            else { setBannedUntil(null); await fetch("/api/ban", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username }) }); }
+          } else {
+            setBannedUntil(null);
+          }
+        }
+      } catch { setBannedUntil(null); }
     }
     setSearchQuery("");
     setSearchedPlayers([]);
@@ -565,7 +602,7 @@ const toggleRetired = (index) => {
                 />
                 <div className="pdNameBlock">
                   <h2 className="playerDetailsName">{selectedPlayer.username}</h2>
-                  <span className="pdUuid">{selectedPlayer.uuid || "Minecraft UUID betöltése…"}</span>
+                  <span className="pdUuid">{selectedPlayerUUID || "Minecraft UUID betöltése…"}</span>
                   <div className="pdNameRefresh">
                     <input
                       type="text"
