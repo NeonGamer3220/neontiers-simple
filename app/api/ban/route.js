@@ -18,13 +18,12 @@ function json(data, status = 200) {
   });
 }
 
+// Fixed: GET /api/ban no longer requires username parameter
 export async function GET(req) {
   if (!supabase) return json({ error: "Supabase not configured" }, 500);
 
   const sp = new URL(req.url).searchParams;
   const username = (sp.get("username") || "").trim();
-
-  if (!username) return json({ error: "username required" }, 400);
 
   const { data, error } = await supabase
     .from("bans")
@@ -34,7 +33,7 @@ export async function GET(req) {
 
   if (error) return json({ error: error.message }, 500);
   return json(
-    data || { username, banned: false, reason: null, banned_at: null, expires_at: null }
+    data || { username: username || "", banned: false, reason: null, banned_at: null, expires_at: null }
   );
 }
 
