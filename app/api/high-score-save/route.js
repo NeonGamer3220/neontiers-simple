@@ -108,15 +108,19 @@ export async function POST(req) {
     username,
     gamemode,
     tested_tier,
+    earned_tier,
     result,
     fight_notes,
   } = body;
 
-  if (!username || !gamemode || !tested_tier) {
-    return json({ error: "Missing required fields: username, gamemode, tested_tier" }, 400);
+  if (!username || !gamemode || !earned_tier) {
+    return json({ error: "Missing required fields: username, gamemode, earned_tier" }, 400);
   }
 
-  const rank = normRank(tested_tier);
+  // earned_tier = the tier actually achieved → stored as rank in the DB
+  // tested_tier = the tier the player started testing from → only used for Discord notification
+  const rank = normRank(earned_tier);
+  const testedRank = normRank(tested_tier);
   const tierPoints = RANK_POINTS[rank] ?? 0;
 
   // Build the row object for database operations — must be defined before any update/insert
@@ -193,6 +197,7 @@ export async function POST(req) {
       username,
       gamemode,
       tested_tier: rank,
+      tested_tier_start: testedRank || null,
       result: result || "Sikeres",
       fight_notes,
       processed: false,

@@ -112,6 +112,7 @@ export default function AdminHighscorePage() {
   const [gamemode, setGamemode] = useState("");
   const [result, setResult] = useState("");
   const [testedTier, setTestedTier] = useState("");
+  const [earnedTier, setEarnedTier] = useState("");
   const [fightNotes, setFightNotes] = useState({
     LT3: "",
     HT3: "",
@@ -172,6 +173,7 @@ export default function AdminHighscorePage() {
       bestRank,
     });
     setTestedTier(bestRank);
+    setEarnedTier(bestRank);
     setGamemode("");
     setResult("");
     setFightNotes({ LT3: "", HT3: "", LT2: "", HT2: "", LT1: "", HT1: "" });
@@ -191,24 +193,26 @@ export default function AdminHighscorePage() {
     }
 
     const filledNotes = TIER_FIELDS.some((tier) => fightNotes[tier].trim().length > 0);
-    const isHighTier = testedTier.startsWith("HT3") || testedTier.startsWith("HT2") || testedTier.startsWith("HT1");
+    const isHighTier = earnedTier.startsWith("HT3") || earnedTier.startsWith("HT2") || earnedTier.startsWith("HT1");
 
     if (isHighTier && !filledNotes) {
       alert("HT3 vagy magasabb tiernél legalább egy magas eredmény mezőt ki kell tölteni.");
       return;
     }
 
-try {
-       const res = await fetch("/api/high-score-save", {
-         method: "POST",
-         headers: { "Content-Type": "application/json" },
-         body: JSON.stringify({
-           username: selectedPlayer.username,
+  try {
+
+        const res = await fetch("/api/high-score-save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: selectedPlayer.username,
             gamemode,
             tested_tier: testedTier,
+            earned_tier: earnedTier,
             result: result || "Sikeres",
             fight_notes: fightNotes,
-         }),
+          }),
        });
 
       const data = await res.json();
@@ -311,8 +315,8 @@ try {
                     />
                   </div>
                   <div className="inputGroup">
-                     <label>Tesztelt Tier</label>
-                    <div className="tierSelectRow">
+                      <label>Kezdő Tier</label>
+                     <div className="tierSelectRow">
                       <select
                         className="modeSelect tierSelect"
                         value={testedTier}
@@ -337,27 +341,40 @@ try {
                           {testedTier}
                         </span>
                       )}
+                      </div>
                     </div>
                   </div>
                   <div className="inputGroup">
-                    <label>Játékmód</label>
-                    <select
-                      className="modeSelect"
-                      value={gamemode}
-                      onChange={(e) => setGamemode(e.target.value)}
-                      style={{ color: modeColor(gamemode) }}
-                    >
-                      <option value="" style={{ color: "#ffffff" }}>
-                        Válassz játékmódot...
-                      </option>
-                      {MODE_OPTIONS.map((mode) => (
-                        <option key={mode} value={mode} style={{ color: modeColor(mode) }}>
-                          {mode}
-                        </option>
-                      ))}
-                    </select>
+                      <label>Megszerzett Tier</label>
+                     <div className="tierSelectRow">
+                       <select
+                         className="modeSelect tierSelect"
+                         value={earnedTier}
+                         onChange={(e) => setEarnedTier(e.target.value)}
+                       >
+                         <option value="">Válassz tiert...</option>
+                         {Object.keys(TIER_COLORS).map((tier) => (
+                           <option key={tier} value={tier} style={{ color: tierColor(tier) }}>
+                             {tier}
+                           </option>
+                         ))}
+                       </select>
+                       {earnedTier && (
+                         <span
+                           className="tierPreviewBadge"
+                           style={{
+                             borderColor: tierColor(earnedTier),
+                             color: tierColor(earnedTier),
+                             background: hexToRgba(tierColor(earnedTier), 0.18),
+                           }}
+                         >
+                           {earnedTier}
+                         </span>
+                       )}
+                     </div>
                   </div>
-                </div>
+                  <div className="inputGroup">
+                     <label>Játékmód</label>
 
                 <div className="fightGrid">
                   {TIER_FIELDS.map((tier) => (
@@ -373,11 +390,12 @@ try {
                 </div>
               </div>
 
-              <aside className="highscoreSidebar">
-                <div className="sidebarTitle">Magas eredmény adatai</div>
-                <p>HT3 vagy afeletti tierhez legalább egy magas eredmény mezőt ki kell tölteni.</p>
-                <p>Az itt megadott jegyzetek segítenek a Discord bot és a tier adminisztrátorok számára.</p>
-              </aside>
+                 <div className="highscoreSidebar">
+                 <div className="sidebarTitle">Magas eredmény adatai</div>
+                 <p>HT3 vagy afeletti megszerzett tierhez legalább egy magas eredmény mezőt ki kell tölteni.</p>
+                 <p>Kezdő tier: a teszt elindításakor meglévő tier. Megszerzett tier a teszt végeredménye.</p>
+                 <p>Az itt megadott jegyzetek segítenek a Discord bot és a tier adminisztrátorok számára.</p>
+               </aside>
             </div>
           </section>
         ) : (
