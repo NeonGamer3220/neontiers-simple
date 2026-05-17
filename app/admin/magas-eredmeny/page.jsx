@@ -112,7 +112,6 @@ export default function AdminHighscorePage() {
   const [gamemode, setGamemode] = useState("");
   const [result, setResult] = useState("");
   const [testedTier, setTestedTier] = useState("");
-  const [discordName, setDiscordName] = useState("");
   const [fightNotes, setFightNotes] = useState({
     LT3: "",
     HT3: "",
@@ -205,11 +204,10 @@ try {
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify({
            username: selectedPlayer.username,
-           gamemode,
-           tested_tier: testedTier,
-           result: result || "Sikeres",
-           fight_notes: fightNotes,
-           discord_name: discordName || undefined,
+            gamemode,
+            tested_tier: testedTier,
+            result: result || "Sikeres",
+            fight_notes: fightNotes,
          }),
        });
 
@@ -313,16 +311,7 @@ try {
                     />
                   </div>
                   <div className="inputGroup">
-                    <label>Discord Név (opcionális)</label>
-                    <input
-                      type="text"
-                      value={discordName}
-                      onChange={(e) => setDiscordName(e.target.value)}
-                      placeholder="Discord neve"
-                    />
-                  </div>
-                  <div className="inputGroup">
-                    <label>Tesztelt Tier</label>
+                     <label>Tesztelt Tier</label>
                     <div className="tierSelectRow">
                       <select
                         className="modeSelect tierSelect"
