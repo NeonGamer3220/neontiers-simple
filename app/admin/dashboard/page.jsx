@@ -532,7 +532,7 @@ const handleRefreshName = async () => {
         </div>
         <nav className="navbarLinks">
           <a href="/" className="navbarLink">Publikus</a>
-          <a href="/admin/dashboard" className="navbarLink active">Főoldal</a>
+          <a href="/admin/dashboard" className="navbarLink active">Játékos Kezelő</a>
           <a href="/admin/magas-eredmeny" className="navbarLink">Magas Eredmény Kezelés</a>
           <a href="/admin/logs" className="navbarLink">Log</a>
         </nav>
