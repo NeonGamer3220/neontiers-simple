@@ -120,7 +120,6 @@ export default function Page() {
   const [activeMode, setActiveMode] = useState("Összes");
   const [query, setQuery] = useState("");
   const [tests, setTests] = useState([]);
-  const [bans, setBans] = useState({});
   const [loading, setLoading] = useState(true);
    const [tierBoardMode, setTierBoardMode] = useState(null);
    const [showTierBoard, setShowTierBoard] = useState(false);
@@ -133,22 +132,12 @@ export default function Page() {
     async function load() {
       try {
         setLoading(true);
-        const [testRes, banRes] = await Promise.all([
-          fetch(`/api/tests?ts=${Date.now()}`, {
+        const testRes = await fetch(`/api/tests?ts=${Date.now()}`, {
             cache: "no-store",
             headers: { "Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0" },
-          }),
-          fetch("/api/ban"),
-        ]);
+          });
         if (!alive) return;
         setTests(Array.isArray((await testRes.json())?.tests) ? (await testRes.json()).tests : []);
-        if (banRes.ok) {
-          const banData = await banRes.json();
-          const bannedMap = {};
-          if (Array.isArray(banData)) { banData.forEach(b => { if (b.banned && b.expires_at && new Date(b.expires_at) > new Date()) bannedMap[b.username.toLowerCase()] = true; }); }
-          else if (banData?.banned) { bannedMap[(banData.username || "").toLowerCase()] = true; }
-          setBans(bannedMap);
-        }
       } catch {
         if (!alive) return;
         setTests([]);
@@ -455,7 +444,7 @@ export default function Page() {
                     <div
                       key={p.username}
                       id={p.username}
-                      className={`playerRow ${bans[p.username.toLowerCase()] ? "playerRowBanned" : ""}`}
+                      className="playerRow"
                       role="button"
                       tabIndex={0}
                       aria-haspopup="dialog"
@@ -1104,12 +1093,6 @@ export default function Page() {
           background: #ffffff0a;
           border-color: #ffffff29;
           z-index: 4;
-        }
-
-        .playerRowBanned {
-          opacity: 0.55;
-          filter: saturate(0.3) brightness(0.8);
-          border-color: #c41e3a55 !important;
         }
 
         .rowNum {

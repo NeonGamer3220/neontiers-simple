@@ -163,9 +163,7 @@ export default function AdminDashboard() {
   const [toast, setToast] = useState(null); // { text, type }
   const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
   const [newNameInput, setNewNameInput] = useState("");
-  const [bannedUntil, setBannedUntil] = useState(null);   // ISO date string or null
-  const [banModalOpen, setBanModalOpen] = useState(false);
-  const [banDays, setBanDays] = useState("");
+
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -276,22 +274,6 @@ export default function AdminDashboard() {
     if (playerData) {
       setSelectedPlayer(playerData);
       setNewNameInput("");
-      setBanDays("");
-      setBanModalOpen(false);
-      // fetch ban data
-      try {
-        const res = await fetch(`/api/ban?username=${encodeURIComponent(username)}`);
-        if (res.ok) {
-          const banData = await res.json();
-          if (banData?.banned && banData?.expires_at) {
-            const exp = new Date(banData.expires_at);
-            if (exp > new Date()) setBannedUntil(banData.expires_at);
-            else { setBannedUntil(null); await fetch("/api/ban", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username }) }); }
-          } else {
-            setBannedUntil(null);
-          }
-        }
-      } catch { setBannedUntil(null); }
     }
     setSearchQuery("");
     setSearchedPlayers([]);
@@ -429,37 +411,6 @@ const handleRefreshName = async () => {
     } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
   };
 
-  // ── Ban / Unban ──
-  const openBanModal = () => setBanModalOpen(true);
-
-  const confirmBan = async () => {
-    if (!banDays || isNaN(Number(banDays)) || Number(banDays) < 1) {
-      setToast({ type: "error", text: "Add meg érvényes napszámot!" });
-      return;
-    }
-    try {
-      const until = new Date();
-      until.setDate(until.getDate() + Number(banDays));
-      await fetch("/api/ban", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: selectedPlayer.username, banned_until: until.toISOString() }),
-      });
-      setBannedUntil(until.toISOString());
-      setBanModalOpen(false);
-      setBanDays("");
-      setToast({ type: "ok", text: `${banDays} napra kitiltva.` });
-    } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
-  };
-
-  const handleUnban = async () => {
-    try {
-      await fetch("/api/ban", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: selectedPlayer.username }) });
-      setBannedUntil(null);
-      setToast({ type: "ok", text: "Kitiltás feloldva." });
-    } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
-  };
-
   // ── Remove player (from main site, keep DB) ──
   const handleRemovePlayer = async () => {
     if (!confirm(`Biztos hogy eltávolítod "${selectedPlayer.username}" játékosadatát a weboldalról?`)) return;
@@ -487,35 +438,8 @@ const handleRefreshName = async () => {
 
   const stats = getStats();
 
-  // ── computed ──
-  const bannedDaysLeft = bannedUntil
-    ? Math.max(0, Math.ceil((new Date(bannedUntil) - new Date()) / 86400000))
-    : 0;
-
   return (
     <div className="adminDashboard">
-
-      {/* Ban confirmation modal */}
-      {banModalOpen && (
-        <div className="banModalOverlay" onClick={() => setBanModalOpen(false)}>
-          <div className="banModal" onClick={(e) => e.stopPropagation()}>
-            <h3 className="banModalTitle">Kitiltás</h3>
-            <p className="banModalText">Hány napra szeretnéd kitiltani <b>{selectedPlayer?.username}</b>?</p>
-            <input
-              type="number"
-              className="pdNameInput"
-              placeholder="Napok száma…"
-              value={banDays}
-              onChange={(e) => setBanDays(e.target.value)}
-              min="1"
-            />
-            <div className="banModalBtns">
-              <button className="pdBanBtn" onClick={confirmBan}>Kitiltás</button>
-              <button className="pdCancelBtn" onClick={() => { setBanModalOpen(false); setBanDays(""); }}>Mégse</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Toast notification */}
       {toast && (
@@ -615,15 +539,6 @@ const handleRefreshName = async () => {
                     </button>
                   </div>
                   <div className="pdActionBtns">
-                    {bannedUntil ? (
-                       <button className="pdUnbanBtn" onClick={handleUnban}>
-                         Feloldás
-                       </button>
-                    ) : (
-                       <button className="pdBanBtn" onClick={openBanModal}>
-                         Kitiltás
-                       </button>
-                    )}
                     <button className="pdRemoveBtn" onClick={handleRemovePlayer}>
                       Eltávolítás
                     </button>
@@ -645,9 +560,9 @@ const handleRefreshName = async () => {
                   <span className="pdBubbleLabel">Legjobb Tier</span>
                   <span className="pdBubbleValue tierBadgeInline">{selectedPlayer.bestRank}</span>
                 </div>
-                <div className={`pdBubble ${bannedUntil ? "pdBubbleBan" : ""}`}>
+                <div className="pdBubble">
                   <span className="pdBubbleLabel">Globális Állapot</span>
-                  <span className="pdBubbleValue">{bannedUntil ? `Kitiltva ${bannedDaysLeft} napra` : "Aktív"}</span>
+                  <span className="pdBubbleValue">Aktív</span>
                 </div>
               </div>
             </div>
@@ -1514,40 +1429,6 @@ const handleRefreshName = async () => {
           margin-top: 4px;
         }
 
-        .pdBanBtn {
-          padding: 8px 18px;
-          border-radius: 8px;
-          border: none;
-          background: rgba(196,30,58,0.85);
-          color: #fff;
-          font-weight: 700;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background 0.15s;
-          font-family: inherit;
-        }
-
-        .pdBanBtn:hover {
-          background: rgba(196,30,58,1);
-        }
-
-        .pdUnbanBtn {
-          padding: 8px 18px;
-          border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.2);
-          background: rgba(255,255,255,0.07);
-          color: #fff;
-          font-weight: 700;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background 0.15s;
-          font-family: inherit;
-        }
-
-        .pdUnbanBtn:hover {
-          background: rgba(255,255,255,0.12);
-        }
-
         .pdRemoveBtn {
           padding: 8px 18px;
           border-radius: 8px;
@@ -1596,15 +1477,6 @@ const handleRefreshName = async () => {
         .pdBubbleValue {
           font-size: 20px;
           font-weight: 800;
-        }
-
-        .pdBubbleBan {
-          border-color: rgba(196,30,58,0.5);
-          background: rgba(196,30,58,0.12);
-        }
-
-        .pdBubbleBan .pdBubbleValue {
-          color: #ff6b6b;
         }
 
         .tierBadgeInline {
@@ -1678,53 +1550,6 @@ const handleRefreshName = async () => {
           font-size: 12px;
           color: rgba(255,255,255,0.45);
           margin: 0;
-        }
-
-        /* ─── Ban modal ─── */
-        .banModalOverlay {
-          position: fixed;
-          inset: 0;
-          z-index: 1000;
-          background: rgba(0,0,0,0.7);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          animation: fadeIn 0.2s ease-out;
-        }
-
-        .banModal {
-          background: #111620;
-          border: 1px solid rgba(196,30,58,0.4);
-          border-radius: 16px;
-          padding: 28px;
-          width: 380px;
-          max-width: 90vw;
-          box-shadow: 0 24px 80px #000000b0;
-          animation: modalSlideIn 0.22s ease-out;
-        }
-
-        .banModalTitle {
-          margin: 0 0 10px 0;
-          font-size: 20px;
-          font-weight: 800;
-          color: #ff6b6b;
-        }
-
-        .banModalText {
-          margin: 0 0 18px 0;
-          font-size: 14px;
-          color: rgba(255,255,255,0.75);
-        }
-
-        .banModalBtns {
-          display: flex;
-          gap: 10px;
-          margin-top: 18px;
-        }
-
-        @keyframes modalSlideIn {
-          from { opacity: 0; transform: scale(0.9) translateY(12px); }
-          to   { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         /* ─── Misc cleanups ─── */
