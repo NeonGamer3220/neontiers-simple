@@ -119,6 +119,15 @@ export async function POST(req) {
   const rank = normRank(tested_tier);
   const tierPoints = RANK_POINTS[rank] ?? 0;
 
+  // Build the row object for database operations — must be defined before any update/insert
+  const row = {
+    username,
+    gamemode,
+    rank,
+    points: tierPoints,
+    created_at: new Date().toISOString(),
+  };
+
   // Get Discord ID from linked_accounts for ping
   const { data: linkedAccount } = await supabase
     .from("linked_accounts")
@@ -162,7 +171,7 @@ export async function POST(req) {
     saveErr = insErr;
   }
 
-if (saveErr) {
+  if (saveErr) {
     return json({ error: saveErr.message }, 500);
   }
 
@@ -186,31 +195,31 @@ if (saveErr) {
     }
   }
 
-// Insert into discord_notifications table for the bot to pick up
-   let notificationCreated = false;
-   try {
-     const { error: notifyErr } = await supabase.from("discord_notifications").insert({
-       username,
-       gamemode,
-       tested_tier: rank,
-       result: result || "Sikeres",
-       fight_notes,
-       processed: false,
-     });
-     if (notifyErr) {
-       console.error("Failed to create notification:", notifyErr.message);
-     } else {
-       notificationCreated = true;
-     }
-   } catch (e) {
-     console.error("Notification error:", e?.message || e);
-   }
+  // Insert into discord_notifications table for the bot to pick up
+  let notificationCreated = false;
+  try {
+    const { error: notifyErr } = await supabase.from("discord_notifications").insert({
+      username,
+      gamemode,
+      tested_tier: rank,
+      result: result || "Sikeres",
+      fight_notes,
+      processed: false,
+    });
+    if (notifyErr) {
+      console.error("Failed to create notification:", notifyErr.message);
+    } else {
+      notificationCreated = true;
+    }
+  } catch (e) {
+    console.error("Notification error:", e?.message || e);
+  }
 
-// Send immediate webhook to Discord if configured
-   if (DISCORD_WEBHOOK_URL) {
-     try {
-       const modeIcon = MODE_ICONS[gamemode] || "🎮";
-       const resultText = result || "Sikeres";
+  // Send immediate webhook to Discord if configured
+  if (DISCORD_WEBHOOK_URL) {
+    try {
+      const modeIcon = MODE_ICONS[gamemode] || "🎮";
+      const resultText = result || "Sikeres";
        
        const header = discordPing 
          ? `${discordPing} **${resultText} volt ${rank} teszten.**`
@@ -227,20 +236,20 @@ if (saveErr) {
        const message = [header, "", modeLine, "", fightSections].join("\n");
       
       await fetch(DISCORD_WEBHOOK_URL, {
-        method: "POST",
+       method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: message,
         }),
-      });
-    } catch (e) {
-      console.error("Webhook error:", e?.message || e);
+       });
+     } catch (e) {
+       console.error("Webhook error:", e?.message || e);
     }
-   }
+  }
 
-   return json({
-     ok: true,
-     saved,
-     notification_created: notificationCreated,
-   });
+  return json({
+    ok: true,
+    saved,
+    notification_created: notificationCreated,
+  });
 }
