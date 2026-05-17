@@ -128,15 +128,6 @@ export async function POST(req) {
     created_at: new Date().toISOString(),
   };
 
-  // Get Discord ID from linked_accounts for ping
-  const { data: linkedAccount } = await supabase
-    .from("linked_accounts")
-    .select("discord_id")
-    .ilike("minecraft_name", username)
-    .maybeSingle();
-
-  const discordPing = linkedAccount?.discord_id ? `<@${linkedAccount.discord_id}>` : "";
-
   // Get previous record for audit
   const { data: prev } = await supabase
     .from("tests")
@@ -220,30 +211,29 @@ export async function POST(req) {
     try {
       const modeIcon = MODE_ICONS[gamemode] || "🎮";
       const resultText = result || "Sikeres";
-       
-       const header = discordPing 
-         ? `${discordPing} **${resultText} volt ${rank} teszten.**`
-         : `**${resultText} volt ${rank} teszten.**`;
 
-       const modeLine = `**${gamemode}** ${modeIcon}`;
-      
-       const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
-       const fightSections = orderedTiers
-         .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
-         .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`)
-         .join("\n");
-       
-       const message = [header, "", modeLine, "", fightSections].join("\n");
-      
+      const header = `**${resultText} volt ${rank} teszten.**`;
+      const playerLine = `**${username}**`;
+
+      const modeLine = `**${gamemode}** ${modeIcon}`;
+
+      const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+      const fightSections = orderedTiers
+        .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
+        .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`)
+        .join("\n");
+
+      const message = [header, "", playerLine, "", modeLine, "", fightSections].join("\n");
+
       await fetch(DISCORD_WEBHOOK_URL, {
-       method: "POST",
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           content: message,
         }),
-       });
-     } catch (e) {
-       console.error("Webhook error:", e?.message || e);
+      });
+    } catch (e) {
+      console.error("Webhook error:", e?.message || e);
     }
   }
 
