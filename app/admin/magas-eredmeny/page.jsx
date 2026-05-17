@@ -295,8 +295,7 @@ export default function AdminHighscorePage() {
                     <img src={MODE_ICONS[gamemode]} alt={gamemode} className="modeIconSmall" />
                   )}
                   {selectedPlayer.bestRank} · {selectedPlayer.totalPoints} pont
-                </div>
-              </div>
+                 </div>
               <button className="saveButton" onClick={handleSave}>
                 Mentés
               </button>
@@ -373,29 +372,32 @@ export default function AdminHighscorePage() {
                        )}
                      </div>
                   </div>
-                  <div className="inputGroup">
-                     <label>Játékmód</label>
-
-                <div className="fightGrid">
-                  {TIER_FIELDS.map((tier) => (
-                    <div key={tier} className="fightGroup">
-                      <label>{tier} FIGHTOK</label>
-                      <textarea
-                        value={fightNotes[tier]}
-                        onChange={(e) => handleNoteChange(tier, e.target.value)}
-                        placeholder={`nyert 4-1 Ellenfél\nvesztett 2-4 Ellenfél`}
-                      />
-                    </div>
-                  ))}
-                </div>
+          <div className="highscoreFormRow">
+            <div className="inputGroup">
+              <label>Játékmód</label>
+              <div className="fightGrid">
+                {TIER_FIELDS.map((tier) => (
+                  <div key={tier} className="fightGroup">
+                    <label>{tier} FIGHTOK</label>
+                    <textarea
+                      value={fightNotes[tier]}
+                      onChange={(e) => handleNoteChange(tier, e.target.value)}
+                      placeholder={`nyert 4-1 Ellenfél\nvesztett 2-4 Ellenfél`}
+                    />
+                  </div>
+                ))}
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-                 <div className="highscoreSidebar">
-                 <div className="sidebarTitle">Magas eredmény adatai</div>
+        <div className="highscoreSidebar">
+                  <div className="sidebarTitle">Magas eredmény adatai</div>
                  <p>HT3 vagy afeletti megszerzett tierhez legalább egy magas eredmény mezőt ki kell tölteni.</p>
                  <p>Kezdő tier: a teszt elindításakor meglévő tier. Megszerzett tier a teszt végeredménye.</p>
                  <p>Az itt megadott jegyzetek segítenek a Discord bot és a tier adminisztrátorok számára.</p>
-               </aside>
+                </div>
             </div>
           </section>
         ) : (
