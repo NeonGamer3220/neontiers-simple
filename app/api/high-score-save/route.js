@@ -212,8 +212,7 @@ export async function POST(req) {
       const modeIcon = MODE_ICONS[gamemode] || "🎮";
       const resultText = result || "Sikeres";
 
-      const header = `**${resultText} volt ${rank} teszten.**`;
-      const playerLine = `**${username}**`;
+      const header = `**${username}** - **${resultText} volt ${rank} teszten.**`;
 
       const modeLine = `**${gamemode}** ${modeIcon}`;
 
@@ -221,9 +220,9 @@ export async function POST(req) {
       const fightSections = orderedTiers
         .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
         .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`)
-        .join("\n");
+        .join("\n\n");
 
-      const message = [header, "", playerLine, "", modeLine, "", fightSections].join("\n");
+      const message = [header, "", modeLine, "", fightSections].join("\n");
 
       await fetch(DISCORD_WEBHOOK_URL, {
         method: "POST",
