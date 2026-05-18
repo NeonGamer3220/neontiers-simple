@@ -809,7 +809,6 @@ export default function Page() {
           scroll-behavior: smooth;
           min-height: 100%;
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-          font-display: optional;
         }
 
         body {
@@ -819,8 +818,8 @@ export default function Page() {
           color: var(--text);
           background: transparent;
           font-family: Montserrat;
-          font-display: optional;
           -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
           text-rendering: optimizelegibility;
         }
 
@@ -830,7 +829,6 @@ export default function Page() {
         .page {
           min-height: 100vh;
           position: relative;
-          font-display: optional;
         }
 
         .bg {
