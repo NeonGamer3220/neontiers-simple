@@ -1182,7 +1182,7 @@ onClick={() => {
             margin: 0 auto;
             padding-left: 20px;
             padding-right: 20px;
-            margin-top: 40px;
+            margin-top: 100px;
             position: relative;
             z-index: 1;
           }
