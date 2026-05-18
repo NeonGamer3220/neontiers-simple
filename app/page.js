@@ -402,7 +402,7 @@ export default function Page() {
              {MODE_LIST.map((m) => (
                 <button
                   key={m}
-                  className={`tabBtn ${m === "Információ" ? "infoTab" : ""} ${activeMode === m ? "active" : ""}`}
+                  className={`tabBtn ${activeMode === m ? "active" : ""}`}
                   onClick={() => {
                     setActiveMode(m);
                   }}
@@ -1106,40 +1106,6 @@ export default function Page() {
           color: var(--text);
           background: var(--bg-panel);
           border-color: #fff3;
-        }
-
-        .tabBtn.infoTab {
-          gap: 0;
-          padding: 8px 10px;
-          font-weight: 700;
-          font-size: 13px;
-          letter-spacing: 0.01em;
-          border-style: solid;
-          border-color: #8f7cff38;
-          background: #8f7cff10;
-          color: var(--accent);
-        }
-
-        .tabBtn.infoTab:hover {
-          background: #8f7cff18;
-          border-color: #8f7cff55;
-          color: white;
-        }
-
-        .tabBtn.infoTab.active {
-          background: var(--bg-panel);
-          color: var(--text);
-          border-color: var(--accent);
-        }
-
-        .tabBtn.infoTab .tabIcon {
-          display: none;
-        }
-
-        .tabBtn.infoTab .tabLabel {
-          font-size: 10px;
-          letter-spacing: 0.05em;
-          text-transform: uppercase;
         }
 
         .tabIcon {
