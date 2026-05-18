@@ -377,9 +377,7 @@ export default function Page() {
         </header>
 
         {/* Page / brand title — H1 for SEO */}
-        <h1 className="pgHeading" aria-label="NeonTiers — Magyar Minecraft PvP rangsor">
-          <span className="pgHeadingAccent">NeonTiers</span><span className="pgHeadingSep"></span><span className="pgHeadingSub">Magyar Minecraft PvP Rangsor</span>
-        </h1>
+        <h1 className="pgHeading">NeonTiers</h1>
 
         {/* Gamemode tabs */}
         <div className="tabsWrap">
