@@ -10,12 +10,14 @@ const EASTER_MODE = false;
 const SHOW_LISTS = true;
 
 const MODE_LIST = [
-  "Összes", "Vanilla", "UHC", "Pot", "NethPot", "SMP",
+  "Információ", "Összes",
+  "Vanilla", "UHC", "Pot", "NethPot", "SMP",
   "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
   "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stick Fight", "Trident",
 ];
 
 const MODE_ICONS = {
+  Információ: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"%3E%3Ccircle cx="15" cy="15" r="12.5" fill="white"/%3E%3Ctext x="15" y="21" text-anchor="middle" font-family="serif" font-weight="800" font-size="14" fill="%230b0e14"%3Ei%3C/text%3E%3C/svg%3E',
   "Összes": "/images/overall.png",
   "Vanilla": "/images/vanilla.png",
   "UHC": "/images/uhc.png",
@@ -383,7 +385,7 @@ export default function Page() {
              {MODE_LIST.map((m) => (
                 <button
                   key={m}
-                  className={`tabBtn ${activeMode === m ? "active" : ""}`}
+                  className={`tabBtn ${m === "Információ" ? "infoTab" : ""} ${activeMode === m ? "active" : ""}`}
                   onClick={() => {
                     setActiveMode(m);
                   }}
@@ -404,24 +406,96 @@ export default function Page() {
         {/* Main content */}
         <main className="mainWrap">
 
-          {/* Intro card — only on the Összes view */}
-          {activeMode === "Összes" && (
-            <div className="introCard">
-              <h2 className="introTitle">Mi az a NeonTiers?</h2>
-              <p className="introText">
-                A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség legpontosabb rangsora.
-                Minden felmérés a <strong>NeonTiers Tagger</strong> mod segítségével történik,
-                így a rangsor naprakész marad. Válaszd ki a játékmódot a füleken – az Összes,
-                Vanilla, UHC, Pot, Sword, Axe, Mace és még sok más közül – és tekintsd meg a
-                ranglistát valós időben.
+          {/* Info panel — shown when the Információ tab is selected */}
+          {activeMode === "Információ" && (
+            <div className="mainCard infoPanel">
+              <h2 className="infoPanelTitle">Adminisztrátori API</h2>
+              <p className="infoPanelText">
+                A <strong>NeonTiers</strong> backendje REST API-t nyújt a felmérések kezeléséhez.
+                Az API lehetővé teszi játékos hozzáadását, szint módosítást és próbák
+                eltávolítását egy egyszerű HTTP végponton keresztül.
               </p>
-              <p className="introText">
-                A rangsor a legmagasabbra értékesített eredmények alapján készül, így mindig a
-                legfrissebb és legpontosabb adatokat láthatod. <strong>Csatlakozz a
-                <a className="introLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">&nbsp;Discord&nbsp;</a>
-                szerverünkhöz&nbsp;</strong>
-                a legfrissebb értesítésekért és frissítésekért!
+
+              <h3 className="infoPanelSub">Endpoints</h3>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
+                <code className="infoPanelPath">/api/tests</code>
+                <span className="infoPanelDesc">Összes felmérés listázása (legfrissebb verzió)</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
+                <code className="infoPanelPath">/api/admin/check</code>
+                <span className="infoPanelDesc">Admin jogosultság ellenőrzése</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
+                <code className="infoPanelPath">/api/tests/rename</code>
+                <span className="infoPanelDesc">Játékos átnevezése az összes rekordban</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
+                <code className="infoPanelPath">/api/tests/retire</code>
+                <span className="infoPanelDesc">Játékos rekordjainak leállítása</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
+                <code className="infoPanelPath">/api/tests/remove</code>
+                <span className="infoPanelDesc">Játékos rekordjainak teljes törlése</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
+                <code className="infoPanelPath">/api/high-score-save</code>
+                <span className="infoPanelDesc">Egyedi magas pontszám mentése</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
+                <code className="infoPanelPath">/api/high-test</code>
+                <span className="infoPanelDesc">Új teszt futtatása (pontszám generálás)</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
+                <code className="infoPanelPath">/api/mojang/{"{username}"}</code>
+                <span className="infoPanelDesc">Játékos UUID lekérdezése a Mojang API-ból</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
+                <code className="infoPanelPath">/api/audit-log</code>
+                <span className="infoPanelDesc">Új naplóbejegyzés létrehozása</span>
+              </div>
+
+              <h3 className="infoPanelSub">Autentikáció</h3>
+              <p className="infoPanelText">
+                Minden admin végpont <code className="infoPanelCode">Authorization</code> fejlécet igényel,
+                amit a <code className="infoPanelCode">/api/admin/login</code> endpointon tudsz beszerezni.
+                A sikeres bejelentkezéshez <strong>admin_name</strong> és <strong>admin_password</strong> mezők szükségesek,
+                amelyeket a környezeti változókban (env) kell beállítani.
               </p>
+
+              <h3 className="infoPanelSub">Adatmodel</h3>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelPath">id</code>
+                <span className="infoPanelDesc">Egyedi azonosító (autoincrement)</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelPath">username</code>
+                <span className="infoPanelDesc">Játékos neve a rangsorban</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelPath">gamemode</code>
+                <span className="infoPanelDesc">Játékmód neve (pl. "Vanilla", "UHC"…)</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelPath">rank</code>
+                <span className="infoPanelDesc">Rang (pl. "HT1", "LT2", "LT5"…)</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelPath">points</code>
+                <span className="infoPanelDesc">Rangpont értéke</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelPath">created_at</code>
+                <span className="infoPanelDesc">Rekord létrehozásának dátuma</span>
+              </div>
             </div>
           )}
 
@@ -869,50 +943,100 @@ export default function Page() {
           pointer-events: none;
         }
 
-         /* Intro card */
-        .introCard {
-          background: #0e1319cc;
-          border: 1px solid #ffffff12;
+         /* Info panel */
+        .infoPanel {
+          background: #0e1a22cc;
+          border: 1px solid #ffffff10;
           border-radius: 22px;
           padding: 28px 32px;
-          margin-bottom: 22px;
         }
 
-        .introTitle {
-          font-size: 17px;
+        .infoPanelTitle {
+          font-size: 20px;
           font-weight: 800;
           color: var(--text);
           letter-spacing: -0.03em;
-          margin: 0 0 12px;
+          margin: 0 0 16px;
         }
 
-        .introText {
+        .infoPanelSub {
+          font-size: 13px;
+          font-weight: 800;
+          color: var(--accent);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          margin: 22px 0 10px;
+        }
+
+        .infoPanelText {
           font-size: 14px;
           color: var(--muted);
-          line-height: 1.65;
+          line-height: 1.7;
           font-weight: 500;
           margin: 0 0 12px;
         }
 
-        .introText:last-child {
-          margin-bottom: 0;
-        }
-
-        .introText strong {
+        .infoPanelText strong {
           color: var(--text);
           font-weight: 700;
         }
 
-        .introLink {
+        .infoPanelCode {
+          font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+          font-size: 12.5px;
           color: var(--accent);
-          font-weight: 700;
-          text-decoration: none;
-          transition: color 0.15s;
+          background: #8f7cff18;
+          border: 1px solid #8f7cff28;
+          border-radius: 5px;
+          padding: 1px 6px;
+          white-space: nowrap;
         }
 
-        .introLink:hover {
-          color: white;
-          text-decoration: underline;
+        .infoPanelEndpoint {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          flex-wrap: wrap;
+          padding: 6px 0;
+        }
+
+        .infoPanelMethod {
+          font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+          font-size: 10px;
+          font-weight: 800;
+          padding: 3px 7px;
+          border-radius: 4px;
+          letter-spacing: 0.05em;
+          white-space: nowrap;
+        }
+
+        .infoPanelMethodGet {
+          background: #22c55e20;
+          color: #4ade80;
+          border: 1px solid #22c55e40;
+        }
+
+        .infoPanelMethodPost {
+          background: #8f7cff20;
+          color: var(--accent);
+          border: 1px solid #8f7cff40;
+        }
+
+        .infoPanelPath {
+          font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+          font-size: 12px;
+          color: var(--text);
+          background: #ffffff08;
+          border: 1px solid #ffffff14;
+          border-radius: 5px;
+          padding: 3px 10px;
+          white-space: nowrap;
+        }
+
+        .infoPanelDesc {
+          font-size: 13px;
+          color: var(--muted);
+          font-weight: 500;
         }
 
         /* Navbar */
@@ -1086,6 +1210,40 @@ export default function Page() {
           color: var(--text);
           background: var(--bg-panel);
           border-color: #fff3;
+        }
+
+        .tabBtn.infoTab {
+          gap: 0;
+          padding: 8px 10px;
+          font-weight: 700;
+          font-size: 13px;
+          letter-spacing: 0.01em;
+          border-style: solid;
+          border-color: #8f7cff38;
+          background: #8f7cff10;
+          color: var(--accent);
+        }
+
+        .tabBtn.infoTab:hover {
+          background: #8f7cff18;
+          border-color: #8f7cff55;
+          color: white;
+        }
+
+        .tabBtn.infoTab.active {
+          background: var(--bg-panel);
+          color: var(--text);
+          border-color: var(--accent);
+        }
+
+        .tabBtn.infoTab .tabIcon {
+          display: none;
+        }
+
+        .tabBtn.infoTab .tabLabel {
+          font-size: 10px;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
         }
 
         .tabIcon {
