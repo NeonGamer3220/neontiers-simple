@@ -374,10 +374,15 @@ export default function Page() {
             <kbd className="searchKbd">/</kbd>
           </span>
         </nav>
-       </header>
+        </header>
 
-       {/* Gamemode tabs */}
-       <div className="tabsWrap">
+        {/* Page / brand title — H1 for SEO */}
+        <h1 className="pgHeading" aria-label="NeonTiers — Magyar Minecraft PvP rangsor">
+          <span className="pgHeadingAccent">NeonTiers</span><span className="pgHeadingSep"></span><span className="pgHeadingSub">Magyar Minecraft PvP Rangsor</span>
+        </h1>
+
+        {/* Gamemode tabs */}
+        <div className="tabsWrap">
          <div className="tabsScroller">
            <div className="tabRow">
              {MODE_LIST.map((m) => (
@@ -422,22 +427,22 @@ export default function Page() {
                   </div>
 
                   {/* Column headers */}
-                  <div className="colHead">
+                  <h2 className="colHead">
                     <span className="colHash">#</span>
                     <span className="colSkinSpacer" aria-hidden="true"></span>
                     <span className="colPlayer">Játékos</span>
                     <span className="colTiers">Tierek</span>
-                  </div>
+                  </h2>
 
                   {/* Player rows */}
                   {loading ? (
                     <div className="emptyState">
-                      <div className="emptyTitle">Betöltés...</div>
+                      <h3 className="emptyTitle">Betöltés...</h3>
                       <div className="emptySub">Kérlek várj.</div>
                     </div>
                   ) : leaderboard.length === 0 ? (
                     <div className="emptyState">
-                  <div className="emptyTitle">Nincs adat</div>
+                  <h3 className="emptyTitle">Nincs adat</h3>
                   <div className="emptySub">Még nincs mentett teszt eredmény.</div>
                 </div>
                 ) : (
@@ -521,7 +526,7 @@ export default function Page() {
               ) : (
                 <div className="statsOnlyView">
                   <div className="emptyState">
-                    <div className="emptyTitle">Rangsor szünetel</div>
+                    <h3 className="emptyTitle">Rangsor szünetel</h3>
                     <div className="emptySub">A teljes rangsor jelenleg nem érhető el.</div>
                   </div>
                 </div>
@@ -783,9 +788,16 @@ export default function Page() {
          );
        })()}
 
-       <footer className="pageFooter">
-         <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
-       </footer>
+        <footer className="pageFooter">
+          <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
+          <nav className="footerNav" aria-label="Oldalak">
+            <a className="footerNavLink" href="https://render.crafty.gg">Crafty.gg</a>
+            <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
+            <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
+          </nav>
+          <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
+        </footer>
+        <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
 
 
         <style jsx global>{`
@@ -829,6 +841,37 @@ export default function Page() {
         .page {
           min-height: 100vh;
           position: relative;
+        }
+
+        /* Page H1 heading */
+        .pgHeading {
+          max-width: 1480px;
+          margin: 0 auto;
+          padding: 26px 20px 0;
+          font-size: 26px;
+          font-weight: 800;
+          color: var(--text);
+          line-height: 1.25;
+          letter-spacing: -0.03em;
+        }
+
+        .pgHeadingAccent {
+          color: var(--accent);
+        }
+
+        .pgHeadingSep {
+          display: inline-block;
+          width: 12px;
+          height: 1px;
+          background: var(--muted);
+          margin: 0 10px;
+          vertical-align: middle;
+          opacity: 0.6;
+        }
+
+        .pgHeadingSub {
+          color: var(--muted);
+          font-weight: 700;
         }
 
         .bg {
@@ -1730,6 +1773,34 @@ export default function Page() {
         .footerText {
           color: var(--muted);
           font-size: 14px;
+        }
+
+        .footerNav {
+          display: flex;
+          gap: 16px;
+          justify-content: center;
+          flex-wrap: wrap;
+          margin-top: 14px;
+        }
+
+        .footerNavLink {
+          color: var(--muted);
+          font-size: 13px;
+          font-weight: 700;
+          text-decoration: none;
+          letter-spacing: 0.03em;
+          transition: color 0.15s;
+        }
+
+        .footerNavLink:hover {
+          color: var(--text);
+        }
+
+        .footerLastUpdate {
+          margin-top: 10px;
+          color: var(--muted);
+          font-size: 12px;
+          opacity: 0.55;
         }
 
         /* Tooltip positioning adjustment */
