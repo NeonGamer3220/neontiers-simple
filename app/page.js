@@ -347,8 +347,8 @@ export default function Page() {
           <ul className="navLinks">
             <li>
               <a className="navLink active" href="/">
-              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="white">
-                <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
+              <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <path d="M12 3.2 3.8 9.8a1 1 0 0 0-.38.78V20a1 1 0 0 0 1 1h5.1a1 1 0 0 0 1-1v-4.8h3V20a1 1 0 0 0 1 1h5.08a1 1 0 0 0 1-1v-9.42a1 1 0 0 0-.37-.78L12 3.2Z"/>
               </svg>
               Főoldal
             </a>
@@ -363,17 +363,25 @@ export default function Page() {
           </li>
           <li>
             <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
-              <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="white">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <path d="M11.14 3.38a1.7 1.7 0 0 1 1.72 0l6 3.42A1.72 1.72 0 0 1 19.72 8v8a1.72 1.72 0 0 1-.86 1.48l-6 3.42a1.7 1.7 0 0 1-1.72 0l-6-3.42A1.72 1.72 0 0 1 4.28 16V8c0-.62.33-1.2.86-1.49l6-3.13Zm.86 2.03L7.16 8.17 12 10.93l4.84-2.76L12 5.41Zm-5.72 4.2V15L11 17.67v-5.52L6.28 9.6Zm7.72 8.06 4.72-2.68V9.6L13 12.15v5.52Z"/>
+              </svg>
+              Főoldal
+            </a>
+          </li>
+          <li>
+            <a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
+              <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M19.82 5.7a16.5 16.5 0 0 0-4.12-1.3l-.2.4a14.75 14.75 0 0 1 3.85 1.53 12.93 12.93 0 0 0-3.92-1.26 15.52 15.52 0 0 0-6.87 0A12.95 12.95 0 0 0 4.65 6.3a14.74 14.74 0 0 1 3.84-1.52l-.2-.39a16.4 16.4 0 0 0-4.1 1.3C1.6 9.6.9 13.4 1.23 17.16a16.6 16.6 0 0 0 5.04 2.56l1.08-1.77c-.6-.2-1.17-.46-1.7-.76.14.1.28.18.43.27 3.28 1.88 6.83 1.88 10.08 0 .15-.09.29-.17.43-.27a10.2 10.2 0 0 1-1.7.76l1.08 1.77a16.5 16.5 0 0 0 5.04-2.56c.4-4.37-.67-8.14-2.7-11.46ZM8.87 14.83c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.8 2.08-1.8 2.08Zm6.26 0c-1 0-1.8-.93-1.8-2.08 0-1.15.8-2.08 1.8-2.08 1.01 0 1.82.94 1.8 2.08 0 1.15-.79 2.08-1.8 2.08Z"/>
               </svg>
               Mod
             </a>
           </li>
           <li>
             <button className="navLink" onClick={showInfo ? closeInfo : openInfo} type="button" aria-expanded={showInfo ? "true" : "false"}>
-              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="white">
                 <circle cx="8" cy="8" r="7"/>
-                <path d="M7.75 6.5h.5v.5h-.5zm0 2h.5v3h-.5z" fill="currentColor"/>
+                <path d="M7.75 6.5h.5v.5h-.5zm0 2h.5v3h-.5z" fill="#0b0e14"/>
               </svg>
               Információ
             </button>
