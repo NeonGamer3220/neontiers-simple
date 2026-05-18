@@ -1193,11 +1193,11 @@ onClick={() => {
         }
         .tabsScroller::-webkit-scrollbar { display: none; }
 
-        .tabRow {
-          display: flex;
-          gap: 2px;
-          align-items: flex-end;
-        }
+.tabRow {
+           display: flex;
+           gap: 4px;
+           align-items: flex-end;
+         }
 
           .tabBtn {
             display: flex;
