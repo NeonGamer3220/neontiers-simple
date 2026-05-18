@@ -7,3 +7,8 @@ out/
 .DS_Store
 *.log
 .cache/
+app/fonts.css
+
+# Google Fonts split files (not needed; Montserrat standalone woff2 are tracked)
+/public/fonts/JTUS*.woff2
+/public/fonts/*-combined.bin
