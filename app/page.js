@@ -137,7 +137,8 @@ export default function Page() {
             headers: { "Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0" },
           });
         if (!alive) return;
-        setTests(Array.isArray((await testRes.json())?.tests) ? (await testRes.json()).tests : []);
+        const testJson = await testRes.json();
+        setTests(Array.isArray(testJson?.tests) ? testJson.tests : []);
       } catch {
         if (!alive) return;
         setTests([]);
