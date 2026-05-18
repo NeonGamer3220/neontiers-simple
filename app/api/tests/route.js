@@ -151,11 +151,15 @@ export async function GET(req) {
     return json({ player: randomPlayer });
   }
 
+  // Get all tests — supabase query limited rows from DB (avoid over-fetch).
+  const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10) || 500, 2000);
+
   const { data, error } = await supabase
     .from("tests")
     .select("id,username,gamemode,rank,points,created_at")
     .order("points", { ascending: false })
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(limit);
 
   if (error) return json({ error: error.message }, 500);
 

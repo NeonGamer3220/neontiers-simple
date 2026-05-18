@@ -129,6 +129,11 @@ export default function Page() {
   const [singleModeFilter, setSingleModeFilter] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
 
+  // Progressive rendering: how many leaderboard rows are currently painted.
+  // Starts at 0, then grows in small batches until the full list is shown.
+  const [renderedLength, setRenderedLength] = useState(0);
+  const deferredBoard = useDeferredValue(leaderboard);
+
    useEffect(() => {
     let alive = true;
     async function load() {
@@ -285,7 +290,26 @@ export default function Page() {
     setShowInfo(false);
   };
 
-   useEffect(() => {
+  // Render the leaderboard progressively: start with 0 rows in the
+  // first paint, then add ~55 more rows every animation frame until the
+  // full list is painted. Keeps the thread unblocked even with thousands
+  // of players.
+  useEffect(() => {
+    let rafId;
+    function step() {
+      setRenderedLength(prev => {
+        if (prev >= deferredBoard.length) return deferredBoard.length;
+        return prev + 55;
+      });
+      if (renderedLength < deferredBoard.length) {
+        rafId = requestAnimationFrame(step);
+      }
+    }
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [tests, loading, activeMode, singleModeFilter]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && showTierBoard) {
         closeTierBoard();
@@ -486,19 +510,30 @@ export default function Page() {
                     <span className="colTiers">Tierek</span>
                   </h2>
 
-                  {/* Player rows */}
-                  {loading ? (
-                    <div className="emptyState">
-                      <h3 className="emptyTitle">Betöltés...</h3>
-                      <div className="emptySub">Kérlek várj.</div>
-                    </div>
-                  ) : leaderboard.length === 0 ? (
+                   {/* Player rows */}
+                   {loading ? (
+                     Array.from({ length: 8 }).map((_, i) => (
+                       <div key={`skel-${i}`} className="playerRow skelRow" aria-hidden="true">
+                         <span className="rowNum skel skelNum"></span>
+                         <span className="skel skelSkin"></span>
+                         <span className="playerNameWrap">
+                           <span className="skel skelName"></span>
+                           <span className="skel skelPoints"></span>
+                         </span>
+                         <span className="rowTiers">
+                           <span className="skel skelBadge"></span>
+                           <span className="skel skelBadge"></span>
+                           <span className="skel skelBadge"></span>
+                         </span>
+                       </div>
+                     ))
+                   ) : deferredBoard.length === 0 ? (
                     <div className="emptyState">
                   <h3 className="emptyTitle">Nincs adat</h3>
                   <div className="emptySub">Még nincs mentett teszt eredmény.</div>
                 </div>
                 ) : (
-                  leaderboard.map((p, idx) => (
+                  deferredBoard.slice(0, renderedLength).map((p, idx) => (
                     <div
                       key={p.username}
                       id={p.username}
@@ -905,6 +940,55 @@ export default function Page() {
           background: var(--bg);
           z-index: -1;
           pointer-events: none;
+        }
+
+        /* Skeleton rows */
+        .skelRow {
+          pointer-events: none;
+          cursor: default;
+          opacity: 0.55;
+        }
+
+        .skel {
+          display: block;
+          border-radius: 4px;
+          background: linear-gradient(90deg, #ffffff10 25%, #ffffff1e 50%, #ffffff10 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.4s ease-in-out infinite;
+        }
+
+        .skelNum {
+          width: 40px;
+          height: 22px;
+          border-radius: 6px;
+        }
+
+        .skelSkin {
+          width: 56px;
+          height: 56px;
+          border-radius: 10px;
+        }
+
+        .skelName {
+          width: 70%;
+          height: 18px;
+          margin-bottom: 6px;
+        }
+
+        .skelPoints {
+          width: 45%;
+          height: 14px;
+        }
+
+        .skelBadge {
+          width: 34px;
+          height: 18px;
+          border-radius: 99px;
+        }
+
+        @keyframes shimmer {
+          0%   { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
         }
 
          /* Info panel */
