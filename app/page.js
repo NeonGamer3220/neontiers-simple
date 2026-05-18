@@ -589,8 +589,8 @@ export default function Page() {
             </div>
           )}
 
-          {/* Gamemode-specific tier board inline - no modal */}
-          {activeMode !== "Összes" && (
+{/* Gamemode-specific tier board inline - no modal */}
+           {activeMode !== "Összes" && !showInfo && (
             <div className="mainCard">
               <div className="modeBoard">
                 {[1, 2, 3, 4, 5].map((t) => {
