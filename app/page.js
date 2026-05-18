@@ -1197,6 +1197,7 @@ onClick={() => {
            display: flex;
            gap: 4px;
            align-items: flex-end;
+           margin-top: 6px;
          }
 
           .tabBtn {
