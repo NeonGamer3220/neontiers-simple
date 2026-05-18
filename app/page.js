@@ -1099,7 +1099,7 @@ export default function Page() {
         .rowNum {
           text-align: center;
           font-size: 21px;
-          font-weight: 900;
+          font-weight: 700;
           color: var(--muted);
         }
 
@@ -1200,7 +1200,7 @@ export default function Page() {
           margin-top: -3px;
           padding: 0 7px;
           font-size: 12px;
-          font-weight: 900;
+          font-weight: 700;
           line-height: 1;
         }
 
@@ -1228,7 +1228,7 @@ export default function Page() {
         .tierTooltipRank {
           color: var(--tier-accent);
           font-size: 14px;
-          font-weight: 900;
+          font-weight: 700;
           line-height: 1;
         }
 
@@ -1351,7 +1351,7 @@ export default function Page() {
            background: var(--column-surface);
            color: var(--column-accent);
            font-size: 18px;
-           font-weight: 900;
+           font-weight: 700;
            letter-spacing: -0.02em;
            border-bottom: 1px solid #ffffff0f;
          }
@@ -1434,7 +1434,7 @@ export default function Page() {
 
          .modeTierRank {
            font-size: 11px;
-           font-weight: 900;
+           font-weight: 700;
            color: var(--player-rank-text);
            background: var(--player-rank-surface);
            border: 1px solid var(--player-rank-border);
@@ -1568,7 +1568,7 @@ export default function Page() {
 
          .detailUsername {
            font-size: 24px;
-           font-weight: 900;
+           font-weight: 700;
            color: var(--text);
            margin-bottom: 16px;
            line-height: 1.2;
@@ -1597,7 +1597,7 @@ export default function Page() {
 
          .detailStatValue {
            font-size: 28px;
-           font-weight: 900;
+           font-weight: 700;
            color: var(--text);
            line-height: 1;
          }
@@ -1671,7 +1671,7 @@ export default function Page() {
            margin-top: -2px;
            padding: 0 6px;
            font-size: 11px;
-           font-weight: 900;
+           font-weight: 700;
            line-height: 1;
          }
 
@@ -1699,7 +1699,7 @@ export default function Page() {
          .detailTier .tierTooltipRank {
            color: var(--tier-accent);
            font-size: 14px;
-           font-weight: 900;
+           font-weight: 700;
            line-height: 1;
          }
 
