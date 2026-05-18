@@ -371,9 +371,9 @@ export default function Page() {
           </li>
           <li>
             <button className="navLink" onClick={showInfo ? closeInfo : openInfo} type="button" aria-expanded={showInfo ? "true" : "false"}>
-              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="white">
+              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
                 <circle cx="8" cy="8" r="7"/>
-                <path d="M7.75 6.5h.5v.5h-.5zm0 2h.5v3h-.5z" fill="#0b0e14"/>
+                <path d="M7.75 6.5h.5v.5h-.5zm0 2h.5v3h-.5z" fill="currentColor"/>
               </svg>
               Információ
             </button>
