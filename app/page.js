@@ -10,14 +10,13 @@ const EASTER_MODE = false;
 const SHOW_LISTS = true;
 
 const MODE_LIST = [
-  "Információ", "Összes",
+  "Összes",
   "Vanilla", "UHC", "Pot", "NethPot", "SMP",
   "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
   "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stick Fight", "Trident",
 ];
 
 const MODE_ICONS = {
-  Információ: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"%3E%3Ccircle cx="15" cy="15" r="12.5" fill="white"/%3E%3Ctext x="15" y="21" text-anchor="middle" font-family="serif" font-weight="800" font-size="14" fill="%230b0e14"%3Ei%3C/text%3E%3C/svg%3E',
   "Összes": "/images/overall.png",
   "Vanilla": "/images/vanilla.png",
   "UHC": "/images/uhc.png",
@@ -127,9 +126,10 @@ export default function Page() {
    const [showTierBoard, setShowTierBoard] = useState(false);
    const [selectedPlayer, setSelectedPlayer] = useState(null);
    const [showPlayerDetail, setShowPlayerDetail] = useState(false);
-   const [singleModeFilter, setSingleModeFilter] = useState(null);
+  const [singleModeFilter, setSingleModeFilter] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
 
-  useEffect(() => {
+   useEffect(() => {
     let alive = true;
     async function load() {
       try {
@@ -277,7 +277,15 @@ export default function Page() {
     setTimeout(() => setSelectedPlayer(null), 300);
   };
 
-  useEffect(() => {
+  const openInfo = () => {
+    setShowInfo(true);
+  };
+
+  const closeInfo = () => {
+    setShowInfo(false);
+  };
+
+   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && showTierBoard) {
         closeTierBoard();
@@ -339,28 +347,37 @@ export default function Page() {
           <ul className="navLinks">
             <li>
               <a className="navLink active" href="/">
-                <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
-                </svg>
-                Főoldal
-              </a>
-            </li>
-            <li>
-              <a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-                <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="white">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                </svg>
-                Mod
-              </a>
-            </li>
+              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="white">
+                <path d="M8.707 1.5a1 1 0 0 0-1.414 0L.646 8.146a.5.5 0 0 0 .708.708L2 8.207V13.5A1.5 1.5 0 0 0 3.5 15h9a1.5 1.5 0 0 0 1.5-1.5V8.207l.646.647a.5.5 0 0 0 .708-.708L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293zM13 7.207V13.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V7.207l5-5z"/>
+              </svg>
+              Főoldal
+            </a>
+          </li>
+          <li>
+            <a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
+              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="white">
+                <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/>
+              </svg>
+              Discord
+            </a>
+          </li>
+          <li>
+            <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
+              <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="white">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+              </svg>
+              Mod
+            </a>
+          </li>
+          <li>
+            <button className="navLink infoButton" onClick={showInfo ? closeInfo : openInfo} type="button">
+              <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="white">
+                <circle cx="8" cy="8" r="7"/>
+                <path d="M7.75 6.5h.5v.5h-.5zm0 2h.5v3h-.5z" fill="#0b0e14"/>
+              </svg>
+              Információ
+            </button>
+          </li>
           </ul>
           <span className="searchWrap">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
@@ -406,101 +423,26 @@ export default function Page() {
         {/* Main content */}
         <main className="mainWrap">
 
-          {/* Info panel — shown when the Információ tab is selected */}
-          {activeMode === "Információ" && (
+          {/* Info panel — shown when the navbar Információ button is clicked */}
+          {showInfo && (
             <div className="mainCard infoPanel">
-              <h2 className="infoPanelTitle">Adminisztrátori API</h2>
+              <h2 className="infoPanelTitle">Információ</h2>
               <p className="infoPanelText">
-                A <strong>NeonTiers</strong> backendje REST API-t nyújt a felmérések kezeléséhez.
-                Az API lehetővé teszi játékos hozzáadását, szint módosítást és próbák
-                eltávolítását egy egyszerű HTTP végponton keresztül.
+                A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség ranglistája.
+                Minden felmérés a <strong>NeonTiers Tagger</strong> mod segítségével történik,
+                így a rangsor a legpontosabb adatokon alapul.
               </p>
-
-              <h3 className="infoPanelSub">Endpoints</h3>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
-                <code className="infoPanelPath">/api/tests</code>
-                <span className="infoPanelDesc">Összes felmérés listázása (legfrissebb verzió)</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
-                <code className="infoPanelPath">/api/admin/check</code>
-                <span className="infoPanelDesc">Admin jogosultság ellenőrzése</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
-                <code className="infoPanelPath">/api/tests/rename</code>
-                <span className="infoPanelDesc">Játékos átnevezése az összes rekordban</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
-                <code className="infoPanelPath">/api/tests/retire</code>
-                <span className="infoPanelDesc">Játékos rekordjainak leállítása</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
-                <code className="infoPanelPath">/api/tests/remove</code>
-                <span className="infoPanelDesc">Játékos rekordjainak teljes törlése</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
-                <code className="infoPanelPath">/api/high-score-save</code>
-                <span className="infoPanelDesc">Egyedi magas pontszám mentése</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
-                <code className="infoPanelPath">/api/high-test</code>
-                <span className="infoPanelDesc">Új teszt futtatása (pontszám generálás)</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
-                <code className="infoPanelPath">/api/mojang/{"{username}"}</code>
-                <span className="infoPanelDesc">Játékos UUID lekérdezése a Mojang API-ból</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelMethod infoPanelMethodPost">POST</code>
-                <code className="infoPanelPath">/api/audit-log</code>
-                <span className="infoPanelDesc">Új naplóbejegyzés létrehozása</span>
-              </div>
-
-              <h3 className="infoPanelSub">Autentikáció</h3>
               <p className="infoPanelText">
-                Minden admin végpont <code className="infoPanelCode">Authorization</code> fejlécet igényel,
-                amit a <code className="infoPanelCode">/api/admin/login</code> endpointon tudsz beszerezni.
-                A sikeres bejelentkezéshez <strong>admin_name</strong> és <strong>admin_password</strong> mezők szükségesek,
-                amelyeket a környezeti változókban (env) kell beállítani.
+                Válaszd ki a játékmódot a füleken — Összes, Vanilla, UHC, Pot, Sword,
+                Axe, Mace és sok más — és tekintsd meg a játékosok pontszámait és
+                rangjaikat. A ranglista a legmagasabbra értékesített eredmények
+                alapján készül, így mindig a legfrissebb adatokat látod.
               </p>
-
-              <h3 className="infoPanelSub">Adatmodel</h3>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelPath">id</code>
-                <span className="infoPanelDesc">Egyedi azonosító (autoincrement)</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelPath">username</code>
-                <span className="infoPanelDesc">Játékos neve a rangsorban</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelPath">gamemode</code>
-                <span className="infoPanelDesc">Játékmód neve (pl. "Vanilla", "UHC"…)</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelPath">rank</code>
-                <span className="infoPanelDesc">Rang (pl. "HT1", "LT2", "LT5"…)</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelPath">points</code>
-                <span className="infoPanelDesc">Rangpont értéke</span>
-              </div>
-              <div className="infoPanelEndpoint">
-                <code className="infoPanelPath">created_at</code>
-                <span className="infoPanelDesc">Rekord létrehozásának dátuma</span>
-              </div>
             </div>
           )}
 
-          {/* Leaderboard - shown only for Összes */}
-          {activeMode === "Összes" && (
+           {/* Leaderboard - shown only for Összes */}
+           {activeMode === "Összes" && showInfo === false && (
             <div className="mainCard">
               {SHOW_LISTS ? (
                 <>
@@ -981,62 +923,16 @@ export default function Page() {
           font-weight: 700;
         }
 
-        .infoPanelCode {
-          font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
-          font-size: 12.5px;
+        .infoPanelLink {
           color: var(--accent);
-          background: #8f7cff18;
-          border: 1px solid #8f7cff28;
-          border-radius: 5px;
-          padding: 1px 6px;
-          white-space: nowrap;
+          font-weight: 700;
+          text-decoration: none;
+          transition: color 0.15s;
         }
 
-        .infoPanelEndpoint {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-          padding: 6px 0;
-        }
-
-        .infoPanelMethod {
-          font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
-          font-size: 10px;
-          font-weight: 800;
-          padding: 3px 7px;
-          border-radius: 4px;
-          letter-spacing: 0.05em;
-          white-space: nowrap;
-        }
-
-        .infoPanelMethodGet {
-          background: #22c55e20;
-          color: #4ade80;
-          border: 1px solid #22c55e40;
-        }
-
-        .infoPanelMethodPost {
-          background: #8f7cff20;
-          color: var(--accent);
-          border: 1px solid #8f7cff40;
-        }
-
-        .infoPanelPath {
-          font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
-          font-size: 12px;
-          color: var(--text);
-          background: #ffffff08;
-          border: 1px solid #ffffff14;
-          border-radius: 5px;
-          padding: 3px 10px;
-          white-space: nowrap;
-        }
-
-        .infoPanelDesc {
-          font-size: 13px;
-          color: var(--muted);
-          font-weight: 500;
+        .infoPanelLink:hover {
+          color: white;
+          text-decoration: underline;
         }
 
         /* Navbar */
