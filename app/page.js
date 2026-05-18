@@ -370,7 +370,7 @@ export default function Page() {
             </a>
           </li>
           <li>
-            <button className="navLink infoButton" onClick={showInfo ? closeInfo : openInfo} type="button">
+            <button className="navLink" onClick={showInfo ? closeInfo : openInfo} type="button" aria-expanded={showInfo ? "true" : "false"}>
               <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="white">
                 <circle cx="8" cy="8" r="7"/>
                 <path d="M7.75 6.5h.5v.5h-.5zm0 2h.5v3h-.5z" fill="#0b0e14"/>
@@ -429,8 +429,8 @@ export default function Page() {
               <h2 className="infoPanelTitle">Információ</h2>
               <p className="infoPanelText">
                 A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség ranglistája.
-                Minden felmérés a <strong>NeonTiers Tagger</strong> mod segítségével történik,
-                így a rangsor a legpontosabb adatokon alapul.
+                Minden felmérés a teszterek segítségével történik, így a rangsor a
+                legpontosabb adatokon alapul.
               </p>
               <p className="infoPanelText">
                 Válaszd ki a játékmódot a füleken — Összes, Vanilla, UHC, Pot, Sword,
@@ -438,6 +438,18 @@ export default function Page() {
                 rangjaikat. A ranglista a legmagasabbra értékesített eredmények
                 alapján készül, így mindig a legfrissebb adatokat látod.
               </p>
+
+              <h3 className="infoPanelSub">API</h3>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
+                <code className="infoPanelPath">/api/tests</code>
+                <span className="infoPanelDesc">Összes felmérés listázása</span>
+              </div>
+              <div className="infoPanelEndpoint">
+                <code className="infoPanelMethod infoPanelMethodGet">GET</code>
+                <code className="infoPanelPath">/api/mojang/{"{username}"}</code>
+                <span className="infoPanelDesc">Játékos UUID lekérdezése a Mojang API-ból</span>
+              </div>
             </div>
           )}
 
@@ -827,7 +839,9 @@ export default function Page() {
             <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
             <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
             <span className="footerDivider" aria-hidden="true">|</span>
-            <a className="footerNavLink" href="/admin">Admin</a>
+            <button className="footerNavLink" onClick={showInfo ? closeInfo : openInfo} type="button">
+              {showInfo ? "Ranglista" : "Információ"}
+            </button>
           </nav>
           <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
         </footer>
@@ -933,6 +947,47 @@ export default function Page() {
         .infoPanelLink:hover {
           color: white;
           text-decoration: underline;
+        }
+
+        .infoPanelEndpoint {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          flex-wrap: wrap;
+          padding: 5px 0;
+        }
+
+        .infoPanelMethod {
+          font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+          font-size: 9px;
+          font-weight: 800;
+          padding: 2px 6px;
+          border-radius: 4px;
+          letter-spacing: 0.06em;
+          white-space: nowrap;
+        }
+
+        .infoPanelMethodGet {
+          background: #22c55e18;
+          color: #4ade80;
+          border: 1px solid #22c55e30;
+        }
+
+        .infoPanelPath {
+          font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+          font-size: 11px;
+          color: var(--text);
+          background: #ffffff08;
+          border: 1px solid #ffffff14;
+          border-radius: 4px;
+          padding: 2px 8px;
+          white-space: nowrap;
+        }
+
+        .infoPanelDesc {
+          font-size: 13px;
+          color: var(--muted);
+          font-weight: 500;
         }
 
         /* Navbar */
