@@ -404,6 +404,27 @@ export default function Page() {
         {/* Main content */}
         <main className="mainWrap">
 
+          {/* Intro card — only on the Összes view */}
+          {activeMode === "Összes" && (
+            <div className="introCard">
+              <h2 className="introTitle">Mi az a NeonTiers?</h2>
+              <p className="introText">
+                A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség legpontosabb rangsora.
+                Minden felmérés a <strong>NeonTiers Tagger</strong> mod segítségével történik,
+                így a rangsor naprakész marad. Válaszd ki a játékmódot a füleken – az Összes,
+                Vanilla, UHC, Pot, Sword, Axe, Mace és még sok más közül – és tekintsd meg a
+                ranglistát valós időben.
+              </p>
+              <p className="introText">
+                A rangsor a legmagasabbra értékesített eredmények alapján készül, így mindig a
+                legfrissebb és legpontosabb adatokat láthatod. <strong>Csatlakozz a
+                <a className="introLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">&nbsp;Discord&nbsp;</a>
+                szerverünkhöz&nbsp;</strong>
+                a legfrissebb értesítésekért és frissítésekért!
+              </p>
+            </div>
+          )}
+
           {/* Leaderboard - shown only for Összes */}
           {activeMode === "Összes" && (
             <div className="mainCard">
@@ -789,6 +810,8 @@ export default function Page() {
             <a className="footerNavLink" href="https://render.crafty.gg">Crafty.gg</a>
             <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
             <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
+            <span className="footerDivider" aria-hidden="true">|</span>
+            <a className="footerNavLink" href="/admin">Admin</a>
           </nav>
           <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
         </footer>
@@ -844,6 +867,52 @@ export default function Page() {
           background: var(--bg);
           z-index: -1;
           pointer-events: none;
+        }
+
+         /* Intro card */
+        .introCard {
+          background: #0e1319cc;
+          border: 1px solid #ffffff12;
+          border-radius: 22px;
+          padding: 28px 32px;
+          margin-bottom: 22px;
+        }
+
+        .introTitle {
+          font-size: 17px;
+          font-weight: 800;
+          color: var(--text);
+          letter-spacing: -0.03em;
+          margin: 0 0 12px;
+        }
+
+        .introText {
+          font-size: 14px;
+          color: var(--muted);
+          line-height: 1.65;
+          font-weight: 500;
+          margin: 0 0 12px;
+        }
+
+        .introText:last-child {
+          margin-bottom: 0;
+        }
+
+        .introText strong {
+          color: var(--text);
+          font-weight: 700;
+        }
+
+        .introLink {
+          color: var(--accent);
+          font-weight: 700;
+          text-decoration: none;
+          transition: color 0.15s;
+        }
+
+        .introLink:hover {
+          color: white;
+          text-decoration: underline;
         }
 
         /* Navbar */
@@ -1749,7 +1818,14 @@ export default function Page() {
           gap: 16px;
           justify-content: center;
           flex-wrap: wrap;
+          align-items: center;
           margin-top: 14px;
+        }
+
+        .footerDivider {
+          color: var(--border-strong);
+          opacity: 0.5;
+          font-size: 12px;
         }
 
         .footerNavLink {
