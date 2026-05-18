@@ -333,7 +333,7 @@ export default function Page() {
       {/* Navbar */}
       <header className="navbar">
         <nav className="navInner">
-          <a className="navLogo" href="/">NeonTiers</a>
+          <h1 className="navLogo"><a href="/">NeonTiers</a></h1>
           <ul className="navLinks">
             <li>
               <a className="navLink active" href="/">
@@ -375,9 +375,6 @@ export default function Page() {
           </span>
         </nav>
         </header>
-
-        {/* Page / brand title — H1 for SEO */}
-        <h1 className="pgHeading">NeonTiers</h1>
 
         {/* Gamemode tabs */}
         <div className="tabsWrap">
@@ -841,37 +838,6 @@ export default function Page() {
           position: relative;
         }
 
-        /* Page H1 heading */
-        .pgHeading {
-          max-width: 1480px;
-          margin: 0 auto;
-          padding: 26px 20px 0;
-          font-size: 26px;
-          font-weight: 800;
-          color: var(--text);
-          line-height: 1.25;
-          letter-spacing: -0.03em;
-        }
-
-        .pgHeadingAccent {
-          color: var(--accent);
-        }
-
-        .pgHeadingSep {
-          display: inline-block;
-          width: 12px;
-          height: 1px;
-          background: var(--muted);
-          margin: 0 10px;
-          vertical-align: middle;
-          opacity: 0.6;
-        }
-
-        .pgHeadingSub {
-          color: var(--muted);
-          font-weight: 700;
-        }
-
         .bg {
           position: fixed;
           inset: 0;
@@ -903,11 +869,16 @@ export default function Page() {
         }
 
         .navLogo {
-          color: var(--text);
-          letter-spacing: -0.04em;
+          display: flex;
+          align-items: center;
+          justify-self: start;
           font-size: 20px;
           font-weight: 700;
-          justify-self: start;
+          letter-spacing: -0.04em;
+        }
+
+        .navLogo a {
+          color: var(--text);
           text-decoration: none;
         }
 
