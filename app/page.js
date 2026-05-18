@@ -1165,27 +1165,27 @@ onClick={() => {
            position: relative;
          }
 
-         .mainCard {
-          background: var(--bg-panel);
-          border: 1px solid var(--border);
-          border-radius: 24px;
-          padding: 22px 28px 28px;
-          margin-top: 20px;
-          position: relative;
-          box-shadow: 0 24px 72px #00000061;
-          overflow: visible;
-        }
+.mainCard {
+           background: var(--bg-panel);
+           border: 1px solid var(--border);
+           border-radius: 24px;
+           padding: 22px 28px 28px;
+           margin-top: 0;
+           position: relative;
+           box-shadow: 0 24px 72px #00000061;
+           overflow: visible;
+         }
 
          /* Tabs */
-         .tabsWrap {
-           max-width: 1480px;
-           margin: 0 auto;
-           padding-left: 20px;
-           padding-right: 20px;
-           margin-top: 24px;
-           position: relative;
-           z-index: 1;
-         }
+.tabsWrap {
+            max-width: 1480px;
+            margin: 0 auto;
+            padding-left: 20px;
+            padding-right: 20px;
+            margin-top: 0;
+            position: relative;
+            z-index: 1;
+          }
 
         .tabsScroller {
           overflow-x: auto;
