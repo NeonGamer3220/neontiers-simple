@@ -129,12 +129,7 @@ export default function Page() {
   const [singleModeFilter, setSingleModeFilter] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
 
-  // Progressive rendering: how many leaderboard rows are currently painted.
-  // Starts at 0, then grows in small batches until the full list is shown.
-  const [renderedLength, setRenderedLength] = useState(0);
-  const deferredBoard = useDeferredValue(leaderboard);
-
-   useEffect(() => {
+    useEffect(() => {
     let alive = true;
     async function load() {
       try {
@@ -290,26 +285,7 @@ export default function Page() {
     setShowInfo(false);
   };
 
-  // Render the leaderboard progressively: start with 0 rows in the
-  // first paint, then add ~55 more rows every animation frame until the
-  // full list is painted. Keeps the thread unblocked even with thousands
-  // of players.
-  useEffect(() => {
-    let rafId;
-    function step() {
-      setRenderedLength(prev => {
-        if (prev >= deferredBoard.length) return deferredBoard.length;
-        return prev + 55;
-      });
-      if (renderedLength < deferredBoard.length) {
-        rafId = requestAnimationFrame(step);
-      }
-    }
-    rafId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafId);
-  }, [tests, loading, activeMode, singleModeFilter]);
-
-  useEffect(() => {
+   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && showTierBoard) {
         closeTierBoard();
@@ -320,7 +296,7 @@ export default function Page() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showTierBoard, showPlayerDetail]);
+   }, [showTierBoard, showPlayerDetail]);
 
   useEffect(() => {
     if (showTierBoard) {
@@ -527,13 +503,13 @@ export default function Page() {
                          </span>
                        </div>
                      ))
-                   ) : deferredBoard.length === 0 ? (
-                    <div className="emptyState">
-                  <h3 className="emptyTitle">Nincs adat</h3>
-                  <div className="emptySub">Még nincs mentett teszt eredmény.</div>
-                </div>
-                ) : (
-                  deferredBoard.slice(0, renderedLength).map((p, idx) => (
+                    ) : leaderboard.length === 0 ? (
+                     <div className="emptyState">
+                   <h3 className="emptyTitle">Nincs adat</h3>
+                   <div className="emptySub">Még nincs mentett teszt eredmény.</div>
+                 </div>
+                  ) : (
+                  leaderboard.map((p, idx) => (
                     <div
                       key={p.username}
                       id={p.username}
