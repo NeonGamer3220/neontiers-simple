@@ -14,29 +14,34 @@ export default function Informaciok() {
           Vissza
         </Link>
 
-        <h1>Információk</h1>
+        <h1>Információ</h1>
 
-        <section>
-          <h2>NeonTiers</h2>
-          <p>A NeonTiers egy Minecraft teljesítmény követő rendszer, amely nyomon követi a játékosok teszt eredményeit különböző gamemode-okban.</p>
-        </section>
+        <p className="infoText">
+          A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség ranglistája.
+          Minden felmérés a teszterek segítségével történik, így a rangsor a
+          legpontosabb adatokon alapul.
+        </p>
+        <p className="infoText">
+          Válaszd ki a játékmódot a füleken - Összes, Vanilla, UHC, Pot, Sword,
+          Axe, Mace és sok más - és tekintsd meg a játékosok pontszámait és
+          rangjaikat. A ranglista a legmagasabbra értékesített eredmények
+          alapján készül, így mindig a legfrissebb adatokat látod.
+        </p>
 
-        <section>
-          <h2>Rangsor</h2>
-          <p>A rangok összpontszámítás alapján vannak kiszámítva. Minden gamemode pontszáma a megfelelő tier-hez rendelődik.</p>
-        </section>
-
-        <section>
-          <h2>API</h2>
-          <p>Teszt eredmények lekérése:</p>
-          <div className="endpoint">
-            <span className="method">GET</span>
-            <span className="path">/api/tests</span>
-          </div>
-        </section>
+        <h2 className="infoSub">API</h2>
+        <div className="endpoint">
+          <span className="method">GET</span>
+          <span className="path">/api/tests</span>
+          <span className="desc">Összes felmérés listázása</span>
+        </div>
+        <div className="endpoint">
+          <span className="method">GET</span>
+          <span className="path">/api/mojang/{"{username}"}</span>
+          <span className="desc">Játékos UUID lekérdezése a Mojang API-ból</span>
+        </div>
 
         <footer>
-          <p>© {new Date().getFullYear()} NeonTiers</p>
+          © {new Date().getFullYear()} NeonTiers
         </footer>
       </main>
 
@@ -80,25 +85,27 @@ export default function Informaciok() {
           color: #fff;
           margin: 0 0 24px;
         }
-        .infoCard h2 {
+        .infoText {
+          color: rgba(255,255,255,0.85);
+          line-height: 1.6;
+          margin: 0 0 12px;
+        }
+        .infoText strong { color: #fff; font-weight: 700; }
+        .infoSub {
           font-size: 16px;
           font-weight: 700;
           color: #8f7cff;
           margin: 24px 0 8px;
         }
-        .infoCard p {
-          color: rgba(255,255,255,0.85);
-          line-height: 1.6;
-          margin: 0 0 12px;
-        }
         .endpoint {
           display: flex;
           align-items: center;
           gap: 10px;
-          margin-top: 8px;
+          flex-wrap: wrap;
+          padding: 5px 0;
         }
         .method {
-          font-family: monospace;
+          font-family: "JetBrains Mono", monospace;
           font-size: 11px;
           font-weight: 800;
           padding: 4px 10px;
@@ -108,19 +115,23 @@ export default function Informaciok() {
           border: 1px solid #22c55e30;
         }
         .path {
-          font-family: monospace;
+          font-family: "JetBrains Mono", monospace;
           font-size: 14px;
           color: #fff;
           background: rgba(255,255,255,0.08);
           padding: 4px 12px;
           border-radius: 4px;
         }
+        .desc {
+          color: rgba(255,255,255,0.6);
+          font-size: 13px;
+        }
         footer {
           margin-top: 32px;
           padding-top: 16px;
           border-top: 1px solid rgba(255,255,255,0.08);
-          text-align: center;
           color: rgba(255,255,255,0.5);
+          font-size: 14px;
         }
       `}</style>
     </div>

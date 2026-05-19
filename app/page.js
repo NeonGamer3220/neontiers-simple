@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
@@ -119,7 +118,6 @@ function skinUrl(username) {
 }
 
 export default function Page() {
-  const router = useRouter();
   const [activeMode, setActiveMode] = useState("Összes");
   const [query, setQuery] = useState("");
 const [tests, setTests] = useState([]);
@@ -392,21 +390,13 @@ const closePlayerDetail = () => {
          <div className="tabsScroller">
            <div className="tabRow">
              {MODE_LIST.map((m) => (
-                <button
-                  key={m}
-                  className={`tabBtn ${activeMode === m ? "active" : ""}`}
-onClick={() => {
-                    setActiveMode(m);
-                    if (m !== "Összes") {
-                      const modeKey = Object.entries(MODE_DISPLAY_MAP).find(([k, v]) => v === m)?.[0] || m.toLowerCase();
-                      router.push(`/${modeKey}`);
-                    } else {
-                      router.push("/");
-                    }
-                  }}
-                  aria-pressed={activeMode === m}
-                  type="button"
-                >
+<button
+                   key={m}
+                   className={`tabBtn ${activeMode === m ? "active" : ""}`}
+                   onClick={() => setActiveMode(m)}
+                   aria-pressed={activeMode === m}
+                   type="button"
+                 >
                  {MODE_ICONS[m] && (
                    <img className="tabIcon" src={MODE_ICONS[m]} alt={`${m} ikon`} width={30} height={30} loading="lazy" decoding="async" />
                  )}
