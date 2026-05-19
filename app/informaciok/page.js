@@ -1,16 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Head from "next/head";
 
 export default function Informaciok() {
   return (
-    <>
-      <Head>
-        <title>Információ - NeonTiers</title>
-        <meta name="description" content="A NeonTiers a magyar Minecraft PvP közösség ranglistája. Teszt eredmények, rangsorok, gamemode-ok és API dokumentáció." />
-      </Head>
-      <div className="infoPage">
+    <div className="infoPage">
       <div className="infoBackdrop" />
       <main className="infoCard">
         <Link href="/" className="infoBack">
@@ -25,33 +19,13 @@ export default function Informaciok() {
         <p className="infoText">
           A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség ranglistája.
           Minden felmérés a teszterek segítségével történik, így a rangsor a
-          legpontosabb adatokon alapul. A rendszer különböző játékmódokban
-          nyilvántartja a játékosok teljesítményeit és ranglistákat készít.
+          legpontosabb adatokon alapul.
         </p>
         <p className="infoText">
-          A rangsor oldalon többféle nézetben tekintheted meg az eredményeket.
-          Az Összes fülön láthatod a játékosok összpontszámítású ranglistáját,
-          míg a gamemode fülek különböző játékmódokban való teljesítményeket
-          mutatják. Minden gamemode-nél megtekintheted a játékosok pontszámait
-          és rangjaikat, amelyeket a HT (High Tier) és LT (Low Tier) rendszer
-          határozza meg.
-        </p>
-        <p className="infoText">
-          A rangok értékelése a következőképpen működik: minden HT vagy LT
-          rang tisztázott pontértékkel rendelkezik, amelyek összeadásakor
-          kapjuk a játékos teljes pontszámát. Minél magasabb a tier, annál
-          több pontot érhet el a játékos. A ranglista időben folyamatosan
-          frissül a legújabb teszt eredményeikkel.
-        </p>
-
-        <h2 className="infoSub">Támogatott játékmódok</h2>
-        <p className="infoText">
-          A rendszer jelenleg több mint 15 különböző játékmódot támogat,
-          köztük Vanilla, UHC, Pot, Sword, Axe, Mace, Cart, Creeper,
-          DiaSMP és még soroljunk bele SpearMace, SpearElytra, ShieldlessUHC
-          és Stick Fight játékmódokat is. Minden játékmód külön rangsorral
-          rendelkezik, ami lehetővé teszi a játékosoknak, hogy különböző
-          gamemode-okban is külön-külön mérődék legyenek.
+          Válaszd ki a játékmódot a füleken - Összes, Vanilla, UHC, Pot, Sword,
+          Axe, Mace és sok más - és tekintsd meg a játékosok pontszámait és
+          rangjaikat. A ranglista a legmagasabbra értékesített eredmények
+          alapján készül, így mindig a legfrissebb adatokat látod.
         </p>
 
         <h2 className="infoSub">API</h2>
@@ -161,6 +135,5 @@ export default function Informaciok() {
         }
       `}</style>
     </div>
-    </>
   );
 }

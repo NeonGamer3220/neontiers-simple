@@ -360,6 +360,14 @@ const closePlayerDetail = () => {
                 Mod
               </a>
             </li>
+            <li>
+              <a className="navLink" href="/informaciok">
+                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 3.5A2.5 2.5 0 0 0 4.5 6v12A2.5 2.5 0 0 0 7 20.5h10a2.5 2.5 0 0 0 2.5-2.5V9.4a2.5 2.5 0 0 0-.73-1.77l-3.4-3.4A2.5 2.5 0 0 0 13.6 3.5H7Zm6 1.8v3.1c0 .72.58 1.3 1.3 1.3h3.1V18a.5.5 0 0 1-.5.5H7a.5.5 0 0 1-.5-.5V6a.5.5 0 0 1 .5-.5h6Zm-4.5 7.7h7v1.7h-7V13Zm0-3.6h3.8v1.7H8.5V9.4Z" fill="currentColor"/>
+                </svg>
+                Információk
+              </a>
+            </li>
             </ul>
            <span className="searchWrap">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
@@ -419,34 +427,6 @@ const closePlayerDetail = () => {
                       </a>
                     </div>
 </div>
-
-                   {/* Info panel */}
-                   <div className="infoPanel">
-                     <h2 className="infoPanelTitle">Információ</h2>
-                     <p className="infoPanelText">
-                       A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség ranglistája.
-                       Minden felmérés a teszterek segítségével történik, így a rangsor a
-                       legpontosabb adatokon alapul.
-                     </p>
-                     <p className="infoPanelText">
-                       Válaszd ki a játékmódot a füleken - Összes, Vanilla, UHC, Pot, Sword,
-                       Axe, Mace és sok más - és tekintsd meg a játékosok pontszámait és
-                       rangjaikat. A ranglista a legmagasabbra értékesített eredmények
-                       alapján készül, így mindig a legfrissebb adatokat látod.
-                     </p>
-
-                     <h3 className="infoPanelSub">API</h3>
-                     <div className="infoPanelEndpoint">
-                       <code className="infoPanelMethod infoPanelMethodGet">GET</code>
-                       <code className="infoPanelPath">/api/tests</code>
-                       <span className="infoPanelDesc">Összes felmérés listázása</span>
-                     </div>
-                     <div className="infoPanelEndpoint">
-                       <code className="infoPanelMethod infoPanelMethodGet">GET</code>
-                       <code className="infoPanelPath">/api/mojang/{"{username}"}</code>
-                       <span className="infoPanelDesc">Játékos UUID lekérdezése a Mojang API-ból</span>
-                     </div>
-                   </div>
 
                    {/* Column headers */}
                   <h2 className="colHead">
@@ -827,7 +807,9 @@ const closePlayerDetail = () => {
              <a className="footerNavLink" href="https://render.crafty.gg">Crafty.gg</a>
              <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
              <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
-          </nav>
+             <span className="footerDivider" aria-hidden="true">|</span>
+             <a className="footerNavLink" href="/informaciok">Információk</a>
+           </nav>
           <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
         </footer>
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
