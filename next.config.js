@@ -20,7 +20,7 @@ const nextConfig = {
       { source: '/spearelytra', destination: '/?mode=spearelytra' },
       { source: '/stickfight', destination: '/?mode=stickfight' },
       { source: '/trident', destination: '/?mode=trident' },
-    ];
+      ];
   },
 };
 
