@@ -418,9 +418,37 @@ const closePlayerDetail = () => {
                         <span>Discord</span>
                       </a>
                     </div>
-                  </div>
+</div>
 
-                  {/* Column headers */}
+                   {/* Info panel */}
+                   <div className="infoPanel">
+                     <h2 className="infoPanelTitle">Információ</h2>
+                     <p className="infoPanelText">
+                       A <strong>NeonTiers</strong> a magyar Minecraft PvP közösség ranglistája.
+                       Minden felmérés a teszterek segítségével történik, így a rangsor a
+                       legpontosabb adatokon alapul.
+                     </p>
+                     <p className="infoPanelText">
+                       Válaszd ki a játékmódot a füleken - Összes, Vanilla, UHC, Pot, Sword,
+                       Axe, Mace és sok más - és tekintsd meg a játékosok pontszámait és
+                       rangjaikat. A ranglista a legmagasabbra értékesített eredmények
+                       alapján készül, így mindig a legfrissebb adatokat látod.
+                     </p>
+
+                     <h3 className="infoPanelSub">API</h3>
+                     <div className="infoPanelEndpoint">
+                       <code className="infoPanelMethod infoPanelMethodGet">GET</code>
+                       <code className="infoPanelPath">/api/tests</code>
+                       <span className="infoPanelDesc">Összes felmérés listázása</span>
+                     </div>
+                     <div className="infoPanelEndpoint">
+                       <code className="infoPanelMethod infoPanelMethodGet">GET</code>
+                       <code className="infoPanelPath">/api/mojang/{"{username}"}</code>
+                       <span className="infoPanelDesc">Játékos UUID lekérdezése a Mojang API-ból</span>
+                     </div>
+                   </div>
+
+                   {/* Column headers */}
                   <h2 className="colHead">
                     <span className="colHash">#</span>
                     <span className="colSkinSpacer" aria-hidden="true"></span>
