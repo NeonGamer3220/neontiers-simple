@@ -548,95 +548,78 @@ const closePlayerDetail = () => {
           )}
 
 {/* Gamemode-specific tier board inline - no modal */}
-           {activeMode !== "Összes" && (
-            <div className="mainCard">
-              <div className="modeBoard">
-                {[1, 2, 3, 4, 5].map((t) => {
-                  const tierPlayers = leaderboard.filter(p => {
-                    const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
-                    return entry && tierFromRank(entry.rank) === t;
-                  });
-                  return (
-                    <section
-                      key={t}
-                      className="modeTierColumn"
-                      style={{
-                        '--column-accent': TIER_COLORS[t].accent,
-                        '--column-surface': TIER_COLORS[t].surface,
-                      }}
-                    >
-                      <header className="modeTierHead">
-                        <span className="modeTierHeadIcon">{TIER_ICONS[t]}</span>
-                        <span className="modeTierNumber">Tier {t}</span>
-                      </header>
-                      <div className="modeTierList">
-                        {tierPlayers.length > 0 ? (
-                           tierPlayers.map((p, i) => {
-                              const entry = (p.entries || []).find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
-                              const rank = entry ? entry.rank : safeInt(RANK_POINTS["LT1"], 40);
-                             const badgeColor = rankBadgeColor(rank);
-                             return (
-                                <div
-                                  key={`${p.username}-${i}`}
-                                  className="modeTierPlayer"
-                                  onClick={() => handlePlayerClick(p)}
-                                  style={{
-                                    '--player-accent': badgeColor,
-                                    '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                    '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                    '--player-rank-surface': `${badgeColor}33`,
-                                    '--player-rank-border': `${badgeColor}44`,
-                                    '--player-rank-text': badgeColor,
-                                  }}
-                                >
-                                <img
-                                  className="modeTierSkin"
-                                  src={skinUrl(p.username)}
-                                  alt={p.username}
-                                  width={38}
-                                  height={38}
-                                  loading="lazy"
-                                  decoding="async"
-                                  referrerPolicy="no-referrer"
-                                />
-                                <span className="modeTierName">{p.username}</span>
-                                <span className="modeTierRank">{rank}</span>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div className="emptyTierList">Nincs játékos</div>
-                        )}
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+            {activeMode !== "Összes" && (
+             <div className="mainCard">
+               <div className="modeBoard">
+                 {["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
+                   const tierPlayers = leaderboard.filter(p => {
+                     const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                     return entry && entry.rank.toUpperCase() === r;
+                   });
+                   return (
+                     <section
+                       key={r}
+                       className="modeTierColumn"
+                       style={{
+                         '--column-accent': TIER_COLORS[tierFromRank(r)].accent,
+                         '--column-surface': TIER_COLORS[tierFromRank(r)].surface,
+                       }}
+                     >
+                       <header className="modeTierHead">
+                         <span className="modeTierHeadIcon">{TIER_ICONS[tierFromRank(r)]}</span>
+                         <span className="modeTierNumber">{r}</span>
+                       </header>
+                       <div className="modeTierList">
+                         {tierPlayers.length > 0 ? (
+                            tierPlayers.map((p, i) => {
+                               const entry = (p.entries || []).find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                               const rank = entry ? entry.rank : safeInt(RANK_POINTS["LT1"], 40);
+                              const badgeColor = rankBadgeColor(rank);
+                              return (
+                                 <div
+                                   key={`${p.username}-${i}`}
+                                   className="modeTierPlayer"
+                                   onClick={() => handlePlayerClick(p)}
+                                   style={{
+                                     '--player-accent': badgeColor,
+                                     '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                     '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                     '--player-rank-surface': `${badgeColor}33`,
+                                     '--player-rank-border': `${badgeColor}44`,
+                                     '--player-rank-text': badgeColor,
+                                   }}
+                                 >
+                                 <img
+                                   className="modeTierSkin"
+                                   src={skinUrl(p.username)}
+                                   alt={p.username}
+                                   width={38}
+                                   height={38}
+                                   loading="lazy"
+                                   decoding="async"
+                                   referrerPolicy="no-referrer"
+                                 />
+                                 <span className="modeTierName">{p.username}</span>
+                                 <span className="modeTierRank">{rank}</span>
+                               </div>
+                             );
+                           })
+                         ) : (
+                           <div className="emptyTierList">Nincs játékos</div>
+                         )}
+                       </div>
+                     </section>
+                   );
+                 })}
+               </div>
+             </div>
+           )}
         </main>
 
 
         {/* Tier Board Modal */}
         {(() => {
           if (!showTierBoard || !tierBoardMode) return null;
-          const tiers = { 1: [], 2: [], 3: [], 4: [], 5: [] };
-          eachModePlayer().forEach((p) => {
-            const t = tierFromRank(p.rank);
-            if (t && tiers[t]) tiers[t].push(p);
-          });
-          Object.keys(tiers).forEach(t => {
-            tiers[t].sort((a, b) => (b.points || 0) - (a.points || 0));
-          });
-
-          const tierIcons = {
-            1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
-            2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
-            3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
-            4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
-            5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
-          };
-
           const tierColors = {
             1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
             2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
@@ -656,54 +639,55 @@ const closePlayerDetail = () => {
                     </svg>
                   </button>
                 </div>
-                <div className="modeBoard">
-{[1, 2, 3, 4, 5].map((t) => (
-                    tiers[t] && tiers[t].length > 0 && (
-                     <section key={t} className="modeTierColumn" style={{
-                       '--column-accent': tierColors[t].accent,
-                       '--column-surface': tierColors[t].surface,
-                     }}>
-                       <header className="modeTierHead">
-                         <span className="modeTierHeadIcon">{tierIcons[t]}</span>
-                         <span className="modeTierNumber">{t}</span>
-                       </header>
-                       <div className="modeTierList">
-                         {tiers[t].map((p, i) => {
-                           const badgeColor = rankBadgeColor(p.rank);
-                           return (
-                             <button
-                               key={`${p.username}-${i}`}
-                               className="modeTierPlayer"
-                               type="button"
-                               style={{
-                                 '--player-accent': badgeColor,
-                                 '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                 '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                 '--player-rank-surface': `${badgeColor}33`,
-                                 '--player-rank-border': `${badgeColor}44`,
-                                 '--player-rank-text': badgeColor,
-                               }}
-                             >
-                               <img
-                                 className="modeTierSkin"
-                                 src={skinUrl(p.username)}
-                                 alt={p.username}
-                                 width={38}
-                                 height={38}
-                                 loading="lazy"
-                                 decoding="async"
-                                 referrerPolicy="no-referrer"
-                               />
-                               <span className="modeTierName">{p.username}</span>
-                                <span className="modeTierRank">{p.rank}</span>
-                             </button>
-                           );
-                         })}
-                       </div>
-                     </section>
-                   )
-                 ))}
-               </div>
+<div className="modeBoard">
+{["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
+                    const rankPlayers = eachModePlayer().filter(p => p.rank.toUpperCase() === r);
+                    return rankPlayers.length > 0 && (
+                      <section key={r} className="modeTierColumn" style={{
+                        '--column-accent': tierColors[tierFromRank(r)].accent,
+                        '--column-surface': tierColors[tierFromRank(r)].surface,
+                      }}>
+                        <header className="modeTierHead">
+                          <span className="modeTierHeadIcon">{tierIcons[tierFromRank(r)]}</span>
+                          <span className="modeTierNumber">{r}</span>
+                        </header>
+                        <div className="modeTierList">
+                          {rankPlayers.map((p, i) => {
+                            const badgeColor = rankBadgeColor(p.rank);
+                            return (
+                              <button
+                                key={`${p.username}-${i}`}
+                                className="modeTierPlayer"
+                                type="button"
+                                style={{
+                                  '--player-accent': badgeColor,
+                                  '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                  '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                  '--player-rank-surface': `${badgeColor}33`,
+                                  '--player-rank-border': `${badgeColor}44`,
+                                  '--player-rank-text': badgeColor,
+                                }}
+                              >
+                                <img
+                                  className="modeTierSkin"
+                                  src={skinUrl(p.username)}
+                                  alt={p.username}
+                                  width={38}
+                                  height={38}
+                                  loading="lazy"
+                                  decoding="async"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <span className="modeTierName">{p.username}</span>
+                                 <span className="modeTierRank">{p.rank}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </section>
+                    );
+                  })}
+                </div>
              </div>
            </div>
          );
@@ -838,17 +822,18 @@ const closePlayerDetail = () => {
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
-        body {
-          margin: 0;
-          padding: 0;
-          min-height: 100%;
-          color: var(--text);
-          background: transparent;
-          font-family: Montserrat;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          text-rendering: optimizelegibility;
-        }
+body {
+           margin: 0;
+           padding: 0;
+           min-height: 100%;
+           color: var(--text);
+           background: transparent;
+           font-family: "Montserrat";
+           font-weight: 800;
+           -webkit-font-smoothing: antialiased;
+           -moz-osx-font-smoothing: grayscale;
+           text-rendering: optimizelegibility;
+         }
 
         a, button, input { font: inherit; }
         img { max-width: 100%; display: block; }
@@ -1490,15 +1475,15 @@ const closePlayerDetail = () => {
           height: 14px;
         }
 
-         .modeBoard {
-           display: grid;
-           grid-template-columns: repeat(5, minmax(220px, 1fr));
-           align-items: start;
-           gap: 12px;
-           padding: 2px 2px 8px;
-           overflow-x: auto;
-           background: transparent;
-         }
+.modeBoard {
+            display: grid;
+            grid-template-columns: repeat(10, minmax(220px, 1fr));
+            align-items: start;
+            gap: 12px;
+            padding: 2px 2px 8px;
+            overflow-x: auto;
+            background: transparent;
+          }
 
          .modeBoard::-webkit-scrollbar { display: none; }
          .modeBoard { scrollbar-width: none; }
@@ -1515,20 +1500,21 @@ const closePlayerDetail = () => {
            contain-intrinsic-size: 480px;
          }
 
-         .modeTierHead {
-           display: flex;
-           align-items: center;
-           gap: 10px;
-           justify-content: center;
-           padding: 0 18px;
-           min-height: 56px;
-           background: var(--column-surface);
-           color: var(--column-accent);
-           font-size: 18px;
-           font-weight: 700;
-           letter-spacing: -0.02em;
-           border-bottom: 1px solid #ffffff0f;
-         }
+.modeTierHead {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            padding: 0 18px;
+            min-height: 56px;
+            background: var(--column-surface);
+            color: var(--column-accent);
+            font-size: 18px;
+            font-weight: 800;
+            font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+            letter-spacing: -0.02em;
+            border-bottom: 1px solid #ffffff0f;
+          }
 
          .modeTierHeadIcon {
            flex-shrink: 0;
@@ -1542,26 +1528,27 @@ const closePlayerDetail = () => {
             flex-direction: column;
           }
 
-          .modeTierPlayer {
-            display: grid;
-            grid-template-columns: 38px minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            padding: 8px 12px;
-            background: var(--mode-player-surface, #ffffff08);
-            border: 1px solid #ffffff0d;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
-            position: relative;
-            color: var(--text);
-            font-size: 15px;
-            font-weight: 800;
-            min-height: 54px;
-            content-visibility: auto;
-            contain-intrinsic-size: 54px;
-          }
+.modeTierPlayer {
+             display: grid;
+             grid-template-columns: 38px minmax(0, 1fr) auto;
+             align-items: center;
+             gap: 10px;
+             width: 100%;
+             padding: 8px 12px;
+             background: var(--mode-player-surface, #ffffff08);
+             border: 1px solid #ffffff0d;
+             border-radius: 8px;
+             cursor: pointer;
+             transition: background 0.15s, border-color 0.15s;
+             position: relative;
+             color: var(--text);
+             font-size: 15px;
+             font-weight: 800;
+             font-family: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+             min-height: 54px;
+             content-visibility: auto;
+             contain-intrinsic-size: 54px;
+           }
 
           .modeTierPlayer:hover {
             background: var(--mode-player-surface-hover, #ffffff0e);
