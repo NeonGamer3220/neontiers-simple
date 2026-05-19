@@ -807,16 +807,24 @@ const closePlayerDetail = () => {
 
 
         <style jsx global>{`
-          :root {
-          --bg: #0b0e14;
-          --bg-deep: #0b0e14;
-          --bg-panel: #0b0d11f5;
-          --bg-panel-strong: #0b0d11f5;
-          --border: #ffffff14;
-          --border-strong: #ffffff24;
-          --text: #fffffff0;
-          --muted: #ffffff9e;
-          --accent: #8f7cff;
+:root {
+           --bg: #0b0e14;
+           --bg-deep: #0b0e14;
+           --bg-panel: #0b0d11f5;
+           --bg-panel-strong: #0b0d11f5;
+           --border: #ffffff14;
+           --border-strong: #ffffff24;
+           --text: #fffffff0;
+           --muted: #ffffff9e;
+           --accent: #8f7cff;
+         }
+
+        @font-face {
+          font-family: "Montserrat";
+          font-weight: 800;
+          font-style: normal;
+          font-display: swap;
+          src: url("/fonts/JTUSjIg1_i6t8kCHKm459WZhyzbi.woff2") format("woff2");
         }
 
         * { box-sizing: border-box; }
