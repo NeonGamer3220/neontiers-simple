@@ -657,8 +657,8 @@ const closePlayerDetail = () => {
                   </button>
                 </div>
                 <div className="modeBoard">
-                 {[1, 2, 3, 4, 5].map((t) => (
-                   tiers[t] && tiers[t].length > 0 && (
+{[1, 2, 3, 4, 5].map((t) => (
+                    tiers[t] && tiers[t].length > 0 && (
                      <section key={t} className="modeTierColumn" style={{
                        '--column-accent': tierColors[t].accent,
                        '--column-surface': tierColors[t].surface,
