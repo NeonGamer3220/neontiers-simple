@@ -352,23 +352,15 @@ const closePlayerDetail = () => {
                Discord
              </a>
            </li>
-           <li>
-             <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
-               <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-                 <path d="M11.14 3.38a1.7 1.7 0 0 1 1.72 0l6 3.42A1.72 1.72 0 0 1 19.72 8v8a1.72 1.72 0 0 1-.86 1.48l-6 3.42a1.7 1.7 0 0 1-1.72 0l-6-3.42A1.72 1.72 0 0 1 4.28 16V8c0-.62.33-1.2.86-1.49l6-3.13Zm.86 2.03L7.16 8.17 12 10.93l4.84-2.76L12 5.41Zm-5.72 4.2V15L11 17.67v-5.52L6.28 9.6Zm7.72 8.06 4.72-2.68V9.6L13 12.15v5.52Z"/>
-               </svg>
-               Mod
-             </a>
-           </li>
 <li>
-              <a className="navLink" href="/informaciok">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M7 3.5A2.5 2.5 0 0 0 4.5 6v12A2.5 2.5 0 0 0 7 20.5h10a2.5 2.5 0 0 0 2.5-2.5V9.4a2.5 2.5 0 0 0-.73-1.77l-3.4-3.4A2.5 2.5 0 0 0 13.6 3.5H7Zm6 1.8v3.1c0 .72.58 1.3 1.3 1.3h3.1V18a.5.5 0 0 1-.5.5H7a.5.5 0 0 1-.5-.5V6a.5.5 0 0 1 .5-.5h6Zm-4.5 7.7h7v1.7h-7V13Zm0-3.6h3.8v1.7H8.5V9.4Z" fill="currentColor"/>
+              <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
+                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                  <path d="M11.14 3.38a1.7 1.7 0 0 1 1.72 0l6 3.42A1.72 1.72 0 0 1 19.72 8v8a1.72 1.72 0 0 1-.86 1.48l-6 3.42a1.7 1.7 0 0 1-1.72 0l-6-3.42A1.72 1.72 0 0 1 4.28 16V8c0-.62.33-1.2.86-1.49l6-3.13Zm.86 2.03L7.16 8.17 12 10.93l4.84-2.76L12 5.41Zm-5.72 4.2V15L11 17.67v-5.52L6.28 9.6Zm7.72 8.06 4.72-2.68V9.6L13 12.15v5.52Z"/>
                 </svg>
-                Információk
+                Mod
               </a>
             </li>
-           </ul>
+            </ul>
            <span className="searchWrap">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
               <path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/>
@@ -803,12 +795,10 @@ const closePlayerDetail = () => {
 
         <footer className="pageFooter">
           <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
-          <nav className="footerNav" aria-label="Oldalak">
-            <a className="footerNavLink" href="https://render.crafty.gg">Crafty.gg</a>
-            <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
-            <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
-            <span className="footerDivider" aria-hidden="true">|</span>
-            <a className="footerNavLink" href="/informaciok">Információk</a>
+<nav className="footerNav" aria-label="Oldalak">
+             <a className="footerNavLink" href="https://render.crafty.gg">Crafty.gg</a>
+             <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
+             <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
           </nav>
           <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
         </footer>
