@@ -54,6 +54,7 @@ function displayMode(mode) {
 }
 
 const RANK_POINTS = {
+  RLT2: 0.5, RLT1: 0.7, RHT2: 0.8,
   LT5: 1, HT5: 2, LT4: 3, HT4: 4,
   LT3: 6, HT3: 10, LT2: 16, HT2: 28,
   LT1: 40, HT1: 60,
@@ -65,6 +66,7 @@ const TIER_ICONS = {
   3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
   4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
   5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
+  retired: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 7l-.86 12.14a2 2 0 01-2 1.86H8.86a2 2 0 01-2-1.86L5 7m5 4v6m4-6v6M9 4h6m2 2H7"/></svg>,
 };
 
 const TIER_COLORS = {
@@ -73,11 +75,14 @@ const TIER_COLORS = {
   3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
   4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
   5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
+  retired: { accent: "#8f7cff", surface: "rgba(143, 124, 255, 0.22)" },
 };
 
 function tierFromRank(rank) {
   if (!rank || typeof rank !== "string") return null;
-  const m = rank.match(/([LH]T)([1-5])/i);
+  const r = rank.toUpperCase();
+  if (r.startsWith("RLT") || r.startsWith("RHT")) return "retired";
+  const m = r.match(/([LH]T)([1-5])/);
   if (!m) return null;
   return Number(m[2]);
 }
@@ -558,7 +563,7 @@ const closePlayerDetail = () => {
             {activeMode !== "Összes" && (
              <div className="mainCard">
                <div className="modeBoard">
-                 {["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
+{["RLT1", "RLT2", "RHT2", "HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
                    const tierPlayers = leaderboard.filter(p => {
                      const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
                      return entry && entry.rank.toUpperCase() === r;
@@ -627,12 +632,13 @@ const closePlayerDetail = () => {
         {/* Tier Board Modal */}
         {(() => {
           if (!showTierBoard || !tierBoardMode) return null;
-          const tierColors = {
+const tierColors = {
             1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
             2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
             3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
             4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
             5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
+            retired: { accent: "#8f7cff", surface: "rgba(143, 124, 255, 0.22)" },
           };
 
           return (
@@ -647,7 +653,7 @@ const closePlayerDetail = () => {
                   </button>
                 </div>
 <div className="modeBoard">
-{["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
+{["RLT1", "RLT2", "RHT2", "HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
                     const rankPlayers = eachModePlayer().filter(p => p.rank.toUpperCase() === r);
                     return rankPlayers.length > 0 && (
                       <section key={r} className="modeTierColumn" style={{
@@ -655,7 +661,7 @@ const closePlayerDetail = () => {
                         '--column-surface': tierColors[tierFromRank(r)].surface,
                       }}>
                         <header className="modeTierHead">
-                          <span className="modeTierHeadIcon">{tierIcons[tierFromRank(r)]}</span>
+                          <span className="modeTierHeadIcon">{TIER_ICONS[tierFromRank(r)]}</span>
                           <span className="modeTierNumber">{r}</span>
                         </header>
                         <div className="modeTierList">
@@ -806,51 +812,29 @@ const closePlayerDetail = () => {
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
 
 
-        <style jsx global>{`
+<style jsx global>{`
 :root {
-           --bg: #0b0e14;
-           --bg-deep: #0b0e14;
-           --bg-panel: #0b0d11f5;
-           --bg-panel-strong: #0b0d11f5;
-           --border: #ffffff14;
-           --border-strong: #ffffff24;
-           --text: #fffffff0;
-           --muted: #ffffff9e;
-           --accent: #8f7cff;
-         }
+            --bg: #0b0e14;
+            --bg-deep: #0b0e14;
+            --bg-panel: #0b0d11f5;
+            --bg-panel-strong: #0b0d11f5;
+            --border: #ffffff14;
+            --border-strong: #ffffff24;
+            --text: #fffffff0;
+            --muted: #ffffff9e;
+            --accent: #8f7cff;
+          }
 
-        @font-face {
-          font-family: "Montserrat";
-          font-weight: 800;
-          font-style: normal;
-          font-display: swap;
-          src: url("/fonts/JTUSjIg1_i6t8kCHKm459WZhyzbi.woff2") format("woff2");
-        }
+         * { box-sizing: border-box; }
 
-        * { box-sizing: border-box; }
-
-        html {
-          background: var(--bg);
-          color-scheme: dark;
-          scroll-behavior: smooth;
-          min-height: 100%;
-          font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-        }
-
-body {
-           margin: 0;
-           padding: 0;
+html {
+           background: var(--bg);
+           color-scheme: dark;
+           scroll-behavior: smooth;
            min-height: 100%;
-           color: var(--text);
-           background: transparent;
-           font-family: "Montserrat";
-           font-weight: 800;
-           -webkit-font-smoothing: antialiased;
-           -moz-osx-font-smoothing: grayscale;
-           text-rendering: optimizelegibility;
          }
 
-        a, button, input { font: inherit; }
+         a, button, input { font: inherit; }
         img { max-width: 100%; display: block; }
 
         .page {

@@ -1,4 +1,11 @@
 import "./globals.css";
+import { Montserrat } from "next/font/google";
+
+const montserrat = Montserrat({
+  weight: "800",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "NeonTiers – Magyar Minecraft PvP Rangsor",
@@ -27,8 +34,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="hu">
-      <head />
+    <html lang="hu" className={montserrat.className}>
       <body suppressHydrationWarning>{children}</body>
     </html>
   );
