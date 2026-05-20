@@ -559,66 +559,68 @@ const closePlayerDetail = () => {
             {activeMode !== "Összes" && (
              <div className="mainCard">
                <div className="modeBoard">
-{["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
-                   const tierPlayers = leaderboard.filter(p => {
-                     const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
-                     return entry && entry.rank.toUpperCase() === r;
-                   });
-                   return (
-                     <section
-                       key={r}
-                       className="modeTierColumn"
-                       style={{
-                         '--column-accent': TIER_COLORS[tierFromRank(r)].accent,
-                         '--column-surface': TIER_COLORS[tierFromRank(r)].surface,
-                       }}
-                     >
-                       <header className="modeTierHead">
-                         <span className="modeTierHeadIcon">{TIER_ICONS[tierFromRank(r)]}</span>
-                         <span className="modeTierNumber">{r}</span>
-                       </header>
-                       <div className="modeTierList">
-                         {tierPlayers.length > 0 ? (
-                            tierPlayers.map((p, i) => {
-                               const entry = (p.entries || []).find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
-                               const rank = entry ? entry.rank : safeInt(RANK_POINTS["LT1"], 40);
-                              const badgeColor = rankBadgeColor(rank);
-                              return (
-                                 <div
-                                   key={`${p.username}-${i}`}
-                                   className="modeTierPlayer"
-                                   onClick={() => handlePlayerClick(p)}
-                                   style={{
-                                     '--player-accent': badgeColor,
-                                     '--mode-player-surface': 'rgba(255,255,255,0.018)',
-                                     '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
-                                     '--player-rank-surface': `${badgeColor}33`,
-                                     '--player-rank-border': `${badgeColor}44`,
-                                     '--player-rank-text': badgeColor,
-                                   }}
-                                 >
-                                 <img
-                                   className="modeTierSkin"
-                                   src={skinUrl(p.username)}
-                                   alt={p.username}
-                                   width={38}
-                                   height={38}
-                                   loading="lazy"
-                                   decoding="async"
-                                   referrerPolicy="no-referrer"
-                                 />
-                                 <span className="modeTierName">{p.username}</span>
-                                 <span className="modeTierRank">{rank}</span>
-                               </div>
-                             );
-                           })
-                         ) : (
-                           <div className="emptyTierList">Nincs játékos</div>
-                         )}
-                       </div>
-                     </section>
-                   );
-                 })}
+{[1, 2, 3, 4, 5].map((tier) => {
+                    const tierPlayers = leaderboard.filter(p => {
+                      const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                      if (!entry) return false;
+                      const entryTier = tierFromRank(entry.rank);
+                      return entryTier === tier;
+                    });
+                    return (
+                      <section
+                        key={tier}
+                        className="modeTierColumn"
+                        style={{
+                          '--column-accent': TIER_COLORS[tier].accent,
+                          '--column-surface': TIER_COLORS[tier].surface,
+                        }}
+                      >
+                        <header className="modeTierHead">
+                          <span className="modeTierHeadIcon">{TIER_ICONS[tier]}</span>
+                          <span className="modeTierNumber">Tier {tier}</span>
+                        </header>
+                        <div className="modeTierList">
+                          {tierPlayers.length > 0 ? (
+                             tierPlayers.map((p, i) => {
+                                const entry = (p.entries || []).find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                                const rank = entry ? entry.rank : "LT1";
+                               const badgeColor = rankBadgeColor(rank);
+                               return (
+                                  <div
+                                    key={`${p.username}-${i}`}
+                                    className="modeTierPlayer"
+                                    onClick={() => handlePlayerClick(p)}
+                                    style={{
+                                      '--player-accent': badgeColor,
+                                      '--mode-player-surface': 'rgba(255,255,255,0.018)',
+                                      '--mode-player-surface-hover': 'rgba(255,255,255,0.035)',
+                                      '--player-rank-surface': `${badgeColor}33`,
+                                      '--player-rank-border': `${badgeColor}44`,
+                                      '--player-rank-text': badgeColor,
+                                    }}
+                                  >
+                                  <img
+                                    className="modeTierSkin"
+                                    src={skinUrl(p.username)}
+                                    alt={p.username}
+                                    width={38}
+                                    height={38}
+                                    loading="lazy"
+                                    decoding="async"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                  <span className="modeTierName">{p.username}</span>
+                                  <span className="modeTierRank">{rank}</span>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="emptyTierList">Nincs játékos</div>
+                          )}
+                        </div>
+                      </section>
+                    );
+                  })}
                </div>
              </div>
            )}
@@ -648,19 +650,22 @@ const tierColors = {
                   </button>
                 </div>
 <div className="modeBoard">
-{["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
-                    const rankPlayers = eachModePlayer().filter(p => p.rank.toUpperCase() === r);
-                    return rankPlayers.length > 0 && (
-                      <section key={r} className="modeTierColumn" style={{
-                        '--column-accent': tierColors[tierFromRank(r)].accent,
-                        '--column-surface': tierColors[tierFromRank(r)].surface,
+{[1, 2, 3, 4, 5].map((tier) => {
+                    const tierPlayers = eachModePlayer().filter(p => {
+                      const entryTier = tierFromRank(p.rank);
+                      return entryTier === tier;
+                    });
+                    return tierPlayers.length > 0 && (
+                      <section key={tier} className="modeTierColumn" style={{
+                        '--column-accent': tierColors[tier].accent,
+                        '--column-surface': tierColors[tier].surface,
                       }}>
                         <header className="modeTierHead">
-                          <span className="modeTierHeadIcon">{TIER_ICONS[tierFromRank(r)]}</span>
-                          <span className="modeTierNumber">{r}</span>
+                          <span className="modeTierHeadIcon">{TIER_ICONS[tier]}</span>
+                          <span className="modeTierNumber">Tier {tier}</span>
                         </header>
                         <div className="modeTierList">
-                          {rankPlayers.map((p, i) => {
+                          {tierPlayers.map((p, i) => {
                             const badgeColor = rankBadgeColor(p.rank);
                             return (
                               <button
@@ -687,7 +692,7 @@ const tierColors = {
                                   referrerPolicy="no-referrer"
                                 />
                                 <span className="modeTierName">{p.username}</span>
-                                 <span className="modeTierRank">{p.rank}</span>
+                                <span className="modeTierRank">{p.rank}</span>
                               </button>
                             );
                           })}
