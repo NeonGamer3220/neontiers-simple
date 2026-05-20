@@ -1475,29 +1475,32 @@ html {
         }
 
 .modeBoard {
-            display: grid;
-            grid-template-columns: repeat(10, minmax(220px, 1fr));
-            align-items: start;
-            gap: 12px;
-            padding: 2px 2px 8px;
-            overflow-x: auto;
-            background: transparent;
+             display: grid;
+             grid-template-columns: repeat(5, minmax(220px, 1fr));
+             justify-content: center;
+             align-items: start;
+             gap: 12px;
+             padding: 2px 2px 8px;
+             overflow-x: auto;
+             background: transparent;
+           }
+
+          .modeBoard::-webkit-scrollbar { display: none; }
+          .modeBoard { scrollbar-width: none; }
+
+.modeTierColumn {
+            min-width: 220px;
+            width: 100%;
+            max-width: 260px;
+            background: #ffffff07;
+            border: 1px solid #ffffff12;
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            content-visibility: auto;
+            contain-intrinsic-size: 480px;
           }
-
-         .modeBoard::-webkit-scrollbar { display: none; }
-         .modeBoard { scrollbar-width: none; }
-
-         .modeTierColumn {
-           min-width: 220px;
-           background: #ffffff07;
-           border: 1px solid #ffffff12;
-           border-radius: 20px;
-           overflow: hidden;
-           display: flex;
-           flex-direction: column;
-           content-visibility: auto;
-           contain-intrinsic-size: 480px;
-         }
 
 .modeTierHead {
             display: flex;
