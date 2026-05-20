@@ -54,7 +54,6 @@ function displayMode(mode) {
 }
 
 const RANK_POINTS = {
-  RLT2: 0.5, RLT1: 0.7, RHT2: 0.8,
   LT5: 1, HT5: 2, LT4: 3, HT4: 4,
   LT3: 6, HT3: 10, LT2: 16, HT2: 28,
   LT1: 40, HT1: 60,
@@ -66,7 +65,6 @@ const TIER_ICONS = {
   3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
   4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
   5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
-  retired: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 7l-.86 12.14a2 2 0 01-2 1.86H8.86a2 2 0 01-2-1.86L5 7m5 4v6m4-6v6M9 4h6m2 2H7"/></svg>,
 };
 
 const TIER_COLORS = {
@@ -75,13 +73,11 @@ const TIER_COLORS = {
   3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
   4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
   5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
-  retired: { accent: "#8f7cff", surface: "rgba(143, 124, 255, 0.22)" },
 };
 
 function tierFromRank(rank) {
   if (!rank || typeof rank !== "string") return null;
   const r = rank.toUpperCase();
-  if (r.startsWith("RLT") || r.startsWith("RHT")) return "retired";
   const m = r.match(/([LH]T)([1-5])/);
   if (!m) return null;
   return Number(m[2]);
@@ -563,7 +559,7 @@ const closePlayerDetail = () => {
             {activeMode !== "Összes" && (
              <div className="mainCard">
                <div className="modeBoard">
-{["RLT1", "RLT2", "RHT2", "HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
+{["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
                    const tierPlayers = leaderboard.filter(p => {
                      const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
                      return entry && entry.rank.toUpperCase() === r;
@@ -638,7 +634,6 @@ const tierColors = {
             3: { accent: "#dd8849", surface: "rgba(221, 136, 73, 0.22)" },
             4: { accent: "#b7aadf", surface: "rgba(183, 170, 223, 0.22)" },
             5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
-            retired: { accent: "#8f7cff", surface: "rgba(143, 124, 255, 0.22)" },
           };
 
           return (
@@ -653,7 +648,7 @@ const tierColors = {
                   </button>
                 </div>
 <div className="modeBoard">
-{["RLT1", "RLT2", "RHT2", "HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
+{["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"].map((r) => {
                     const rankPlayers = eachModePlayer().filter(p => p.rank.toUpperCase() === r);
                     return rankPlayers.length > 0 && (
                       <section key={r} className="modeTierColumn" style={{
