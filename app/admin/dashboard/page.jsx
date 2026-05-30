@@ -387,13 +387,29 @@ const toggleRetired = (index) => {
 
 const handleRefreshName = async () => {
     if (!newNameInput.trim()) { setToast({ type: "error", text: "Addj meg egy érvényes játékosnevet!" }); return; }
+    if (!selectedPlayer) return;
     try {
-      const res = await fetch(`/api/mojang?username=${encodeURIComponent(newNameInput.trim())}`);
-      if (!res.ok) { setToast({ type: "error", text: "Nem található a játékos a Mojang adatbázisában." }); return; }
-      const data = await res.json();
-      setToast({ type: "ok", text: `Név frissítve: ${data.name}` });
-      const refreshed = getPlayerData(data.name, showUntested);
-      setSelectedPlayer(refreshed);
+      const validateRes = await fetch(`/api/mojang?username=${encodeURIComponent(newNameInput.trim())}`);
+      if (!validateRes.ok) { setToast({ type: "error", text: "Nem található a játékos a Mojang adatbázisában." }); return; }
+      const validateData = await validateRes.json();
+      
+      // Call rename API to transfer tiers from old name to new name
+      const renameRes = await fetch("/api/tests/rename", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          oldName: selectedPlayer.username,
+          newName: validateData.name,
+        }),
+      });
+      const renameData = await renameRes.json();
+      if (!renameRes.ok) {
+        setToast({ type: "error", text: renameData.error || "Hiba a név megváltoztatásakor" });
+        return;
+      }
+      
+      setToast({ type: "ok", text: `Név megváltoztatva: ${selectedPlayer.username} → ${validateData.name}` });
+      await loadTests();
       setNewNameInput("");
     } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
   };

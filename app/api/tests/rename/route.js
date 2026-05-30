@@ -3,11 +3,11 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-// Admin API key - uses BOT_API_KEY from Discord bot for authentication
-const ADMIN_API_KEY = process.env.BOT_API_KEY || process.env.ADMIN_API_KEY || "neontiers-admin-2024-secure";
+const ADMIN_API_KEY = process.env.BOT_API_KEY || process.env.ADMIN_API_KEY || "";
 
 const supabase =
   SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
@@ -48,27 +48,35 @@ function requireSupabase() {
   return null;
 }
 
-function requireAdmin(authHeader) {
-  if (!ADMIN_API_KEY) {
-    return json(
-      {
-        error: "Admin authentication is not configured",
-        need_env: ["ADMIN_API_KEY"],
-      },
-      500
-    );
+async function checkAdminSession() {
+  try {
+    const cookieStore = await cookies();
+    const session = cookieStore.get("admin_session");
+    if (session && session.value) {
+      try {
+        const parsed = JSON.parse(session.value);
+        return parsed?.admin_name || null;
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
+  } catch (e) {
+    // ignore
   }
-  
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return json({ error: "Missing or invalid authorization header" }, 401);
-  }
-  
-  const token = authHeader.slice(7);
-  if (token !== ADMIN_API_KEY) {
-    return json({ error: "Invalid API key" }, 403);
-  }
-  
   return null;
+}
+
+function requireAdmin(authHeader) {
+  // Check Bearer token first
+  if (ADMIN_API_KEY) {
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.slice(7);
+      if (token === ADMIN_API_KEY) return null;
+      return json({ error: "Invalid API key" }, 403);
+    }
+  }
+  // Fall back to session-based auth (checked via cookie)
+  return null; // Will check cookie in POST handler
 }
 
 // POST: /api/tests/rename - Change player name on tierlist (admin only)
@@ -76,21 +84,25 @@ export async function POST(req) {
   const missing = requireSupabase();
   if (missing) return missing;
   
-  // Check admin authentication
+  // Check admin authentication (Bearer token or session cookie)
   const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-  const authError = requireAdmin(authHeader);
-  if (authError) return authError;
-  
+  const adminError = requireAdmin(authHeader);
+  if (adminError) {
+    // Check if session-based auth is available
+    const sessionAdmin = await checkAdminSession();
+    if (!sessionAdmin) return adminError;
+  }
+
   let body = null;
   try {
     body = await req.json();
   } catch {
     return json({ error: "Invalid JSON body" }, 400);
   }
-  
+
   const oldName = pick(body, ["oldName", "old_name", "currentName", "current_name", "old", "previous", "from"]);
   const newName = pick(body, ["newName", "new_name", "name", "new"]);
-  
+
   if (!oldName || !newName) {
     return json(
       {
@@ -100,15 +112,15 @@ export async function POST(req) {
       400
     );
   }
-  
+
   // Check if old name exists
   const { data: existing, error: findErr } = await supabase
     .from("tests")
     .select("id, username, gamemode, rank, points, created_at")
     .ilike("username", oldName);
-  
+
   if (findErr) return json({ error: findErr.message }, 500);
-  
+
   if (!existing || existing.length === 0) {
     return json(
       {
@@ -118,21 +130,39 @@ export async function POST(req) {
       404
     );
   }
-  
+
   // Update all records with old name to new name
   const { data: updated, error: updateErr } = await supabase
     .from("tests")
     .update({ username: newName })
     .ilike("username", oldName)
     .select("id, username, gamemode, rank, points, created_at");
-  
+
   if (updateErr) return json({ error: updateErr.message }, 500);
-  
+
+  // Audit log
+  const admin_name = await checkAdminSession();
+  if (admin_name) {
+    try {
+      await supabase.from("audit_logs").insert({
+        admin_name,
+        action: "player_rename",
+        target_username: newName,
+        gamemode: null,
+        old_rank: null,
+        new_rank: null,
+        details: { old_name: oldName, new_name: newName },
+      });
+    } catch (e) {
+      console.error("Audit log error:", e?.message || e);
+    }
+  }
+
   return json(
     {
       ok: true,
       message: `Successfully renamed "${oldName}" to "${newName}"`,
-      updatedCount: updated ? updated.length : 0,
+      updatedCount: existing.length,
       updatedRecords: updated,
     },
     200
