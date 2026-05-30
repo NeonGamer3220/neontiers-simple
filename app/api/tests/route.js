@@ -15,18 +15,11 @@ const supabase =
       })
     : null;
 
-// Rang -> pont (a te map-ed)
+// ELO-based rank points mapping
 const RANK_POINTS = {
-  LT5: 1,
-  HT5: 2,
-  LT4: 3,
-  HT4: 4,
-  LT3: 6,
-  HT3: 10,
-  LT2: 16,
-  HT2: 28,
-  LT1: 40,
-  HT1: 60,
+  500: 1, 750: 2, 1000: 3, 1250: 4,
+  1500: 6, 1750: 10, 2000: 16, 2500: 28,
+  3000: 40, 4000: 60,
   Unranked: 0,
 };
 
@@ -70,11 +63,20 @@ function normMode(s) {
 }
 
 function normRank(s) {
-  const r = String(s || "").trim();
-  if (!r) return "";
-  const up = r.toUpperCase();
-  if (up === "UNRANKED") return "Unranked";
-  return up;
+  if (s === null || s === undefined || String(s).trim() === "") return null;
+  const r = String(s || "").trim().toUpperCase();
+  if (r === "UNRANKED") return 0;
+  // Check if it's already a numeric ELO
+  const num = Number(r);
+  if (!Number.isNaN(num)) return num;
+  // Legacy: try to convert tier strings to ELO
+  const LEGACY_TIER_TO_ELO = {
+    LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
+    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2500,
+    LT1: 3000, HT1: 4000,
+  };
+  if (LEGACY_TIER_TO_ELO[r] !== undefined) return LEGACY_TIER_TO_ELO[r];
+  return null;
 }
 
 function requireSupabase() {
@@ -125,22 +127,31 @@ export async function GET(req) {
     return json({ tests: data || [] });
   }
 
-  // Get random player for a specific mode and tier
+  // Legacy tier to ELO mapping for backward compatibility
+const LEGACY_TIER_TO_ELO = {
+  LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
+  LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2500,
+  LT1: 3000, HT1: 4000,
+};
+
+// Get random player for a specific mode and tier
   const mode = (searchParams.get("mode") || "").trim();
   const tier = (searchParams.get("tier") || "").trim();
 
   if (mode && tier) {
+    // Convert tier to ELO if it's a legacy string
+    const eloTier = LEGACY_TIER_TO_ELO[tier.toUpperCase()] ?? Number(tier);
     const { data, error } = await supabase
       .from("tests")
-      .select("id,username,gamemode,rank,points,created_at")
+      .select("id,username,gamemode,rank,points,created_at,retired")
       .ilike("gamemode", mode)
-      .ilike("rank", tier)
+      .eq("rank", eloTier)
       .limit(100); // Fetch a batch to pick from
 
     if (error) return json({ error: error.message }, 500);
 
-    // Filter out retired players manually (ranks starting with R)
-    const activePlayers = (data || []).filter(p => !p.rank.startsWith("R"));
+    // Filter out retired players
+    const activePlayers = (data || []).filter(p => !p.retired);
 
     if (activePlayers.length === 0) {
       return json({ player: null, message: "No players found for this mode and tier" });
@@ -156,7 +167,7 @@ export async function GET(req) {
 
   const { data, error } = await supabase
     .from("tests")
-    .select("id,username,gamemode,rank,points,created_at")
+    .select("id,username,gamemode,rank,points,created_at,retired")
     .order("points", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -190,7 +201,8 @@ export async function POST(req) {
   ]);
 
   const gamemodeRaw = pick(body, ["gamemode", "game_mode", "mode", "gameMode", "testmode"]);
-  const rankRaw = pick(body, ["rank", "tier", "earned_rank", "earnedRank", "result"]);
+  const rankRaw = pick(body, ["rank", "tier", "earned_rank", "earnedRank", "earned_tier", "result"]);
+  const retiredRaw = body?.retired === true || body?.retired === "true";
 
   const gamemode = normMode(gamemodeRaw);
   const rank = normRank(rankRaw);
@@ -216,7 +228,7 @@ export async function POST(req) {
   // 1) Előző rekord lekérése (ez kell a botnak!)
   const { data: prev, error: prevErr } = await supabase
     .from("tests")
-    .select("id,username,gamemode,rank,points,created_at")
+    .select("id,username,gamemode,rank,points,created_at,retired")
     .ilike("username", username)
     .ilike("gamemode", gamemode)
     .maybeSingle();
@@ -229,6 +241,7 @@ export async function POST(req) {
     gamemode,
     rank,
     points,
+    retired: retiredRaw,
     created_at: new Date().toISOString(),
   };
 
@@ -241,7 +254,7 @@ export async function POST(req) {
       .from("tests")
       .update(row)
       .eq("id", id)
-      .select("id,username,gamemode,rank,points,created_at")
+      .select("id,username,gamemode,rank,points,created_at,retired")
       .maybeSingle();
     saved = data;
     saveErr = error;
@@ -250,7 +263,7 @@ export async function POST(req) {
       const ups = await supabase
         .from("tests")
         .upsert(row, { onConflict: "username,gamemode" })
-        .select("id,username,gamemode,rank,points,created_at")
+        .select("id,username,gamemode,rank,points,created_at,retired")
         .maybeSingle();
       saved = ups.data;
       saveErr = ups.error;
@@ -264,7 +277,7 @@ export async function POST(req) {
     const res = await supabase
       .from("tests")
       .upsert(insertRow, { onConflict: "id" })
-      .select("id,username,gamemode,rank,points,created_at")
+      .select("id,username,gamemode,rank,points,created_at,retired")
       .maybeSingle();
     saved = res.data;
     saveErr = res.error;
@@ -273,7 +286,7 @@ export async function POST(req) {
       const ups2 = await supabase
         .from("tests")
         .upsert(insertRow, { onConflict: "username,gamemode" })
-        .select("id,username,gamemode,rank,points,created_at")
+        .select("id,username,gamemode,rank,points,created_at,retired")
         .maybeSingle();
       saved = ups2.data;
       saveErr = ups2.error;

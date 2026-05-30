@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const TIER_FIELDS = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
-const RANK_ORDER = ["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"];
+const TIER_FIELDS = [1500, 1750, 2000, 2500, 3000, 4000];
+const RANK_ORDER = [4000, 3000, 2500, 2000, 1750, 1500, 1250, 1000, 750, 500];
 
 const MODE_OPTIONS = [
   "Vanilla",
@@ -78,20 +78,22 @@ function findBestRank(ranks) {
 }
 
 const TIER_COLORS = {
-  HT1: "#d5b355",
-  LT1: "#d5b355",
-  HT2: "#a4b3c7",
-  LT2: "#a4b3c7",
-  HT3: "#dd8849",
-  LT3: "#dd8849",
-  HT4: "#b7aadf",
-  LT4: "#b7aadf",
-  HT5: "#6f6389",
-  LT5: "#6f6389",
+  4000: "#d5b355",
+  3000: "#d5b355",
+  2500: "#a4b3c7",
+  2000: "#888d95",
+  1750: "#dd8849",
+  1500: "#b36830",
+  1250: "#b7aadf",
+  1000: "#514764",
+  750: "#6f6389",
+  500: "#40384f",
+  0: "#888d95",
 };
 
 function tierColor(tier) {
-  return TIER_COLORS[tier] || "#ffffff";
+  const num = Number(tier);
+  return TIER_COLORS[num] || TIER_COLORS[0] || "#ffffff";
 }
 
 function hexToRgba(hex, alpha) {
@@ -114,12 +116,12 @@ export default function AdminHighscorePage() {
   const [testedTier, setTestedTier] = useState("");
   const [earnedTier, setEarnedTier] = useState("");
   const [fightNotes, setFightNotes] = useState({
-    LT3: "",
-    HT3: "",
-    LT2: "",
-    HT2: "",
-    LT1: "",
-    HT1: "",
+    1500: "",
+    1750: "",
+    2000: "",
+    2500: "",
+    3000: "",
+    4000: "",
   });
 
   useEffect(() => {
@@ -176,7 +178,7 @@ export default function AdminHighscorePage() {
     setEarnedTier(bestRank);
     setGamemode("");
     setResult("");
-    setFightNotes({ LT3: "", HT3: "", LT2: "", HT2: "", LT1: "", HT1: "" });
+    setFightNotes({ 1500: "", 1750: "", 2000: "", 2500: "", 3000: "", 4000: "" });
     setSearchQuery("");
     setSuggestions([]);
   };
@@ -192,11 +194,12 @@ export default function AdminHighscorePage() {
       return;
     }
 
-    const filledNotes = TIER_FIELDS.some((tier) => fightNotes[tier].trim().length > 0);
-    const isHighTier = earnedTier.startsWith("HT3") || earnedTier.startsWith("HT2") || earnedTier.startsWith("HT1");
+    const filledNotes = TIER_FIELDS.some((tier) => fightNotes[tier]?.trim().length > 0);
+    const earnedElo = Number(earnedTier) || 0;
+    const isHighTier = earnedElo >= 1750;
 
     if (isHighTier && !filledNotes) {
-      alert("HT3 vagy magasabb tiernél legalább egy magas eredmény mezőt ki kell tölteni.");
+      alert("1750+ ELO vagy afeletti megszerzett tierhez legalább egy magas eredmény mezőt ki kell tölteni.");
       return;
     }
 
@@ -372,30 +375,30 @@ export default function AdminHighscorePage() {
                        )}
                      </div>
                   </div>
-          <div className="highscoreFormRow">
-            <div className="inputGroup">
-              <label>Játékmód</label>
-              <div className="fightGrid">
-                {TIER_FIELDS.map((tier) => (
-                  <div key={tier} className="fightGroup">
-                    <label>{tier} FIGHTOK</label>
-                    <textarea
-                      value={fightNotes[tier]}
-                      onChange={(e) => handleNoteChange(tier, e.target.value)}
-                      placeholder={`nyert 4-1 Ellenfél\nvesztett 2-4 Ellenfél`}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+<div className="highscoreFormRow">
+             <div className="inputGroup">
+               <label>Játékmód</label>
+               <div className="fightGrid">
+                 {TIER_FIELDS.map((tier) => (
+                   <div key={tier} className="fightGroup">
+                     <label>{tier} ELO FIGHTOK</label>
+                     <textarea
+                       value={fightNotes[tier] || ""}
+                       onChange={(e) => handleNoteChange(tier, e.target.value)}
+                       placeholder={`nyert 4-1 Ellenfél\nvesztett 2-4 Ellenfél`}
+                     />
+                   </div>
+                 ))}
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
 
         <div className="highscoreSidebar">
-                  <div className="sidebarTitle">Magas eredmény adatai</div>
-                 <p>HT3 vagy afeletti megszerzett tierhez legalább egy magas eredmény mezőt ki kell tölteni.</p>
-                 <p>Kezdő tier: a teszt elindításakor meglévő tier. Megszerzett tier a teszt végeredménye.</p>
+                   <div className="sidebarTitle">Magas eredmény adatai</div>
+                  <p>1750+ ELO vagy afeletti megszerzett tierhez legalább egy magas eredmény mezőt ki kell tölteni.</p>
+                  <p>Kezdő tier: a teszt elindításakor meglévő tier. Megszerzett tier a teszt végeredménye.</p>
                  <p>Az itt megadott jegyzetek segítenek a Discord bot és a tier adminisztrátorok számára.</p>
                 </div>
             </div>

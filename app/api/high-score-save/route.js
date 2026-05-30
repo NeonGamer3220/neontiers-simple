@@ -35,18 +35,29 @@ const supabase =
       })
     : null;
 
+// ELO-based rank points mapping
 const RANK_POINTS = {
-  LT5: 1,
-  HT5: 2,
-  LT4: 3,
-  HT4: 4,
-  LT3: 6,
-  HT3: 10,
-  LT2: 16,
-  HT2: 28,
-  LT1: 40,
-  HT1: 60,
+  500: 1, 750: 2, 1000: 3, 1250: 4,
+  1500: 6, 1750: 10, 2000: 16, 2500: 28,
+  3000: 40, 4000: 60,
 };
+
+// Legacy tier to ELO mapping for backward compatibility
+const LEGACY_TIER_TO_ELO = {
+  LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
+  LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2500,
+  LT1: 3000, HT1: 4000,
+};
+
+function normRank(s) {
+  if (s === null || s === undefined || String(s).trim() === "") return null;
+  const r = String(s || "").trim().toUpperCase();
+  if (r === "UNRANKED") return 0;
+  const num = Number(r);
+  if (!Number.isNaN(num)) return num;
+  if (LEGACY_TIER_TO_ELO[r] !== undefined) return LEGACY_TIER_TO_ELO[r];
+  return null;
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -70,12 +81,10 @@ function surrogateIdFor(username, gamemode) {
   return positive + 2_000_000_000;
 }
 
-function normRank(s) {
-  const r = String(s || "").trim();
-  if (!r) return "";
-  const up = r.toUpperCase();
-  if (up === "UNRANKED") return "Unranked";
-  return up;
+function displayEloRank(earned, tested) {
+  const format = (elo) => elo ? String(elo) : "";
+  if (tested && earned) return `${format(tested)} → ${format(earned)}`;
+  return format(earned);
 }
 
 function getAdminName() {
@@ -135,7 +144,7 @@ export async function POST(req) {
   // Get previous record for audit
   const { data: prev } = await supabase
     .from("tests")
-    .select("id,username,gamemode,rank,points,created_at")
+    .select("id,username,gamemode,rank,points,created_at,retired")
     .ilike("username", username)
     .ilike("gamemode", gamemode)
     .maybeSingle();
@@ -193,15 +202,14 @@ export async function POST(req) {
   // Insert into discord_notifications table for the bot to pick up
   let notificationCreated = false;
   try {
-    const { error: notifyErr } = await supabase.from("discord_notifications").insert({
-      username,
-      gamemode,
-      tested_tier: rank,
-      tested_tier_start: testedRank || null,
-      result: result || "Sikeres",
-      fight_notes,
-      processed: false,
-    });
+const { error: notifyErr } = await supabase.from("discord_notifications").insert({
+       username,
+       gamemode,
+       tested_tier_start: String(testedRank) || null,
+       result: result || "Sikeres",
+       fight_notes,
+       processed: false,
+     });
     if (notifyErr) {
       console.error("Failed to create notification:", notifyErr.message);
     } else {
@@ -216,15 +224,15 @@ export async function POST(req) {
     try {
       const modeIcon = MODE_ICONS[gamemode] || "🎮";
       const resultText = result || "Sikeres";
-
-      const header = `**${username}** - **${resultText} volt ${rank} teszten.**`;
+      
+      const header = `**${username}** - **${resultText} volt ${displayEloRank(rank, testedRank)} teszten.**`;
 
       const modeLine = `**${gamemode}** ${modeIcon}`;
 
-      const orderedTiers = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+      const orderedTiers = [1500, 1750, 2000, 2500, 3000, 4000];
       const fightSections = orderedTiers
-        .filter((label) => fight_notes?.[label] && String(fight_notes[label]).trim().length > 0)
-        .map((label) => `**__${label} Fightok__**\n> ${String(fight_notes[label]).trim()}`)
+        .filter((elo) => fight_notes?.[elo] && String(fight_notes[elo]).trim().length > 0)
+        .map((elo) => `**__${elo} ELO Fightok__**\n> ${String(fight_notes[elo]).trim()}`)
         .join("\n\n");
 
       const message = [header, "", modeLine, "", fightSections].join("\n");

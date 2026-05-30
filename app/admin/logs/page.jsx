@@ -184,11 +184,11 @@ export default function AdminLogsPage() {
                   </div>
                 </div>
                 <div className="tableCell colMode">{test.gamemode}</div>
-                <div className="tableCell colRank">
-                  <span className="rankBadge" data-rank={test.rank}>
-                    {test.rank}
-                  </span>
-                </div>
+<div className="tableCell colRank">
+                   <span className="rankBadge" data-rank={test.rank} data-retired={test.retired ? "true" : "false"}>
+                     {test.retired ? `R${test.rank}` : test.rank}
+                   </span>
+                 </div>
                 <div className="tableCell colPoints">{test.points}</div>
               </div>
             ))
@@ -513,37 +513,43 @@ export default function AdminLogsPage() {
           letter-spacing: 0.3px;
         }
 
-        .rankBadge[data-rank="HT1"],
-        .rankBadge[data-rank="LT1"] {
+        .rankBadge[data-rank="4000"],
+        .rankBadge[data-rank="3000"] {
           background: rgba(213, 179, 85, 0.25);
           color: #d5b355;
         }
 
-        .rankBadge[data-rank="HT2"],
-        .rankBadge[data-rank="LT2"] {
+        .rankBadge[data-rank="2500"],
+        .rankBadge[data-rank="2000"] {
           background: rgba(164, 179, 199, 0.25);
           color: #a4b3c7;
         }
 
-        .rankBadge[data-rank="HT3"],
-        .rankBadge[data-rank="LT3"] {
+        .rankBadge[data-rank="1750"],
+        .rankBadge[data-rank="1500"] {
           background: rgba(221, 136, 73, 0.25);
           color: #dd8849;
         }
 
-        .rankBadge[data-rank="HT4"],
-        .rankBadge[data-rank="LT4"] {
+        .rankBadge[data-rank="1250"],
+        .rankBadge[data-rank="1000"] {
           background: rgba(183, 170, 223, 0.25);
           color: #b7aadf;
         }
 
-        .rankBadge[data-rank="HT5"],
-        .rankBadge[data-rank="LT5"] {
-          background: rgba(111, 99, 137, 0.25);
-          color: #6f6389;
-        }
+.rankBadge[data-rank="750"],
+         .rankBadge[data-rank="500"] {
+           background: rgba(111, 99, 137, 0.25);
+           color: #6f6389;
+         }
 
-        .logTypeTabs {
+         /* Retired rank styling */
+         .rankBadge[data-retired="true"] {
+           background: rgba(143, 124, 255, 0.25);
+           color: #8f7cff;
+         }
+
+         .logTypeTabs {
           display: flex;
           gap: 8px;
           margin-bottom: 20px;

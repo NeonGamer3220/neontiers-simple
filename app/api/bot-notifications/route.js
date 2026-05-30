@@ -98,7 +98,7 @@ export async function POST(req) {
 
   const { error } = await supabase
     .from("discord_notifications")
-    .update({ processed: true, processed_at: new Date().toISOString() })
+    .update({ processed: true })
     .in("id", ids);
 
   if (error) return json({ error: error.message }, 500);

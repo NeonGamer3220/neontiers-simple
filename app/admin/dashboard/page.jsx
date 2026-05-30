@@ -4,17 +4,17 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const TIER_RANKS = [
-  { value: "HT1", color: "#d5b355" },
-  { value: "LT1", color: "#d5b355" },
-  { value: "HT2", color: "#a4b3c7" },
-  { value: "LT2", color: "#a4b3c7" },
-  { value: "HT3", color: "#dd8849" },
-  { value: "LT3", color: "#dd8849" },
-  { value: "HT4", color: "#b7aadf" },
-  { value: "LT4", color: "#b7aadf" },
-  { value: "HT5", color: "#6f6389" },
-  { value: "LT5", color: "#6f6389" },
-  { value: "Unranked", color: "#888d95" },
+  { value: 500, color: "#6f6389" },
+  { value: 750, color: "#6f6389" },
+  { value: 1000, color: "#514764" },
+  { value: 1250, color: "#b7aadf" },
+  { value: 1500, color: "#dd8849" },
+  { value: 1750, color: "#dd8849" },
+  { value: 2000, color: "#a4b3c7" },
+  { value: 2500, color: "#a4b3c7" },
+  { value: 3000, color: "#d5b355" },
+  { value: 4000, color: "#d5b355" },
+  { value: 0, color: "#888d95" },
 ];
 
 function TierSelect({ value, onChange, disabled = false }) {
@@ -118,17 +118,10 @@ const MODE_OPTIONS = [
 ];
 
 const RANK_POINTS = {
-  LT5:  1,
-  HT5:  2,
-  LT4:  3,
-  HT4:  4,
-  LT3:  6,
-  HT3: 10,
-  LT2: 16,
-  HT2: 28,
-  LT1: 40,
-  HT1: 60,
-  Unranked: 0,
+  500: 1, 750: 2, 1000: 3, 1250: 4,
+  1500: 6, 1750: 10, 2000: 16, 2500: 28,
+  3000: 40, 4000: 60,
+  0: 0,
 };
 
 const MODE_ICONS = {
@@ -201,11 +194,11 @@ export default function AdminDashboard() {
   };
 
   const findBestRank = (ranks) => {
-    const rankOrder = ["HT1", "LT1", "HT2", "LT2", "HT3", "LT3", "HT4", "LT4", "HT5", "LT5"];
+    const rankOrder = [500, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 4000, 0];
     for (const r of rankOrder) {
       if (ranks.includes(r)) return r;
     }
-    return ranks[0] || "N/A";
+    return ranks[0] || 0;
   };
 
   const getStats = () => {
@@ -218,13 +211,14 @@ export default function AdminDashboard() {
     const playerTests = tests.filter((t) => t.username.toLowerCase() === username.toLowerCase());
     if (playerTests.length === 0 && !includeUntested) return null;
 
-    const entries = playerTests.map((t) => ({
-      gamemode: t.gamemode,
-      rank: t.rank,
-      points: t.points || 0,
-      id: t.id,
-      created_at: t.created_at || null,
-    }));
+const entries = playerTests.map((t) => ({
+       gamemode: t.gamemode,
+       rank: t.rank != null ? Number(t.rank) : 0,
+       retired: t.retired === true,
+       points: t.points || 0,
+       id: t.id,
+       created_at: t.created_at || null,
+     }));
 
     // Include untested gamemodes
     if (includeUntested) {
@@ -233,7 +227,8 @@ export default function AdminDashboard() {
         if (!testedModes.has(mode.toLowerCase())) {
           entries.push({
             gamemode: mode,
-            rank: "Unranked",
+            rank: 0,
+            retired: false,
             points: 0,
             id: null,
             created_at: null,
@@ -285,8 +280,9 @@ export default function AdminDashboard() {
       const payload = {
         username: selectedPlayer.username,
         gamemode: entry.gamemode,
-        rank: entry.rank,
+        earned_tier: entry.rank,
         points: Number(entry.points || 0),
+        retired: entry.retired === true,
       };
       // Only add id if it's a valid number (not null/undefined)
       const entryId = Number(entry.id);
@@ -337,16 +333,7 @@ const toggleRetired = (index) => {
       if (!prev) return prev;
       const entries = [...prev.entries];
       const entry = { ...entries[index] };
-      const isCurrentlyRetired = entry.rank.startsWith("R");
-      
-      if (isCurrentlyRetired) {
-        // Remove "R" prefix to unretire
-        entry.rank = entry.rank.slice(1);
-      } else {
-        // Add "R" prefix to retire
-        entry.rank = "R" + entry.rank;
-      }
-      
+      entry.retired = !entry.retired;
       entries[index] = entry;
       return { ...prev, entries };
     });
@@ -556,10 +543,10 @@ const handleRefreshName = async () => {
                   <span className="pdBubbleLabel">Tesztelt módok</span>
                   <span className="pdBubbleValue">{selectedPlayer.totalModes}</span>
                 </div>
-                <div className="pdBubble">
-                  <span className="pdBubbleLabel">Legjobb Tier</span>
-                  <span className="pdBubbleValue tierBadgeInline">{selectedPlayer.bestRank}</span>
-                </div>
+<div className="pdBubble">
+                       <span className="pdBubbleLabel">Legjobb Tier</span>
+                       <span className="pdBubbleValue tierBadgeInline">{selectedPlayer.bestRank}</span>
+                     </div>
                 <div className="pdBubble">
                   <span className="pdBubbleLabel">Globális Állapot</span>
                   <span className="pdBubbleValue">Aktív</span>
@@ -588,11 +575,11 @@ const handleRefreshName = async () => {
                   </button>
                 )}
               </div>
-              <div className="playerTiersList">
+<div className="playerTiersList">
                 {selectedPlayer.entries.map((entry, index) => {
-                  const isRetired = entry.rank.startsWith("R");
+                  const isRetired = entry.retired === true;
                   const isUntested = entry.isUntested;
-                  const displayRank = isRetired ? entry.rank.slice(1) : entry.rank;
+                  const displayRank = entry.rank || 0;
 
                   return (
                     <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
