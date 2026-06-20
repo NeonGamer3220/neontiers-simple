@@ -4,8 +4,6 @@ import React, { useEffect, useMemo, useState } from "react";
 
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
-const EASTER_MODE = false;
-
 // Show player lists and leaderboard
 const SHOW_LISTS = true;
 
@@ -152,10 +150,7 @@ const [tests, setTests] = useState([]);
     async function load() {
       try {
         setLoading(true);
-        const testRes = await fetch(`/api/tests?ts=${Date.now()}`, {
-            cache: "no-store",
-            headers: { "Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0" },
-          });
+const testRes = await fetch("/api/tests");
         if (!alive) return;
         const testJson = await testRes.json();
         setTests(Array.isArray(testJson?.tests) ? testJson.tests : []);
@@ -505,15 +500,14 @@ const closePlayerDetail = () => {
                     }}
                   >
                     <span className="rowNum">{idx + 1}.</span>
-                    <img
+<img
                       className="playerSkin"
                       src={skinUrl(p.username)}
                       alt={p.username}
                       width={64}
                       height={64}
-                      loading="eager"
+                      loading="lazy"
                       decoding="async"
-                      fetchPriority="high"
                       referrerPolicy="no-referrer"
                     />
                     <span className="playerNameWrap">
@@ -840,91 +834,67 @@ const totalPoints = selectedPlayer.total;
 
 
 <style jsx global>{`
-:root {
-            --bg: #0b0e14;
-            --bg-deep: #0b0e14;
-            --bg-panel: #0b0d11f5;
-            --bg-panel-strong: #0b0d11f5;
-            --border: #ffffff14;
-            --border-strong: #ffffff24;
-            --text: #fffffff0;
-            --muted: #ffffff9e;
-            --accent: #8f7cff;
-          }
-
-         * { box-sizing: border-box; }
-
-html {
-           background: var(--bg);
-           color-scheme: dark;
-           scroll-behavior: smooth;
-           min-height: 100%;
+        .page {
+           min-height: 100vh;
+           position: relative;
          }
 
-         a, button, input { font: inherit; }
-        img { max-width: 100%; display: block; }
-
-        .page {
-          min-height: 100vh;
-          position: relative;
-        }
-
         .bg {
-          position: fixed;
-          inset: 0;
-          background: var(--bg);
-          z-index: -1;
-          pointer-events: none;
-        }
+           position: fixed;
+           inset: 0;
+           background: var(--bg);
+           z-index: -1;
+           pointer-events: none;
+         }
 
-        /* Skeleton rows */
+         /* Skeleton rows */
         .skelRow {
-          pointer-events: none;
-          cursor: default;
-          opacity: 0.55;
-        }
+           pointer-events: none;
+           cursor: default;
+           opacity: 0.55;
+         }
 
         .skel {
-          display: block;
-          border-radius: 4px;
-          background: linear-gradient(90deg, #ffffff10 25%, #ffffff1e 50%, #ffffff10 75%);
-          background-size: 200% 100%;
-          animation: shimmer 1.4s ease-in-out infinite;
-        }
+           display: block;
+           border-radius: 4px;
+           background: linear-gradient(90deg, #ffffff10 25%, #ffffff1e 50%, #ffffff10 75%);
+           background-size: 200% 100%;
+           animation: shimmer 1.4s ease-in-out infinite;
+         }
 
         .skelNum {
-          width: 40px;
-          height: 22px;
-          border-radius: 6px;
-        }
+           width: 40px;
+           height: 22px;
+           border-radius: 6px;
+         }
 
         .skelSkin {
-          width: 56px;
-          height: 56px;
-          border-radius: 10px;
-        }
+           width: 56px;
+           height: 56px;
+           border-radius: 10px;
+         }
 
         .skelName {
-          width: 70%;
-          height: 18px;
-          margin-bottom: 6px;
-        }
+           width: 70%;
+           height: 18px;
+           margin-bottom: 6px;
+         }
 
         .skelPoints {
-          width: 45%;
-          height: 14px;
-        }
+           width: 45%;
+           height: 14px;
+         }
 
         .skelBadge {
-          width: 34px;
-          height: 18px;
-          border-radius: 99px;
-        }
+           width: 34px;
+           height: 18px;
+           border-radius: 99px;
+         }
 
         @keyframes shimmer {
-          0%   { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
+           0%   { background-position: 200% 0; }
+           100% { background-position: -200% 0; }
+         }
 
          /* Info panel */
         .infoPanel {
