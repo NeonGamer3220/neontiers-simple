@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const TIER_RANKS = [
@@ -18,30 +18,27 @@ const TIER_RANKS = [
 ];
 
 function TierSelect({ value, onChange, disabled = false }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
   const selectedColor = TIER_RANKS.find(r => r.value === value)?.color || "#888d95";
 
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
+  const handleInputChange = (e) => {
+    const val = Number(e.target.value);
+    if (Number.isFinite(val) && val >= 0) {
+      onChange(val);
+    }
+  };
 
   return (
     <div
-      ref={ref}
       className="tierSelectCompact tierSelectWithOptions"
       style={{ position: "relative" }}
     >
-      <button
-        type="button"
-        className="tierSelectButton"
+      <input
+        type="number"
+        className="tierInputCompact"
         disabled={disabled}
-        onClick={() => !disabled && setOpen(!open)}
+        value={value}
+        onChange={handleInputChange}
+        min="0"
         style={{
           width: "100%",
           minWidth: 0,
@@ -54,45 +51,12 @@ function TierSelect({ value, onChange, disabled = false }) {
           color: disabled ? "rgba(255,255,255,0.3)" : "#fff",
           fontFamily: "Montserrat, inherit",
           outline: "none",
-          cursor: disabled ? "not-allowed" : "pointer",
+          cursor: disabled ? "not-allowed" : "text",
           textAlign: "left",
           transition: "all 0.15s",
           letterSpacing: "0.02em",
         }}
-      >
-        <span style={{ opacity: 0.6 }}>▶</span> {value}
-      </button>
-      {open && !disabled && (
-        <div className="tierOptionsDropdown">
-          {TIER_RANKS.map((rank) => {
-            const isActive = rank.value === value;
-            return (
-            <div
-              key={rank.value}
-              className="tierOptionItem"
-              onClick={() => {
-                onChange(rank.value);
-                setOpen(false);
-              }}
-              style={{
-                background: isActive ? rank.color + "33" : "rgba(255,255,255,0.03)",
-                color: isActive ? "#fff" : "rgba(255,255,255,0.7)",
-                fontWeight: isActive ? 800 : 600,
-                fontSize: "11.5px",
-                padding: "6px 10px",
-                cursor: "pointer",
-                fontFamily: "Montserrat, inherit",
-                transition: "all 0.1s",
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
-              }}
-            >
-              <span style={{ color: rank.color, marginRight: "6px", fontSize: "10px" }}>◆</span>
-              {rank.value}
-            </div>
-          );
-          })}
-        </div>
-      )}
+      />
     </div>
   );
 }
@@ -457,12 +421,11 @@ const handleRefreshName = async () => {
         <div className="navbarLeft">
           <h1 className="navbarTitle">Admin Panel</h1>
         </div>
-        <nav className="navbarLinks">
-          <a href="/" className="navbarLink">Publikus</a>
-          <a href="/admin/dashboard" className="navbarLink active">Játékos Kezelő</a>
-          <a href="/admin/magas-eredmeny" className="navbarLink">Magas Eredmény Kezelés</a>
-          <a href="/admin/logs" className="navbarLink">Log</a>
-        </nav>
+<nav className="navbarLinks">
+           <a href="/" className="navbarLink">Publikus</a>
+           <a href="/admin/dashboard" className="navbarLink active">Játékos Kezelő</a>
+           <a href="/admin/logs" className="navbarLink">Log</a>
+         </nav>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés
         </button>
@@ -1012,45 +975,10 @@ const handleRefreshName = async () => {
           background: rgba(255, 255, 255, 0.08);
         }
 
-        .tierInputCompact:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .tierSelectWithOptions .tierSelectButton {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .tierOptionsDropdown {
-          position: absolute;
-          top: calc(100% + 4px);
-          left: 0;
-          right: 0;
-          background: #0b0d16;
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          border-radius: 8px;
-          z-index: 30;
-          overflow: hidden;
-          box-shadow: 0 8px 32px #0000005c;
-          min-width: 120px;
-        }
-
-        .tierOptionItem {
-          padding: 7px 12px;
-          cursor: pointer;
-          transition: background 0.1s, color 0.1s;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .tierOptionItem:last-child {
-          border-bottom: none;
-        }
-
-        .tierOptionItem:hover {
-          background: rgba(255, 255, 255, 0.08);
-        }
+.tierInputCompact:disabled {
+           opacity: 0.5;
+           cursor: not-allowed;
+         }
 
         .retireCheckbox {
           display: flex;
