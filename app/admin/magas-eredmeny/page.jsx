@@ -304,63 +304,54 @@ export default function AdminHighscorePage() {
               </button>
             </div>
 
-            <div className="highscoreBody">
-              <div className="highscoreForm">
-                <div className="highscoreFormRow">
-                  <div className="inputGroup">
-                    <label>Eredmény</label>
-                    <input
-                      type="text"
-                      value={result}
-                      onChange={(e) => setResult(e.target.value)}
-                      placeholder="Sikeres"
-                    />
-                  </div>
-                  <div className="inputGroup">
-                      <label>Kezdő Tier</label>
+<div className="highscoreBody">
+               <div className="highscoreForm">
+                 <div className="highscoreFormRow">
+                   <div className="inputGroup">
+                     <label>Eredmény</label>
+                     <input
+                       type="text"
+                       value={result}
+                       onChange={(e) => setResult(e.target.value)}
+                       placeholder="Sikeres"
+                     />
+                   </div>
+                   <div className="inputGroup">
+                     <label>Kezdő Tier</label>
                      <div className="tierSelectRow">
-                      <select
-                        className="modeSelect tierSelect"
-                        value={testedTier}
-                        onChange={(e) => setTestedTier(e.target.value)}
-                      >
-                        <option value="">Válassz tiert...</option>
-                        {Object.keys(TIER_COLORS).map((tier) => (
-                          <option key={tier} value={tier} style={{ color: tierColor(tier) }}>
-                            {tier}
-                          </option>
-                        ))}
-                      </select>
-                      {testedTier && (
-                        <span
-                          className="tierPreviewBadge"
-                          style={{
-                            borderColor: tierColor(testedTier),
-                            color: tierColor(testedTier),
-                            background: hexToRgba(tierColor(testedTier), 0.18),
-                          }}
-                        >
-                          {testedTier}
-                        </span>
-                      )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="inputGroup">
-                      <label>Megszerzett Tier</label>
+                       <input
+                         type="number"
+                         className="modeSelect tierSelect"
+                         value={testedTier}
+                         onChange={(e) => setTestedTier(e.target.value)}
+                         placeholder="Pl. 2000"
+                       />
+                       {testedTier && (
+                         <span
+                           className="tierPreviewBadge"
+                           style={{
+                             borderColor: tierColor(testedTier),
+                             color: tierColor(testedTier),
+                             background: hexToRgba(tierColor(testedTier), 0.18),
+                           }}
+                         >
+                           {testedTier}
+                         </span>
+                       )}
+                     </div>
+                   </div>
+                 </div>
+<div className="highscoreFormRow">
+                   <div className="inputGroup">
+                     <label>Megszerzett Tier</label>
                      <div className="tierSelectRow">
-                       <select
+                       <input
+                         type="number"
                          className="modeSelect tierSelect"
                          value={earnedTier}
                          onChange={(e) => setEarnedTier(e.target.value)}
-                       >
-                         <option value="">Válassz tiert...</option>
-                         {Object.keys(TIER_COLORS).map((tier) => (
-                           <option key={tier} value={tier} style={{ color: tierColor(tier) }}>
-                             {tier}
-                           </option>
-                         ))}
-                       </select>
+                         placeholder="Pl. 2000"
+                       />
                        {earnedTier && (
                          <span
                            className="tierPreviewBadge"
@@ -374,28 +365,44 @@ export default function AdminHighscorePage() {
                          </span>
                        )}
                      </div>
-                  </div>
-<div className="highscoreFormRow">
-             <div className="inputGroup">
-               <label>Játékmód</label>
-               <div className="fightGrid">
-                 {TIER_FIELDS.map((tier) => (
-                   <div key={tier} className="fightGroup">
-                     <label>{tier} ELO FIGHTOK</label>
-                     <textarea
-                       value={fightNotes[tier] || ""}
-                       onChange={(e) => handleNoteChange(tier, e.target.value)}
-                       placeholder={`nyert 4-1 Ellenfél\nvesztett 2-4 Ellenfél`}
-                     />
                    </div>
-                 ))}
+                   <div className="inputGroup">
+                     <label>Játékmód</label>
+                     <select
+                       className="modeSelect"
+                       value={gamemode}
+                       onChange={(e) => setGamemode(e.target.value)}
+                     >
+                       <option value="">Válassz játékmódot...</option>
+                       {MODE_OPTIONS.map((mode) => (
+                         <option key={mode} value={mode} style={{ color: modeColor(mode) }}>
+                           {mode}
+                         </option>
+                       ))}
+                     </select>
+                   </div>
+                 </div>
+                 <div className="highscoreFormRow">
+                   <div className="inputGroup">
+                     <label>Fight jegyzetek</label>
+                     <div className="fightGrid">
+                       {TIER_FIELDS.map((tier) => (
+                         <div key={tier} className="fightGroup">
+                           <label>{tier} ELO FIGHTOK</label>
+                           <textarea
+                             value={fightNotes[tier] || ""}
+                             onChange={(e) => handleNoteChange(tier, e.target.value)}
+                             placeholder={`nyert 4-1 Ellenfél\nvesztett 2-4 Ellenfél`}
+                           />
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                 </div>
                </div>
              </div>
-           </div>
-         </div>
-       </div>
 
-        <div className="highscoreSidebar">
+             <div className="highscoreSidebar">
                    <div className="sidebarTitle">Magas eredmény adatai</div>
                   <p>1750+ ELO vagy afeletti megszerzett tierhez legalább egy magas eredmény mezőt ki kell tölteni.</p>
                   <p>Kezdő tier: a teszt elindításakor meglévő tier. Megszerzett tier a teszt végeredménye.</p>
@@ -604,202 +611,202 @@ export default function AdminHighscorePage() {
           background: rgba(196, 30, 58, 1);
         }
 
-        .highscoreBody {
-          display: grid;
-          grid-template-columns: 1.8fr 1fr;
-          gap: 24px;
-        }
+.highscoreBody {
+           display: grid;
+           grid-template-columns: 1.8fr 1fr;
+           gap: 24px;
+         }
 
-        .highscoreForm {
-          display: grid;
-          gap: 18px;
-        }
+         .highscoreForm {
+           display: grid;
+           gap: 18px;
+         }
 
-        .highscoreFormRow {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 18px;
-        }
+         .highscoreFormRow {
+           display: grid;
+           grid-template-columns: repeat(2, minmax(0, 1fr));
+           gap: 18px;
+         }
 
-        .inputGroup {
-          display: grid;
-          gap: 10px;
-        }
+         .inputGroup {
+           display: grid;
+           gap: 10px;
+         }
 
-        .inputGroup label {
-          color: rgba(255, 255, 255, 0.75);
-          font-size: 13px;
-          font-weight: 700;
-        }
+         .inputGroup label {
+           color: rgba(255, 255, 255, 0.75);
+           font-size: 13px;
+           font-weight: 700;
+         }
 
-        .inputGroup input,
-        .inputGroup select,
-        .fightGroup textarea {
-          width: 100%;
-          border-radius: 14px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: rgba(255, 255, 255, 0.04);
-          color: #fff;
-          padding: 14px 16px;
-          font-size: 14px;
-          outline: none;
-          min-height: 48px;
-          resize: vertical;
-          font-family: inherit;
-        }
+         .inputGroup input,
+         .inputGroup select,
+         .fightGroup textarea {
+           width: 100%;
+           border-radius: 14px;
+           border: 1px solid rgba(255, 255, 255, 0.14);
+           background: rgba(255, 255, 255, 0.04);
+           color: #fff;
+           padding: 14px 16px;
+           font-size: 14px;
+           outline: none;
+           min-height: 48px;
+           resize: vertical;
+           font-family: inherit;
+         }
 
-        .modeSelect {
-          width: 100%;
-          padding: 14px 16px;
-          border-radius: 14px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: rgba(255, 255, 255, 0.04);
-          color: #fff;
-          font-size: 14px;
-          outline: none;
-          font-family: inherit;
-          appearance: none;
-        }
+         .modeSelect {
+           width: 100%;
+           padding: 14px 16px;
+           border-radius: 14px;
+           border: 1px solid rgba(255, 255, 255, 0.14);
+           background: rgba(255, 255, 255, 0.04);
+           color: #fff;
+           font-size: 14px;
+           outline: none;
+           font-family: inherit;
+           appearance: none;
+         }
 
-        .tierSelectRow {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-        }
+         .tierSelectRow {
+           display: flex;
+           gap: 12px;
+           align-items: center;
+         }
 
-        .tierSelect {
-          flex: 1;
-        }
+         .tierSelect {
+           flex: 1;
+         }
 
-        .tierPreviewBadge {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 92px;
-          padding: 10px 12px;
-          border-radius: 999px;
-          border: 1px solid;
-          font-weight: 700;
-          font-size: 13px;
-          background: rgba(255, 255, 255, 0.08);
-        }
+         .tierPreviewBadge {
+           display: inline-flex;
+           align-items: center;
+           justify-content: center;
+           min-width: 92px;
+           padding: 10px 12px;
+           border-radius: 999px;
+           border: 1px solid;
+           font-weight: 700;
+           font-size: 13px;
+           background: rgba(255, 255, 255, 0.08);
+         }
 
-        .modeIconSmall {
-          width: 24px;
-          height: 24px;
-          margin-right: 10px;
-          vertical-align: middle;
-        }
+         .modeIconSmall {
+           width: 24px;
+           height: 24px;
+           margin-right: 10px;
+           vertical-align: middle;
+         }
 
-        .playerMeta {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: rgba(255, 255, 255, 0.7);
-        }
+         .playerMeta {
+           display: flex;
+           align-items: center;
+           gap: 10px;
+           color: rgba(255, 255, 255, 0.7);
+         }
 
-        .playerMeta img {
-          width: 24px;
-          height: 24px;
-        }
+         .playerMeta img {
+           width: 24px;
+           height: 24px;
+         }
 
-        .fightGrid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 18px;
-        }
+         .fightGrid {
+           display: grid;
+           grid-template-columns: repeat(2, minmax(0, 1fr));
+           gap: 18px;
+         }
 
-        .fightGroup {
-          display: grid;
-          gap: 10px;
-        }
+         .fightGroup {
+           display: grid;
+           gap: 10px;
+         }
 
-        .fightGroup label {
-          color: rgba(255, 255, 255, 0.75);
-          font-size: 13px;
-          font-weight: 700;
-        }
+         .fightGroup label {
+           color: rgba(255, 255, 255, 0.75);
+           font-size: 13px;
+           font-weight: 700;
+         }
 
-        .fightGroup textarea {
-          min-height: 118px;
-          line-height: 1.6;
-        }
+         .fightGroup textarea {
+           min-height: 118px;
+           line-height: 1.6;
+         }
 
-        .highscoreSidebar {
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          padding: 22px;
-          display: grid;
-          gap: 14px;
-          min-height: 320px;
-        }
+         .highscoreSidebar {
+           border-radius: 20px;
+           background: rgba(255, 255, 255, 0.04);
+           border: 1px solid rgba(255, 255, 255, 0.12);
+           padding: 22px;
+           display: grid;
+           gap: 14px;
+           min-height: 320px;
+         }
 
-        .sidebarTitle {
-          font-size: 16px;
-          font-weight: 700;
-          margin: 0;
-        }
+         .sidebarTitle {
+           font-size: 16px;
+           font-weight: 700;
+           margin: 0;
+         }
 
-        .highscoreSidebar p {
-          margin: 0;
-          color: rgba(255, 255, 255, 0.72);
-          font-size: 14px;
-          line-height: 1.75;
-        }
+         .highscoreSidebar p {
+           margin: 0;
+           color: rgba(255, 255, 255, 0.72);
+           font-size: 14px;
+           line-height: 1.75;
+         }
 
-        .emptyState {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 20px;
-          padding: 32px;
-          text-align: center;
-        }
+         .emptyState {
+           background: rgba(255, 255, 255, 0.04);
+           border: 1px solid rgba(255, 255, 255, 0.12);
+           border-radius: 20px;
+           padding: 32px;
+           text-align: center;
+         }
 
-        .emptyTitle {
-          font-size: 20px;
-          margin: 0 0 10px;
-        }
+         .emptyTitle {
+           font-size: 20px;
+           margin: 0 0 10px;
+         }
 
-        .emptySub {
-          color: rgba(255, 255, 255, 0.6);
-          font-size: 14px;
-        }
+         .emptySub {
+           color: rgba(255, 255, 255, 0.6);
+           font-size: 14px;
+         }
 
-        .loadingState {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-        }
+         .loadingState {
+           min-height: 100vh;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           font-size: 18px;
+         }
 
-        @media (max-width: 940px) {
-          .highscoreBody {
-            grid-template-columns: 1fr;
-          }
+         @media (max-width: 940px) {
+           .highscoreBody {
+             grid-template-columns: 1fr;
+           }
 
-          .highscoreFormRow {
-            grid-template-columns: 1fr;
-          }
-        }
+           .highscoreFormRow {
+             grid-template-columns: 1fr;
+           }
+         }
 
-        @media (max-width: 720px) {
-          .adminNavbar {
-            flex-direction: column;
-            align-items: stretch;
-          }
+         @media (max-width: 720px) {
+           .adminNavbar {
+             flex-direction: column;
+             align-items: stretch;
+           }
 
-          .navbarLinks {
-            flex-wrap: wrap;
-          }
+           .navbarLinks {
+             flex-wrap: wrap;
+           }
 
-          .highscoreSearchRow {
-            flex-direction: column;
-            align-items: stretch;
-          }
-        }
-      `}</style>
+           .highscoreSearchRow {
+             flex-direction: column;
+             align-items: stretch;
+           }
+         }
+       `}</style>
     </div>
   );
 }
