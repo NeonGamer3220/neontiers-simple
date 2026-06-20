@@ -114,12 +114,11 @@ export default function AdminDashboard() {
   const [tests, setTests] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedPlayers, setSearchedPlayers] = useState([]);
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [editStates, setEditStates] = useState({});
-  const [showUntested, setShowUntested] = useState(true);
-  const [toast, setToast] = useState(null); // { text, type }
-  const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
-  const [newNameInput, setNewNameInput] = useState("");
+const [selectedPlayer, setSelectedPlayer] = useState(null);
+   const [showUntested, setShowUntested] = useState(true);
+   const [toast, setToast] = useState(null);
+   const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
+   const [newNameInput, setNewNameInput] = useState("");
 
 
   useEffect(() => {
@@ -176,34 +175,34 @@ export default function AdminDashboard() {
     if (playerTests.length === 0 && !includeUntested) return null;
 
 const entries = playerTests.map((t) => ({
-       gamemode: t.gamemode,
-       rank: t.rank != null ? Number(t.rank) : 0,
-       retired: t.retired === true,
-       points: t.points || 0,
-       id: t.id,
-       created_at: t.created_at || null,
-     }));
+        gamemode: t.gamemode,
+        rank: t.rank != null ? Number(t.rank) : 0,
+        retired: t.retired === true,
+        points: t.points || 0,
+        id: t.id,
+        created_at: t.created_at || null,
+      }));
 
-    // Include untested gamemodes
-    if (includeUntested) {
-      const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
-      for (const mode of MODE_OPTIONS) {
-        if (!testedModes.has(mode.toLowerCase())) {
-          entries.push({
-            gamemode: mode,
-            rank: 0,
-            retired: false,
-            points: 0,
-            id: null,
-            created_at: null,
-            isUntested: true,
-          });
-        }
-      }
-    }
+     // Include untested gamemodes
+     if (includeUntested) {
+       const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
+       for (const mode of MODE_OPTIONS) {
+         if (!testedModes.has(mode.toLowerCase())) {
+           entries.push({
+             gamemode: mode,
+             rank: 0,
+             retired: false,
+             points: 0,
+             id: null,
+             created_at: null,
+             isUntested: true,
+           });
+         }
+       }
+     }
 
-    const totalPoints = entries.reduce((sum, e) => sum + safeInt(e.points, 0), 0);
-    const bestRank = findBestRank(entries.map((e) => e.rank));
+     const totalPoints = entries.reduce((sum, e) => sum + safeInt(RANK_POINTS[e.rank] ?? 0, 0), 0);
+     const bestRank = findBestRank(entries.map((e) => e.rank));
 
     return {
       username,
@@ -238,17 +237,16 @@ const entries = playerTests.map((t) => ({
     setSearchedPlayers([]);
   };
 
-  const handleSaveEntry = async (entry) => {
+const handleSaveEntry = async (entry) => {
     try {
-      // Build payload - only include id if it's a valid positive number
+      const points = RANK_POINTS[entry.rank] ?? 0;
       const payload = {
         username: selectedPlayer.username,
         gamemode: entry.gamemode,
         earned_tier: entry.rank,
-        points: Number(entry.points || 0),
+        points,
         retired: entry.retired === true,
       };
-      // Only add id if it's a valid number (not null/undefined)
       const entryId = Number(entry.id);
       if (Number.isFinite(entryId) && entryId > 0) {
         payload.id = entryId;
@@ -266,9 +264,6 @@ const entries = playerTests.map((t) => ({
         return;
       }
 
-      // Log this action to audit trail
-      // Server-side audit logging will record this action (admin cookie used)
-
       await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username, showUntested);
       setSelectedPlayer(refreshed);
@@ -283,11 +278,16 @@ const entries = playerTests.map((t) => ({
       if (!prev) return prev;
       const entries = [...prev.entries];
       const current = entries[index];
-      entries[index] = {
-        ...current,
-        [field]: field === "points" ? Number(value) : value,
-        ...(field === "rank" ? { points: RANK_POINTS[value] ?? 0 } : {}),
-      };
+      if (field === "rank") {
+        const rank = value;
+        entries[index] = {
+          ...current,
+          rank: rank,
+          points: RANK_POINTS[rank] ?? 0,
+        };
+      } else {
+        entries[index] = { ...current, [field]: value };
+      }
       return { ...prev, entries };
     });
   };
@@ -554,15 +554,16 @@ const handleRefreshName = async () => {
                   </button>
                 )}
               </div>
+{/*.adminTiersList */}
 <div className="playerTiersList">
                 {selectedPlayer.entries.map((entry, index) => {
                   const isRetired = entry.retired === true;
                   const isUntested = entry.isUntested;
                   const displayRank = entry.rank || 0;
+                  const displayPoints = RANK_POINTS[displayRank] ?? 0;
 
                   return (
                     <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
-                      {/* circular icon + name */}
                       <div className="tierModeCircle">
                         {MODE_ICONS[entry.gamemode] && (
                           <img src={MODE_ICONS[entry.gamemode]} alt={entry.gamemode} className="tierModeCircleImg" />
@@ -570,21 +571,13 @@ const handleRefreshName = async () => {
                         <span className="tierModeCircleLabel">{entry.gamemode}</span>
                       </div>
 
-                      {/* tier selector */}
                       <div className="tierEntryControls">
                         <TierSelect
                           value={displayRank}
                           onChange={(rank) => updateEntryField(index, "rank", rank)}
                           disabled={isRetired}
                         />
-
-                        <input
-                          type="number"
-                          value={entry.points}
-                          onChange={(e) => updateEntryField(index, "points", e.target.value)}
-                          className="tierInputCompact"
-                          disabled={isRetired}
-                        />
+                        <span className="tierPointsBadge">{displayPoints} pont</span>
 
                         <label className="retireCheckbox" title={isRetired ? "Aktív" : "Retire"}>
                           <input
@@ -950,34 +943,26 @@ const handleRefreshName = async () => {
           font-weight: 700;
         }
 
-        .tierEntryControls {
-          display: grid;
-          grid-template-columns: 70px 60px 36px 36px;
-          gap: 8px;
-          align-items: center;
-        }
+.tierEntryControls {
+           display: grid;
+           grid-template-columns: 80px 70px 36px 36px;
+           gap: 8px;
+           align-items: center;
+         }
 
-        .tierInputCompact {
-          padding: 6px 8px;
-          font-size: 12px;
-          border-radius: 6px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.05);
-          color: #fff;
-          font-family: inherit;
-          outline: none;
-          transition: all 0.15s;
-          flex: 1;
-        }
-
-        .tierInputCompact:focus {
-          border-color: rgba(255, 255, 255, 0.2);
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-.tierInputCompact:disabled {
-           opacity: 0.5;
-           cursor: not-allowed;
+        .tierPointsBadge {
+           display: inline-flex;
+           align-items: center;
+           justify-content: center;
+           min-width: 60px;
+           padding: 4px 8px;
+           font-size: 11px;
+           font-weight: 600;
+           border-radius: 6px;
+           background: rgba(255, 255, 255, 0.06);
+           border: 1px solid rgba(255, 255, 255, 0.12);
+           color: rgba(255, 255, 255, 0.8);
+           text-align: center;
          }
 
         .retireCheckbox {
