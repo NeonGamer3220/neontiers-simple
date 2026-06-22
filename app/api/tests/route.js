@@ -18,8 +18,7 @@ const supabase =
 // ELO-based rank points mapping
 const RANK_POINTS = {
   500: 1, 750: 2, 1000: 3, 1250: 4,
-  1500: 6, 1750: 10, 2000: 16, 2500: 28,
-  3000: 40, 4000: 60,
+  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 28, 2750: 34,
   Unranked: 0,
 };
 
@@ -72,8 +71,8 @@ function normRank(s) {
   // Legacy: try to convert tier strings to ELO
   const LEGACY_TIER_TO_ELO = {
     LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
-    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2500,
-    LT1: 3000, HT1: 4000,
+    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
+    LT1: 2500, HT1: 2750,
   };
   if (LEGACY_TIER_TO_ELO[r] !== undefined) return LEGACY_TIER_TO_ELO[r];
   return null;

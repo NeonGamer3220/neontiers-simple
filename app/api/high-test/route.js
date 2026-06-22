@@ -61,8 +61,8 @@ function tidyTier(tier) {
   // Legacy tier strings - convert to ELO
   const LEGACY_TIER_TO_ELO = {
     LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
-    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2500,
-    LT1: 3000, HT1: 4000,
+    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
+    LT1: 2500, HT1: 2750,
   };
   const upper = trimmed.toUpperCase();
   return LEGACY_TIER_TO_ELO[upper] ?? null;
@@ -107,13 +107,13 @@ export async function POST(req) {
   const header = `${discordName} - ${minecraftName} - **${resultText} volt ${tier} teszten.**`;
   const modeLine = `**__Gamemode__** ${modeIcon} ${gamemode}`;
 
-  const orderedTiers = [1500, 1750, 2000, 2500, 3000, 4000];
+  const orderedTiers = [1500, 1750, 2000, 2250, 2500, 2750];
   const fightSections = orderedTiers
     .filter((elo) => validFightText(fightNotes[elo]))
     .map((elo) => formatLine(`${elo} ELO Fightok`, fightNotes[elo].trim()));
 
   if (fightSections.length === 0) {
-    return json({ error: "At least one fight note must be provided", required: ["fightNotes.1500", "fightNotes.1750", "fightNotes.2000", "fightNotes.2500", "fightNotes.3000", "fightNotes.4000"] }, 400);
+    return json({ error: "At least one fight note must be provided", required: ["fightNotes.1500", "fightNotes.1750", "fightNotes.2000", "fightNotes.2250", "fightNotes.2500", "fightNotes.2750"] }, 400);
   }
 
   const message = [header, "", modeLine, "", ...fightSections].join("\n\n");

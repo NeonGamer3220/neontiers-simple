@@ -54,8 +54,7 @@ function displayMode(mode) {
 // ELO to points mapping (same tier values preserved for sorting)
 const RANK_POINTS = {
   500: 1, 750: 2, 1000: 3, 1250: 4,
-  1500: 6, 1750: 10, 2000: 16, 2500: 28,
-  3000: 40, 4000: 60,
+  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 28, 2750: 34,
 };
 
 const TIER_ICONS = {
@@ -79,7 +78,7 @@ function tierFromRank(rank) {
   if (!rank) return null;
   const elo = typeof rank === "string" ? parseInt(rank, 10) : rank;
   if (!Number.isFinite(elo)) return null;
-  if (elo >= 3000) return 1;
+  if (elo >= 2500) return 1;
   if (elo >= 2000) return 2;
   if (elo >= 1500) return 3;
   if (elo >= 1000) return 4;
@@ -96,14 +95,14 @@ function rankBadgeColor(rank, retired = false) {
   
   // Determine LT/HT based on midpoint
   const getTier = (e) => {
-    if (e >= 3000) return 1;
+    if (e >= 2500) return 1;
     if (e >= 2000) return 2;
     if (e >= 1500) return 3;
     if (e >= 1000) return 4;
     return 5;
   };
   const tier = getTier(elo);
-  const midpoints = {5: 625, 4: 1125, 3: 1625, 2: 2250, 1: 3500};
+  const midpoints = {5: 625, 4: 1125, 3: 1625, 2: 2125, 1: 2625};
   const isLT = elo < (midpoints[tier] || 0);
   
   switch (tier) {

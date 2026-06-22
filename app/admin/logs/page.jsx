@@ -234,13 +234,17 @@ export default function AdminLogsPage() {
                       {log.action === "player_remove" && "Játékos eltávolítás"}
                       {log.action === "admin_login" && "Bejelentkezés"}
                       {log.action === "high_score_save" && "Magas eredmény"}
-                      {!["tier_save", "tier_delete", "player_remove", "admin_login", "high_score_save"].includes(log.action) && log.action}
+                      {log.action === "player_rename" && "Név változtatás"}
+                      {!["tier_save", "tier_delete", "player_remove", "admin_login", "high_score_save", "player_rename"].includes(log.action) && log.action}
                     </span>
                   </div>
                   <div className="tableCell colPlayer">{log.target_username || "-"}</div>
                   <div className="tableCell colMode">{log.gamemode || "-"}</div>
                   <div className="tableCell colDetails">
-                    {log.new_rank && log.old_rank && log.old_rank !== log.new_rank && (
+                    {log.action === "player_rename" && log.details?.old_name && log.details?.new_name && (
+                      <div>{log.details.old_name} → {log.details.new_name}</div>
+                    )}
+                    {log.new_rank && log.old_rank && log.old_rank !== log.new_rank && log.action !== "player_rename" && (
                       <div>{log.old_rank} → {log.new_rank}</div>
                     )}
                     {log.details?.fight_notes && Object.keys(log.details.fight_notes).length > 0 && (
@@ -513,16 +517,16 @@ export default function AdminLogsPage() {
           letter-spacing: 0.3px;
         }
 
-        .rankBadge[data-rank="4000"],
-        .rankBadge[data-rank="3000"] {
+.rankBadge[data-rank="2750"],
+        .rankBadge[data-rank="2500"] {
           background: rgba(213, 179, 85, 0.25);
           color: #d5b355;
         }
 
-        .rankBadge[data-rank="2500"],
+        .rankBadge[data-rank="2250"],
         .rankBadge[data-rank="2000"] {
-          background: rgba(164, 179, 199, 0.25);
-          color: #a4b3c7;
+          background: rgba(136, 136, 149, 0.25);
+          color: #888d95;
         }
 
         .rankBadge[data-rank="1750"],
@@ -537,17 +541,17 @@ export default function AdminLogsPage() {
           color: #b7aadf;
         }
 
-.rankBadge[data-rank="750"],
-         .rankBadge[data-rank="500"] {
-           background: rgba(111, 99, 137, 0.25);
-           color: #6f6389;
-         }
+        .rankBadge[data-rank="750"],
+        .rankBadge[data-rank="500"] {
+          background: rgba(111, 99, 137, 0.25);
+          color: #6f6389;
+        }
 
-         /* Retired rank styling */
-         .rankBadge[data-retired="true"] {
-           background: rgba(143, 124, 255, 0.25);
-           color: #8f7cff;
-         }
+        /* Retired rank styling */
+        .rankBadge[data-retired="true"] {
+          background: rgba(143, 124, 255, 0.25);
+          color: #8f7cff;
+        }
 
          .logTypeTabs {
           display: flex;
@@ -623,9 +627,14 @@ export default function AdminLogsPage() {
           color: #ff6b6b;
         }
 
-        .actionBadge.admin_login {
+.actionBadge.admin_login {
           background: rgba(58, 100, 196, 0.2);
           color: #3a64c4;
+        }
+
+        .actionBadge.player_rename {
+          background: rgba(79, 167, 255, 0.2);
+          color: #4fa7ff;
         }
 
         .emptyState {

@@ -10,10 +10,10 @@ const TIER_RANKS = [
   { value: 1250, color: "#b7aadf" },
   { value: 1500, color: "#dd8849" },
   { value: 1750, color: "#dd8849" },
-  { value: 2000, color: "#a4b3c7" },
+  { value: 2000, color: "#888d95" },
+  { value: 2250, color: "#a4b3c7" },
   { value: 2500, color: "#a4b3c7" },
-  { value: 3000, color: "#d5b355" },
-  { value: 4000, color: "#d5b355" },
+  { value: 2750, color: "#d5b355" },
   { value: 0, color: "#888d95" },
 ];
 
@@ -83,8 +83,7 @@ const MODE_OPTIONS = [
 
 const RANK_POINTS = {
   500: 1, 750: 2, 1000: 3, 1250: 4,
-  1500: 6, 1750: 10, 2000: 16, 2500: 28,
-  3000: 40, 4000: 60,
+  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 28, 2750: 34,
   0: 0,
 };
 
@@ -157,7 +156,7 @@ const [selectedPlayer, setSelectedPlayer] = useState(null);
   };
 
   const findBestRank = (ranks) => {
-    const rankOrder = [500, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000, 4000, 0];
+    const rankOrder = [500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 0];
     for (const r of rankOrder) {
       if (ranks.includes(r)) return r;
     }
