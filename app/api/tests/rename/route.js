@@ -115,7 +115,7 @@ export async function POST(req) {
 
   // Check if old name exists
   const { data: existing, error: findErr } = await supabase
-    .from("tests")
+    .from("elos")
     .select("id, username, gamemode, rank, points, created_at")
     .ilike("username", oldName);
 
@@ -133,7 +133,7 @@ export async function POST(req) {
 
   // Update all records with old name to new name
   const { data: updated, error: updateErr } = await supabase
-    .from("tests")
+    .from("elos")
     .update({ username: newName })
     .ilike("username", oldName)
     .select("id, username, gamemode, rank, points, created_at");

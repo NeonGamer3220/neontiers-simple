@@ -104,11 +104,11 @@ export async function GET(req) {
 
   if (username && gamemode) {
     const { data, error } = await supabase
-      .from("tests")
-      .select("id,username,gamemode,rank,points,created_at")
-      .ilike("username", username)
-      .ilike("gamemode", gamemode)
-      .maybeSingle();
+    .from("elos")
+    .select("id,username,gamemode,rank,points,created_at")
+    .ilike("username", username)
+    .ilike("gamemode", gamemode)
+    .maybeSingle();
 
     if (error) return json({ error: error.message }, 500);
     return json({ test: data || null });
@@ -117,7 +117,7 @@ export async function GET(req) {
   // New: Get all tests for a specific username
   if (username) {
     const { data, error } = await supabase
-      .from("tests")
+      .from("elos")
       .select("id,username,gamemode,rank,points,created_at")
       .ilike("username", username)
       .order("points", { ascending: false });
@@ -141,7 +141,7 @@ const LEGACY_TIER_TO_ELO = {
     // Convert tier to ELO if it's a legacy string
     const eloTier = LEGACY_TIER_TO_ELO[tier.toUpperCase()] ?? Number(tier);
     const { data, error } = await supabase
-      .from("tests")
+      .from("elos")
       .select("id,username,gamemode,rank,points,created_at,retired")
       .ilike("gamemode", mode)
       .eq("rank", eloTier)
@@ -165,7 +165,7 @@ const LEGACY_TIER_TO_ELO = {
   const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10) || 500, 2000);
 
   const { data, error } = await supabase
-    .from("tests")
+    .from("elos")
     .select("id,username,gamemode,rank,points,created_at,retired")
     .order("points", { ascending: false })
     .order("created_at", { ascending: false })
@@ -226,7 +226,7 @@ export async function POST(req) {
 
   // 1) Előző rekord lekérése (ez kell a botnak!)
   const { data: prev, error: prevErr } = await supabase
-    .from("tests")
+    .from("elos")
     .select("id,username,gamemode,rank,points,created_at,retired")
     .ilike("username", username)
     .ilike("gamemode", gamemode)
@@ -250,7 +250,7 @@ export async function POST(req) {
   if (id) {
     // Update by id (safer for admin edits)
     const { data, error } = await supabase
-      .from("tests")
+      .from("elos")
       .update(row)
       .eq("id", id)
       .select("id,username,gamemode,rank,points,created_at,retired")
@@ -260,7 +260,7 @@ export async function POST(req) {
     // If update did not find a row, fall back to upsert to create one
     if (!saved && !saveErr) {
       const ups = await supabase
-        .from("tests")
+        .from("elos")
         .upsert(row, { onConflict: "username,gamemode" })
         .select("id,username,gamemode,rank,points,created_at,retired")
         .maybeSingle();
@@ -274,7 +274,7 @@ export async function POST(req) {
     const surrogateId = surrogateIdFor(username, gamemode);
     const insertRow = { ...row, id: surrogateId };
     const res = await supabase
-      .from("tests")
+      .from("elos")
       .upsert(insertRow, { onConflict: "id" })
       .select("id,username,gamemode,rank,points,created_at,retired")
       .maybeSingle();
@@ -283,7 +283,7 @@ export async function POST(req) {
     // Fall back to username+gamemode conflict if id-based upsert finds nothing
     if (!saved && !saveErr) {
       const ups2 = await supabase
-        .from("tests")
+        .from("elos")
         .upsert(insertRow, { onConflict: "username,gamemode" })
         .select("id,username,gamemode,rank,points,created_at,retired")
         .maybeSingle();

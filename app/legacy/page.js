@@ -7,42 +7,25 @@ const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 // Show player lists and leaderboard
 const SHOW_LISTS = true;
 
-const MODE_LIST = [
+  const MODE_LIST = [
   "Összes",
-  "Vanilla", "UHC", "Pot", "NethPot", "SMP",
-  "Sword", "Axe", "Mace", "Cart", "Creeper", "DiaSMP",
-  "OGVanilla", "ShieldlessUHC", "SpearMace", "SpearElytra", "Stick Fight", "Trident",
+  "Boxing", "Combo", "Bridge", "No Debuff", "OP", "Soup", "Fireball Fight",
 ];
 
-const MODE_ICONS = {
+  const MODE_ICONS = {
   "Összes": "/images/overall.png",
-  "Vanilla": "/images/vanilla.png",
-  "UHC": "/images/uhc.png",
-  "Pot": "/images/pot.png",
-  "NethPot": "/images/nethpot.png",
-  "SMP": "/images/smp.png",
-  "Sword": "/images/sword.png",
-  "Axe": "/images/axe.png",
-  "Mace": "/images/mace.png",
-  "Cart": "/images/cart.png",
-  "Creeper": "/images/creeper.png",
-  "DiaSMP": "/images/diasmp.png",
-  "OGVanilla": "/images/ogvanilla.png",
-  "SpearMace": "/images/spear.png",
-  "SpearElytra": "/images/spear.png",
-  "ShieldlessUHC": "/images/shieldlessuhc.png",
-  "Stick Fight": "/images/stickfight.png",
-  "Trident": "/images/trident.png",
+  "Boxing": "/images/boxing.png",
+  "Combo": "/images/combo.png",
+  "Bridge": "/images/bridge.png",
+  "No Debuff": "/images/no debuff.png",
+  "OP": "/images/op.png",
+  "Soup": "/images/soup.png",
+  "Fireball Fight": "/images/fireball fight.png",
 };
 
-const MODE_DISPLAY_MAP = {
-  "vanilla": "Vanilla", "uhc": "UHC", "pot": "Pot", "nethpot": "NethPot",
-  "smp": "SMP", "sword": "Sword", "axe": "Axe", "mace": "Mace",
-  "cart": "Cart", "creeper": "Creeper", "diasmp": "DiaSMP",
-  "ogvanilla": "OGVanilla", "shieldlessuhc": "ShieldlessUHC",
-  "spearmace": "SpearMace", "spearelytra": "SpearElytra",
-  "stickfight": "Stick Fight",
-  "trident": "Trident",
+  const MODE_DISPLAY_MAP = {
+  "boxing": "Boxing", "combo": "Combo", "bridge": "Bridge",
+  "nodebuff": "No Debuff", "op": "OP", "soup": "Soup", "fireballfight": "Fireball Fight",
 };
 
 function displayMode(mode) {
@@ -354,57 +337,41 @@ const closePlayerDetail = () => {
        <div className="bg" />
 
 {/* Navbar */}
-       <header className="navbar">
-         <nav className="navInner">
-           <h1 className="navLogo"><a href="/">NeonTiers</a></h1>
-           <ul className="navLinks">
-            <li>
-               <a className="navLink active" href="/">
-               <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-                 <path d="M12 3.2 3.8 9.8a1 1 0 0 0-.38.78V20a1 1 0 0 0 1 1h5.1a1 1 0 0 0 1-1v-4.8h3V20a1 1 0 0 0 1 1h5.08a1 1 0 0 0 1-1v-9.42a1 1 0 0 0-.37-.78L12 3.2Z"/>
-               </svg>
-               Főoldal
-             </a>
-           </li>
-           <li>
-<a className="navLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">
-                <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
-                 <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/>
-               </svg>
-               Discord
-             </a>
-           </li>
-<li>
-              <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
+        <header className="navbar">
+          <nav className="navInner">
+            <h1 className="navLogo"><a href="/">NeonTiers</a></h1>
+            <ul className="navLinks">
+              <li>
+                <a className="navLink active" href="/">
                 <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
-                  <path d="M11.14 3.38a1.7 1.7 0 0 1 1.72 0l6 3.42A1.72 1.72 0 0 1 19.72 8v8a1.72 1.72 0 0 1-.86 1.48l-6 3.42a1.7 1.7 0 0 1-1.72 0l-6-3.42A1.72 1.72 0 0 1 4.28 16V8c0-.62.33-1.2.86-1.49l6-3.13Zm.86 2.03L7.16 8.17 12 10.93l4.84-2.76L12 5.41Zm-5.72 4.2V15L11 17.67v-5.52L6.28 9.6Zm7.72 8.06 4.72-2.68V9.6L13 12.15v5.52Z"/>
+                  <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
                 </svg>
-                Mod
+                Főoldal
               </a>
             </li>
             <li>
-              <a className="navLink" href="/legacy">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
+              <a className="navLink" href="https://discord.gg/7fanAQDxaN" target="_blank" rel="noreferrer">
+                <svg className="navLinkIcon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor">
+                 <path d="M13.545 2.907a13.2 13.2 0 0 0-3.257-1.011.05.05 0 0 0-.052.025c-.141.25-.297.577-.406.833a12.2 12.2 0 0 0-3.658 0 8 8 0 0 0-.412-.833.05.05 0 0 0-.052-.025c-1.125.194-2.22.534-3.257 1.011a.04.04 0 0 0-.021.018C.356 6.024-.213 9.047.066 12.032q.003.022.021.037a13.3 13.3 0 0 0 3.995 2.02.05.05 0 0 0 .056-.019q.463-.63.818-1.329a.05.05 0 0 0-.01-.059l-.018-.011a9 9 0 0 1-1.248-.595.05.05 0 0 1-.02-.066l.015-.019q.127-.095.248-.195a.05.05 0 0 1 .051-.007c2.619 1.196 5.454 1.196 8.041 0a.05.05 0 0 1 .053.007q.121.1.248.195a.05.05 0 0 1-.004.085 8 8 0 0 1-1.249.594.05.05 0 0 0-.03.03.05.05 0 0 0 .003.041c.24.465.515.909.817 1.329a.05.05 0 0 0 .056.019 13.2 13.2 0 0 0 4.001-2.02.05.05 0 0 0 .021-.037c.334-3.451-.559-6.449-2.366-9.106a.03.03 0 0 0-.02-.019m-8.198 7.307c-.789 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.45.73 1.438 1.613 0 .888-.637 1.612-1.438 1.612m5.316 0c-.788 0-1.438-.724-1.438-1.612s.637-1.613 1.438-1.613c.807 0 1.451.73 1.438 1.613 0 .888-.631 1.612-1.438 1.612"/>
                 </svg>
-                Legacy
+                Discord
               </a>
             </li>
             </ul>
-           <span className="searchWrap">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-              <path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/>
-            </svg>
-            <input
-              className="searchInput"
-              placeholder="Játékos keresése..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              spellCheck={false}
-            />
-            <kbd className="searchKbd">/</kbd>
-          </span>
-        </nav>
+             <span className="searchWrap">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+                <path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/>
+              </svg>
+              <input
+                className="searchInput"
+                placeholder="Játékos keresése..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                spellCheck={false}
+              />
+              <kbd className="searchKbd">/</kbd>
+            </span>
+          </nav>
         </header>
 
         {/* Gamemode tabs */}
@@ -825,7 +792,7 @@ const totalPoints = selectedPlayer.total;
              <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
              <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
              <span className="footerDivider" aria-hidden="true">|</span>
-              <a className="footerNavLink" href="/legacy">Legacy</a>
+             <a className="footerNavLink" href="/informaciok">Információk</a>
            </nav>
           <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
         </footer>

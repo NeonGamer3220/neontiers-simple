@@ -114,7 +114,7 @@ export async function POST(req) {
   if (gamemode) {
     // Delete only specific gamemode entry
     const { data: existing, error: findErr } = await supabase
-      .from("tests")
+      .from("elos")
       .select("id, username, gamemode, rank, points")
       .ilike("username", username)
       .ilike("gamemode", gamemode);
@@ -131,7 +131,7 @@ export async function POST(req) {
     }
 
     const { error: delErr } = await supabase
-      .from("tests")
+      .from("elos")
       .delete()
       .ilike("username", username)
       .ilike("gamemode", gamemode);
@@ -170,7 +170,7 @@ export async function POST(req) {
 
   // Delete ALL entries for this username
   const { data: existing, error: findErr } = await supabase
-    .from("tests")
+    .from("elos")
     .select("id, username, gamemode, rank, points")
     .ilike("username", username);
 
@@ -186,7 +186,7 @@ export async function POST(req) {
   }
 
   const { error: delErr } = await supabase
-    .from("tests")
+    .from("elos")
     .delete()
     .ilike("username", username);
 

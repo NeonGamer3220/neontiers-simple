@@ -65,7 +65,7 @@ export async function POST(req) {
 
   // Check if record exists
   const { data: existing, error: fetchErr } = await supabase
-    .from("tests")
+    .from("elos")
     .select("username,gamemode,retired")
     .ilike("username", username)
     .ilike("gamemode", gamemode)
@@ -84,7 +84,7 @@ export async function POST(req) {
 
   // Update retired status
   const { data: updated, error: updateErr } = await supabase
-    .from("tests")
+    .from("elos")
     .update({ retired: retired === true })
     .ilike("username", username)
     .ilike("gamemode", gamemode)
