@@ -386,7 +386,7 @@ const closePlayerDetail = () => {
         </header>
 
         {/* Gamemode tabs */}
-        <div className="tabsWrap">
+        <div className="tabsWrap legacy">
          <div className="tabsScroller">
            <div className="tabRow">
              {MODE_LIST.map((m) => (
@@ -1149,6 +1149,23 @@ const totalPoints = selectedPlayer.total;
         .tabIcon {
           width: 28px;
           height: 28px;
+        }
+
+        .legacy .tabBtn {
+          min-width: 110px;
+          padding: 14px 10px 12px;
+          border-radius: 22px 22px 0 0;
+          gap: 10px;
+        }
+
+        .legacy .tabIcon {
+          width: 44px;
+          height: 44px;
+        }
+
+        .legacy .tabLabel {
+          font-size: 13px;
+          letter-spacing: 0.04em;
         }
 
          .tabLabel {
