@@ -203,12 +203,12 @@ const testRes = await fetch("/api/tests");
     // Apply gamemode filter
     let filtered = latestRows;
     if (singleModeFilter && singleModeFilter.length > 0) {
-      // Filter to rows matching ANY of the modes in the filter
       filtered = latestRows.filter(r => 
-        singleModeFilter.some(m => r.gamemode.toLowerCase() === m.toLowerCase())
+        singleModeFilter.some(m => r.gamemode.toLowerCase().replace(/\s+/g, "") === m.toLowerCase())
       );
     } else if (activeMode !== "Összes") {
-      filtered = latestRows.filter((r) => r.gamemode.toLowerCase() === activeMode.toLowerCase());
+      const activeNorm = activeMode.toLowerCase().replace(/\s+/g, "");
+      filtered = latestRows.filter((r) => r.gamemode.toLowerCase().replace(/\s+/g, "") === activeNorm);
     }
 
     const byUser = new Map();
@@ -326,9 +326,10 @@ const closePlayerDetail = () => {
      }
 
      const latestRows = Array.from(latestByUserMode.values());
-     const filtered = tierBoardMode === "Összes"
-       ? latestRows
-       : latestRows.filter((r) => r.gamemode.toLowerCase() === tierBoardMode.toLowerCase());
+      const tierNorm = tierBoardMode.toLowerCase().replace(/\s+/g, "");
+      const filtered = tierBoardMode === "Összes"
+        ? latestRows
+        : latestRows.filter((r) => r.gamemode.toLowerCase().replace(/\s+/g, "") === tierNorm);
      return filtered;
    };
 
@@ -542,7 +543,7 @@ const closePlayerDetail = () => {
                 <div className="modeBoard">
 {[1, 2, 3, 4, 5].map((tier) => {
                      const tierPlayers = leaderboard.filter(p => {
-                       const entry = p.entries.find(e => e.gamemode.toLowerCase() === activeMode.toLowerCase());
+                        const entry = p.entries.find(e => e.gamemode.toLowerCase().replace(/\s+/g, "") === activeModeNorm);
                        if (!entry) return false;
                        const entryTier = tierFromRank(entry.rank);
                        return entryTier === tier;
@@ -742,7 +743,7 @@ const totalPoints = selectedPlayer.total;
                       const displayRank = entry.retired ? `R${entry.rank}` : String(entry.rank);
                       
                       // If viewing single-mode, show all entries; else filter to matching ones
-                      const shouldShow = !singleModeFilter || singleModeFilter.some(m => entry.gamemode.toLowerCase() === m.toLowerCase());
+                      const shouldShow = !singleModeFilter || singleModeFilter.some(m => entry.gamemode.toLowerCase().replace(/\s+/g, "") === m.toLowerCase());
                       if (!shouldShow) return null;
                       
                       return (
