@@ -143,7 +143,13 @@ const [tests, setTests] = useState([]);
 const testRes = await fetch("/api/tests");
         if (!alive) return;
         const testJson = await testRes.json();
-        setTests(Array.isArray(testJson?.tests) ? testJson.tests : []);
+        setTests(
+          Array.isArray(testJson?.tests)
+            ? testJson.tests.filter((r) =>
+                LEGACY_MODES.has((r?.gamemode || "").toLowerCase().replace(/\s+/g, ""))
+              )
+            : []
+        );
       } catch {
         if (!alive) return;
         setTests([]);
