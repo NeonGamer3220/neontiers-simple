@@ -321,6 +321,7 @@ const closePlayerDetail = () => {
           rank: r?.elo != null ? Number(r.elo) : null,
           retired: r?.retired === true,
           points: r?.points != null
+            ? safeInt(r.points, 0)
             : safeInt(RANK_POINTS[Number(r?.elo)] || 0, 0),
           }))
         .filter((r) => r.username && r.gamemode && r.rank != null)
