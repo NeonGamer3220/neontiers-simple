@@ -140,7 +140,7 @@ const [tests, setTests] = useState([]);
     async function load() {
       try {
         setLoading(true);
-const testRes = await fetch("/api/tests");
+const testRes = await fetch("/api/tests?modes=boxing,combo,bridge,nodebuff,op,soup,fireballfight");
         if (!alive) return;
         const testJson = await testRes.json();
         setTests(Array.isArray(testJson?.tests) ? testJson.tests : []);
@@ -192,7 +192,8 @@ const testRes = await fetch("/api/tests");
           : safeInt(RANK_POINTS[Number(r?.elo)] || 0, 0),
         created_at: r?.created_at ? String(r.created_at) : "",
       }))
-      .filter((r) => r.username && r.gamemode && r.rank != null);
+      .filter((r) => r.username && r.gamemode && r.rank != null)
+      .filter((r) => LEGACY_MODES.has(r.gamemode.toLowerCase().replace(/\s+/g, "")));
 
     const latestByUserMode = new Map();
     for (const r of rows) {

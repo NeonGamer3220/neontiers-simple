@@ -163,13 +163,28 @@ const LEGACY_TIER_TO_ELO = {
 
   // Get all tests — supabase query limited rows from DB (avoid over-fetch).
   const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10) || 500, 2000);
+  const modesParam = searchParams.get("modes") || "";
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("elos")
     .select("id,username,gamemode,elo,points,created_at,retired")
     .order("points", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (gamemode && !modesParam) {
+    query = query.ilike("gamemode", gamemode);
+  } else if (modesParam) {
+    const modes = modesParam.split(",").map(m => m.trim()).filter(Boolean);
+    if (modes.length === 1) {
+      query = query.ilike("gamemode", modes[0]);
+    } else if (modes.length > 1) {
+      const orFilters = modes.map(m => `gamemode.ilike.${m}`).join(",");
+      query = query.or(orFilters);
+    }
+  }
+
+  const { data, error } = await query;
 
   if (error) return json({ error: error.message }, 500);
 

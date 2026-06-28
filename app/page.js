@@ -65,6 +65,12 @@ const TIER_ICONS = {
   5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
 };
 
+const TIER_IMAGE_MAP = {
+  1: "/images/tier_1.svg",
+  2: "/images/tier_2.svg",
+  3: "/images/tier_3.svg",
+};
+
 const TIER_COLORS = {
   1: { accent: "#d5b355", surface: "rgba(213, 179, 85, 0.22)" },
   2: { accent: "#a4b3c7", surface: "rgba(164, 179, 199, 0.22)" },
@@ -592,7 +598,11 @@ const closePlayerDetail = () => {
                          }}
                        >
                          <header className="modeTierHead">
-                           <span className="modeTierHeadIcon">{TIER_ICONS[tier]}</span>
+                            <span className="modeTierHeadIcon">
+                              {TIER_IMAGE_MAP[tier] ? (
+                                <img src={TIER_IMAGE_MAP[tier]} alt="" width={22} height={22} />
+                              ) : null}
+                            </span>
                            <span className="modeTierNumber">Tier {tier}</span>
                          </header>
                          <div className="modeTierList">
@@ -679,7 +689,11 @@ const tierColors = {
                          '--column-surface': tierColors[tier].surface,
                        }}>
                          <header className="modeTierHead">
-                           <span className="modeTierHeadIcon">{TIER_ICONS[tier]}</span>
+                            <span className="modeTierHeadIcon">
+                              {TIER_IMAGE_MAP[tier] ? (
+                                <img src={TIER_IMAGE_MAP[tier]} alt="" width={22} height={22} />
+                              ) : null}
+                            </span>
                            <span className="modeTierNumber">Tier {tier}</span>
                          </header>
                          <div className="modeTierList">
