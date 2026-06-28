@@ -140,7 +140,7 @@ const [tests, setTests] = useState([]);
     async function load() {
       try {
         setLoading(true);
-const testRes = await fetch("/api/tests?modes=boxing,combo,bridge,nodebuff,op,soup,fireballfight");
+const testRes = await fetch("/api/tests");
         if (!alive) return;
         const testJson = await testRes.json();
         setTests(Array.isArray(testJson?.tests) ? testJson.tests : []);
