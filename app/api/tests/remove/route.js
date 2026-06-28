@@ -115,7 +115,7 @@ export async function POST(req) {
     // Delete only specific gamemode entry
     const { data: existing, error: findErr } = await supabase
       .from("elos")
-      .select("id, username, gamemode, rank, points")
+      .select("id, username, gamemode, elo as rank, points")
       .ilike("username", username)
       .ilike("gamemode", gamemode);
 
@@ -139,7 +139,7 @@ export async function POST(req) {
     if (delErr) return json({ error: delErr.message }, 500);
 
     const details = existing
-      .map((r) => `${r.gamemode}: ${r.rank} (${r.points}pt)`)
+      .map((r) => `${r.gamemode}: ${r.elo as rank} (${r.points}pt)`)
       .join(", ");
 
     // Insert audit record
@@ -149,8 +149,8 @@ export async function POST(req) {
         action: "tier_delete",
         target_username: username,
         gamemode,
-        old_rank: existing && existing.length === 1 ? existing[0].rank : null,
-        new_rank: null,
+        old_elo as rank: existing && existing.length === 1 ? existing[0].elo as rank : null,
+        new_elo as rank: null,
         old_points: existing && existing.length === 1 ? existing[0].points : null,
         new_points: null,
         details,
@@ -171,7 +171,7 @@ export async function POST(req) {
   // Delete ALL entries for this username
   const { data: existing, error: findErr } = await supabase
     .from("elos")
-    .select("id, username, gamemode, rank, points")
+    .select("id, username, gamemode, elo as rank, points")
     .ilike("username", username);
 
   if (findErr) return json({ error: findErr.message }, 500);
@@ -194,7 +194,7 @@ export async function POST(req) {
 
   const modesList = [...new Set(existing.map((r) => r.gamemode))].join(", ");
   const details = existing
-    .map((r) => `${r.gamemode}: ${r.rank} (${r.points}pt)`)
+    .map((r) => `${r.gamemode}: ${r.elo as rank} (${r.points}pt)`)
     .join(", ");
 
   // Insert audit record for full-delete
@@ -204,8 +204,8 @@ export async function POST(req) {
       action: "tier_delete",
       target_username: username,
       gamemode: modesList,
-      old_rank: null,
-      new_rank: null,
+      old_elo as rank: null,
+      new_elo as rank: null,
       old_points: null,
       new_points: null,
       details,

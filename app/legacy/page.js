@@ -792,7 +792,7 @@ const totalPoints = selectedPlayer.total;
              <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
              <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
              <span className="footerDivider" aria-hidden="true">|</span>
-             <a className="footerNavLink" href="/informaciok">Információk</a>
+              <a className="footerNavLink" href="/legacy">Legacy</a>
            </nav>
           <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
         </footer>

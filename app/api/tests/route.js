@@ -105,7 +105,7 @@ export async function GET(req) {
   if (username && gamemode) {
     const { data, error } = await supabase
     .from("elos")
-    .select("id,username,gamemode,rank,points,created_at")
+    .select("id,username,gamemode,elo as rank,points,created_at")
     .ilike("username", username)
     .ilike("gamemode", gamemode)
     .maybeSingle();
@@ -118,7 +118,7 @@ export async function GET(req) {
   if (username) {
     const { data, error } = await supabase
       .from("elos")
-      .select("id,username,gamemode,rank,points,created_at")
+      .select("id,username,gamemode,elo as rank,points,created_at")
       .ilike("username", username)
       .order("points", { ascending: false });
 
@@ -142,9 +142,9 @@ const LEGACY_TIER_TO_ELO = {
     const eloTier = LEGACY_TIER_TO_ELO[tier.toUpperCase()] ?? Number(tier);
     const { data, error } = await supabase
       .from("elos")
-      .select("id,username,gamemode,rank,points,created_at,retired")
+      .select("id,username,gamemode,elo as rank,points,created_at,retired")
       .ilike("gamemode", mode)
-      .eq("rank", eloTier)
+      .eq("elo", eloTier)
       .limit(100); // Fetch a batch to pick from
 
     if (error) return json({ error: error.message }, 500);
@@ -166,7 +166,7 @@ const LEGACY_TIER_TO_ELO = {
 
   const { data, error } = await supabase
     .from("elos")
-    .select("id,username,gamemode,rank,points,created_at,retired")
+    .select("id,username,gamemode,elo as rank,points,created_at,retired")
     .order("points", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -200,7 +200,7 @@ export async function POST(req) {
   ]);
 
   const gamemodeRaw = pick(body, ["gamemode", "game_mode", "mode", "gameMode", "testmode"]);
-  const rankRaw = pick(body, ["rank", "tier", "earned_rank", "earnedRank", "earned_tier", "result"]);
+  const rankRaw = pick(body, ["elo", "rank", "tier", "earned_rank", "earnedRank", "earned_tier", "result"]);
   const retiredRaw = body?.retired === true || body?.retired === "true";
 
   const gamemode = normMode(gamemodeRaw);
@@ -227,7 +227,7 @@ export async function POST(req) {
   // 1) Előző rekord lekérése (ez kell a botnak!)
   const { data: prev, error: prevErr } = await supabase
     .from("elos")
-    .select("id,username,gamemode,rank,points,created_at,retired")
+    .select("id,username,gamemode,elo as rank,points,created_at,retired")
     .ilike("username", username)
     .ilike("gamemode", gamemode)
     .maybeSingle();
@@ -238,7 +238,7 @@ export async function POST(req) {
   const row = {
     username,
     gamemode,
-    rank,
+    elo: rank,
     points,
     retired: retiredRaw,
     created_at: new Date().toISOString(),
@@ -253,7 +253,7 @@ export async function POST(req) {
       .from("elos")
       .update(row)
       .eq("id", id)
-      .select("id,username,gamemode,rank,points,created_at,retired")
+      .select("id,username,gamemode,elo as rank,points,created_at,retired")
       .maybeSingle();
     saved = data;
     saveErr = error;
@@ -262,7 +262,7 @@ export async function POST(req) {
       const ups = await supabase
         .from("elos")
         .upsert(row, { onConflict: "username,gamemode" })
-        .select("id,username,gamemode,rank,points,created_at,retired")
+        .select("id,username,gamemode,elo as rank,points,created_at,retired")
         .maybeSingle();
       saved = ups.data;
       saveErr = ups.error;
@@ -276,7 +276,7 @@ export async function POST(req) {
     const res = await supabase
       .from("elos")
       .upsert(insertRow, { onConflict: "id" })
-      .select("id,username,gamemode,rank,points,created_at,retired")
+      .select("id,username,gamemode,elo as rank,points,created_at,retired")
       .maybeSingle();
     saved = res.data;
     saveErr = res.error;
@@ -285,7 +285,7 @@ export async function POST(req) {
       const ups2 = await supabase
         .from("elos")
         .upsert(insertRow, { onConflict: "username,gamemode" })
-        .select("id,username,gamemode,rank,points,created_at,retired")
+        .select("id,username,gamemode,elo as rank,points,created_at,retired")
         .maybeSingle();
       saved = ups2.data;
       saveErr = ups2.error;
