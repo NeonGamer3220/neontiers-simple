@@ -1157,9 +1157,19 @@ const totalPoints = selectedPlayer.total;
           height: 28px;
         }
 
+                .legacy .tabsWrap {
+          padding-left: 40px;
+          padding-right: 40px;
+          margin-top: 120px;
+        }
+
+        .legacy .tabRow {
+          gap: 18px;
+        }
+
         .legacy .tabBtn {
-          min-width: 110px;
-          padding: 14px 10px 12px;
+          min-width: 120px;
+          padding: 16px 12px 14px;
           border-radius: 22px 22px 0 0;
           gap: 10px;
         }
