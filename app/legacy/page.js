@@ -7,25 +7,27 @@ const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 // Show player lists and leaderboard
 const SHOW_LISTS = true;
 
-  const MODE_LIST = [
-  "Összes",
-  "Boxing", "Combo", "Bridge", "No Debuff", "OP", "Soup", "Fireball Fight",
+const LEGACY_MODES = new Set(["boxing", "combo", "bridge", "nodebuff", "op", "soup", "fireballfight"]);
+
+const MODE_LIST = [
+"Összes",
+"Boxing", "Combo", "Bridge", "No Debuff", "OP", "Soup", "Fireball Fight",
 ];
 
-  const MODE_ICONS = {
-  "Összes": "/images/overall.png",
-  "Boxing": "/images/boxing.png",
-  "Combo": "/images/combo.png",
-  "Bridge": "/images/bridge.png",
-  "No Debuff": "/images/no debuff.png",
-  "OP": "/images/op.png",
-  "Soup": "/images/soup.png",
-  "Fireball Fight": "/images/fireball fight.png",
+const MODE_ICONS = {
+"Összes": "/images/overall.png",
+"Boxing": "/images/boxing.png",
+"Combo": "/images/combo.png",
+"Bridge": "/images/bridge.png",
+"No Debuff": "/images/no debuff.png",
+"OP": "/images/op.png",
+"Soup": "/images/soup.png",
+"Fireball Fight": "/images/fireball fight.png",
 };
 
-  const MODE_DISPLAY_MAP = {
-  "boxing": "Boxing", "combo": "Combo", "bridge": "Bridge",
-  "nodebuff": "No Debuff", "op": "OP", "soup": "Soup", "fireballfight": "Fireball Fight",
+const MODE_DISPLAY_MAP = {
+"boxing": "Boxing", "combo": "Combo", "bridge": "Bridge",
+"nodebuff": "No Debuff", "op": "OP", "soup": "Soup", "fireballfight": "Fireball Fight",
 };
 
 function displayMode(mode) {
@@ -46,6 +48,12 @@ const TIER_ICONS = {
   3: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L4 7V17L12 22L20 17V7L12 2Z"/></svg>,
   4: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 9L12 22L22 9L12 2ZM12 5.5L18.5 10L12 14.5L5.5 10L12 5.5Z"/></svg>,
   5: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 12h20L12 2z"/></svg>,
+};
+
+const TIER_IMAGE_MAP = {
+  1: "/images/tier_1.svg",
+  2: "/images/tier_2.svg",
+  3: "/images/tier_3.svg",
 };
 
 const TIER_COLORS = {
@@ -313,10 +321,10 @@ const closePlayerDetail = () => {
           rank: r?.elo != null ? Number(r.elo) : null,
           retired: r?.retired === true,
           points: r?.points != null
-            ? safeInt(r.points, 0)
             : safeInt(RANK_POINTS[Number(r?.elo)] || 0, 0),
-        }))
-        .filter((r) => r.username && r.gamemode && r.rank != null);
+          }))
+        .filter((r) => r.username && r.gamemode && r.rank != null)
+        .filter((r) => LEGACY_MODES.has(r.gamemode.toLowerCase().replace(/\s+/g, "")));
 
      const latestByUserMode = new Map();
      for (const r of rows) {
@@ -558,7 +566,11 @@ const closePlayerDetail = () => {
                          }}
                        >
                          <header className="modeTierHead">
-                           <span className="modeTierHeadIcon">{TIER_ICONS[tier]}</span>
+                            <span className="modeTierHeadIcon">
+                              {TIER_IMAGE_MAP[tier] ? (
+                                <img src={TIER_IMAGE_MAP[tier]} alt="" width={22} height={22} />
+                              ) : null}
+                            </span>
                            <span className="modeTierNumber">Tier {tier}</span>
                          </header>
                          <div className="modeTierList">
@@ -645,7 +657,11 @@ const tierColors = {
                          '--column-surface': tierColors[tier].surface,
                        }}>
                          <header className="modeTierHead">
-                           <span className="modeTierHeadIcon">{TIER_ICONS[tier]}</span>
+                            <span className="modeTierHeadIcon">
+                              {TIER_IMAGE_MAP[tier] ? (
+                                <img src={TIER_IMAGE_MAP[tier]} alt="" width={22} height={22} />
+                              ) : null}
+                            </span>
                            <span className="modeTierNumber">Tier {tier}</span>
                          </header>
                          <div className="modeTierList">
