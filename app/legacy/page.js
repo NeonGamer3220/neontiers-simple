@@ -177,11 +177,11 @@ const testRes = await fetch("/api/tests");
         id: r?.id,
         username: String(r?.username || "").trim(),
         gamemode: String(r?.gamemode || "").trim(),
-        rank: r?.rank != null ? Number(r.rank) : null,
+        rank: r?.elo != null ? Number(r.elo) : null,
         retired: r?.retired === true,
         points: r?.points != null
           ? safeInt(r.points, 0)
-          : safeInt(RANK_POINTS[Number(r?.rank)] || 0, 0),
+          : safeInt(RANK_POINTS[Number(r?.elo)] || 0, 0),
         created_at: r?.created_at ? String(r.created_at) : "",
       }))
       .filter((r) => r.username && r.gamemode && r.rank != null);
@@ -310,11 +310,11 @@ const closePlayerDetail = () => {
           id: r?.id,
           username: String(r?.username || "").trim(),
           gamemode: String(r?.gamemode || "").trim(),
-          rank: r?.rank != null ? Number(r.rank) : null,
+          rank: r?.elo != null ? Number(r.elo) : null,
           retired: r?.retired === true,
           points: r?.points != null
             ? safeInt(r.points, 0)
-            : safeInt(RANK_POINTS[Number(r?.rank)] || 0, 0),
+            : safeInt(RANK_POINTS[Number(r?.elo)] || 0, 0),
         }))
         .filter((r) => r.username && r.gamemode && r.rank != null);
 
