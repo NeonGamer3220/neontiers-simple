@@ -149,8 +149,8 @@ export async function POST(req) {
         action: "player_rename",
         target_username: newName,
         gamemode: null,
-        old_elo as rank: null,
-        new_elo as rank: null,
+        old_rank: null,
+        new_rank: null,
         details: { old_name: oldName, new_name: newName },
       });
     } catch (e) {
