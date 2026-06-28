@@ -1118,6 +1118,7 @@ const totalPoints = selectedPlayer.total;
            gap: 4px;
            align-items: flex-end;
            margin-top: 6px;
+           padding-left: 6px;
          }
 
           .tabBtn {
