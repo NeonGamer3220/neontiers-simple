@@ -642,6 +642,11 @@ export default function AdminLogsPage() {
           color: #4fa7ff;
         }
 
+        .actionBadge.player_add {
+          background: rgba(34, 197, 94, 0.2);
+          color: #4ade80;
+        }
+
         .emptyState {
           padding: 40px;
           text-align: center;
