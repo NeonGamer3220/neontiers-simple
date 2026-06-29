@@ -1181,8 +1181,9 @@ const totalPoints = selectedPlayer.total;
         }
 
         .legacy .tabIcon {
-          width: 44px;
-          height: 44px;
+          width: 52px;
+          height: 32px;
+          object-fit: contain;
         }
 
         .legacy .tabLabel {
