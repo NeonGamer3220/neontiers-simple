@@ -383,6 +383,34 @@ const handleRefreshName = async () => {
   };
 
   // ── Remove player (from main site, keep DB) ──
+  // ── Add player with 500 ELO in every gamemode ──
+  const handleAddPlayer = async () => {
+    const name = window.prompt("Add meg a játékos Minecraft nevét:");
+    if (!name || !name.trim()) return;
+    const username = name.trim();
+    try {
+      await Promise.all(
+        MODE_OPTIONS.map((mode) =>
+          fetch("/api/tests", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username,
+              gamemode: mode,
+              elo: 500,
+              points: 1,
+              retired: false,
+            }),
+          })
+        )
+      );
+      await loadTests();
+      setToast({ type: "ok", text: `${username} hozzáadva minden gamemode-hoz 500 ELO-val.` });
+    } catch {
+      setToast({ type: "error", text: "Hiba a játékos létrehozása során" });
+    }
+  };
+
   const handleRemovePlayer = async () => {
     if (!confirm(`Biztos hogy eltávolítod "${selectedPlayer.username}" játékosadatát a weboldalról?`)) return;
     if (!confirm("Ez a művelet nem vonható vissza. Folytatod?")) return;
@@ -467,6 +495,9 @@ const handleRefreshName = async () => {
               autoComplete="off"
             />
           </div>
+          <button className="addPlayerBtn" onClick={handleAddPlayer}>
+            + Új játékos
+          </button>
 
           {searchedPlayers.length > 0 && (
             <div className="searchResults">
@@ -805,6 +836,23 @@ const handleRefreshName = async () => {
         .searchResultItem:hover {
           background: rgba(255, 255, 255, 0.08);
           border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .addPlayerBtn {
+          padding: 10px 18px;
+          background: #4ade80;
+          color: #000;
+          border: none;
+          border-radius: 10px;
+          font-weight: 800;
+          font-size: 13px;
+          cursor: pointer;
+          transition: background 0.2s;
+          flex-shrink: 0;
+        }
+
+        .addPlayerBtn:hover {
+          background: #22c55e;
         }
 
         .playerDetailsSection {
