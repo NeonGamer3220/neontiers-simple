@@ -200,7 +200,7 @@ export async function POST(req) {
   ]);
 
   const gamemodeRaw = pick(body, ["gamemode", "game_mode", "mode", "gameMode", "testmode"]);
-  const rankRaw = pick(body, ["elo", "rank", "tier", "earned_rank", "earnedRank", "earned_tier", "result"]);
+  const rankRaw = pick(body, ["elo", "rank", "tier", "earned_rank", "earnedRank", "earned_tier", "result", "earned_elo"]);
   const retiredRaw = body?.retired === true || body?.retired === "true";
 
   const gamemode = normMode(gamemodeRaw);
