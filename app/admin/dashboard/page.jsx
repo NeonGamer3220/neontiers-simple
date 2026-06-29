@@ -113,11 +113,13 @@ export default function AdminDashboard() {
   const [tests, setTests] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedPlayers, setSearchedPlayers] = useState([]);
-const [selectedPlayer, setSelectedPlayer] = useState(null);
-   const [showUntested, setShowUntested] = useState(true);
-   const [toast, setToast] = useState(null);
-   const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
-   const [newNameInput, setNewNameInput] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showUntested, setShowUntested] = useState(true);
+  const [toast, setToast] = useState(null);
+  const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
+  const [newNameInput, setNewNameInput] = useState("");
+  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  const [newPlayerName, setNewPlayerName] = useState("");
 
 
   useEffect(() => {
@@ -385,9 +387,11 @@ const handleRefreshName = async () => {
   // ── Remove player (from main site, keep DB) ──
   // ── Add player with 500 ELO in every gamemode ──
   const handleAddPlayer = async () => {
-    const name = window.prompt("Add meg a játékos Minecraft nevét:");
-    if (!name || !name.trim()) return;
-    const username = name.trim();
+    if (!newPlayerName.trim()) {
+      setToast({ type: "error", text: "Add meg a játékos nevét!" });
+      return;
+    }
+    const username = newPlayerName.trim();
     try {
       await Promise.all(
         MODE_OPTIONS.map((mode) =>
@@ -404,7 +408,20 @@ const handleRefreshName = async () => {
           })
         )
       );
+
+      await fetch("/api/audit-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "player_add",
+          target_username: username,
+          details: { modes: MODE_OPTIONS.length, elo: 500 },
+        }),
+      });
+
       await loadTests();
+      setShowAddPlayerModal(false);
+      setNewPlayerName("");
       setToast({ type: "ok", text: `${username} hozzáadva minden gamemode-hoz 500 ELO-val.` });
     } catch {
       setToast({ type: "error", text: "Hiba a játékos létrehozása során" });
@@ -446,6 +463,35 @@ const handleRefreshName = async () => {
           className={`toast ${toast.type === "error" ? "toastError" : "toastOk"}`}
         >
           {toast.text}
+        </div>
+      )}
+
+      {showAddPlayerModal && (
+        <div className="modalOverlay" onClick={() => setShowAddPlayerModal(false)}>
+          <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modalTitle">Új játékos hozzáadása</h3>
+            <p className="modalSubtitle">Minden gamemode-hoz 500 ELO-t kap.</p>
+            <input
+              type="text"
+              className="modalInput"
+              placeholder="Minecraft név..."
+              value={newPlayerName}
+              onChange={(e) => setNewPlayerName(e.target.value)}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAddPlayer();
+                if (e.key === "Escape") setShowAddPlayerModal(false);
+              }}
+            />
+            <div className="modalActions">
+              <button className="modalBtn modalBtnCancel" onClick={() => setShowAddPlayerModal(false)}>
+                Mégse
+              </button>
+              <button className="modalBtn modalBtnConfirm" onClick={handleAddPlayer}>
+                Hozzáadás
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -495,7 +541,7 @@ const handleRefreshName = async () => {
               autoComplete="off"
             />
           </div>
-          <button className="addPlayerBtn" onClick={handleAddPlayer}>
+          <button className="addPlayerBtn" onClick={() => setShowAddPlayerModal(true)}>
             + Új játékos
           </button>
 
@@ -852,6 +898,92 @@ const handleRefreshName = async () => {
         }
 
         .addPlayerBtn:hover {
+          background: #22c55e;
+        }
+
+        .modalOverlay {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+          backdrop-filter: blur(4px);
+        }
+
+        .modalContent {
+          background: #0f1117;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 16px;
+          padding: 28px;
+          width: 90%;
+          max-width: 400px;
+          box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+        }
+
+        .modalTitle {
+          margin: 0 0 6px;
+          font-size: 18px;
+          font-weight: 800;
+          color: #fff;
+        }
+
+        .modalSubtitle {
+          margin: 0 0 18px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .modalInput {
+          width: 100%;
+          padding: 10px 12px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1.5px solid rgba(255, 255, 255, 0.2);
+          border-radius: 8px;
+          color: #fff;
+          font-size: 15px;
+          font-weight: 700;
+          outline: none;
+          box-sizing: border-box;
+        }
+
+        .modalInput:focus {
+          border-color: #4ade80;
+        }
+
+        .modalActions {
+          display: flex;
+          gap: 10px;
+          margin-top: 18px;
+          justify-content: flex-end;
+        }
+
+        .modalBtn {
+          padding: 10px 18px;
+          border-radius: 8px;
+          font-weight: 800;
+          font-size: 13px;
+          cursor: pointer;
+          border: none;
+          transition: background 0.2s;
+        }
+
+        .modalBtnCancel {
+          background: rgba(255, 255, 255, 0.08);
+          color: #fff;
+        }
+
+        .modalBtnCancel:hover {
+          background: rgba(255, 255, 255, 0.15);
+        }
+
+        .modalBtnConfirm {
+          background: #4ade80;
+          color: #000;
+        }
+
+        .modalBtnConfirm:hover {
           background: #22c55e;
         }
 
