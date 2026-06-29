@@ -57,6 +57,7 @@ export default function AdminLogsPage() {
   });
 
   const filteredAudit = auditLogs.filter((log) => {
+    if (log.action === "high_score_save") return false;
     const matchUsername = !filterUsername || log.target_username?.toLowerCase().includes(filterUsername.toLowerCase());
     return matchUsername;
   });
@@ -75,12 +76,11 @@ export default function AdminLogsPage() {
         <div className="navbarLeft">
           <h1 className="navbarTitle">Admin Panel</h1>
         </div>
-<nav className="navbarLinks">
-           <a href="/" className="navbarLink">Publikus</a>
-           <a href="/admin/dashboard" className="navbarLink">Játékos Kezelő</a>
-           <a href="/admin/magas-eredmeny" className="navbarLink">Magas Eredmény Kezelés</a>
-           <a href="/admin/logs" className="navbarLink active">Log</a>
-         </nav>
+ <nav className="navbarLinks">
+            <a href="/" className="navbarLink">Publikus</a>
+            <a href="/admin/dashboard" className="navbarLink">Játékos Kezelő</a>
+            <a href="/admin/logs" className="navbarLink active">Log</a>
+          </nav>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés
         </button>

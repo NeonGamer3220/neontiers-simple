@@ -120,15 +120,36 @@ export default function AdminDashboard() {
   const [newNameInput, setNewNameInput] = useState("");
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
+  const [adminRole, setAdminRole] = useState("owner");
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [staffList, setStaffList] = useState([]);
+  const [confirmState, setConfirmState] = useState(null);
+  const [newStaffName, setNewStaffName] = useState("");
+  const [newStaffPassword, setNewStaffPassword] = useState("");
+  const [newStaffRole, setNewStaffRole] = useState("regulator");
+  const [editingStaffId, setEditingStaffId] = useState(null);
+
+  const showConfirm = (message) => new Promise((resolve) => {
+    setConfirmState({ message, resolve });
+  });
+
+  const handleConfirm = (result) => {
+    if (confirmState) {
+      confirmState.resolve(result);
+      setConfirmState(null);
+    }
+  };
 
 
-  useEffect(() => {
+   useEffect(() => {
     const checkAuth = async () => {
       const res = await fetch("/api/admin/check");
       if (!res.ok) {
         router.push("/admin");
         return;
       }
+      const data = await res.json();
+      if (data.role) setAdminRole(data.role);
       await loadTests();
       setLoading(false);
     };
@@ -313,7 +334,8 @@ const toggleRetired = (index) => {
   };
 
   const handleDeleteEntry = async (gamemode) => {
-    if (!confirm(`Biztos hogy törlöd a "${gamemode}" tesztet?`)) return;
+    const ok = await showConfirm(`Biztos hogy törlöd a "${gamemode}" tesztet?`);
+    if (!ok) return;
 
     try {
       const res = await fetch("/api/tests/remove", {
@@ -323,15 +345,12 @@ const toggleRetired = (index) => {
           username: selectedPlayer.username,
           gamemode: gamemode,
         }),
-      });
+      );
 
       if (!res.ok) {
        setToast({ type: "error", text: "Hiba a törlés során" });
         return;
       }
-
-      // Log this action to audit trail
-      // Server-side audit logging will record this action (admin cookie used)
 
       await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username, showUntested);
@@ -455,14 +474,86 @@ const toggleRetired = (index) => {
       setShowAddPlayerModal(false);
       setNewPlayerName("");
       setToast({ type: "ok", text: `${username} hozzáadva minden gamemode-hoz 500 ELO-val.` });
+    } catch {
+      setToast({ type: "error", text: "Hiba a játékos létrehozása során" });
+    }
+  };
+
+  const loadStaff = async () => {
+    try {
+      const res = await fetch("/api/admin/staff?action=list");
+      if (!res.ok) return;
+      const data = await res.json();
+      setStaffList(Array.isArray(data?.staff) ? data.staff : []);
     } catch (err) {
-      setToast({ type: "error", text: err.message || "Hiba a játékos létrehozása során" });
+      console.error("Failed to load staff:", err);
+    }
+  };
+
+  const handleSaveStaff = async () => {
+    if (!newStaffName.trim()) {
+      setToast({ type: "error", text: "Add meg a staff nevét!" });
+      return;
+    }
+    try {
+      const payload = {
+        action: editingStaffId ? "update" : "create",
+        admin_name: newStaffName.trim(),
+        admin_password: newStaffPassword,
+        role: newStaffRole,
+      };
+      if (editingStaffId) payload.id = editingStaffId;
+
+      const res = await fetch("/api/admin/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Hiba a staff mentése során" });
+        return;
+      }
+
+      await loadStaff();
+      setShowStaffModal(false);
+      setNewStaffName("");
+      setNewStaffPassword("");
+      setNewStaffRole("regulator");
+      setEditingStaffId(null);
+      setToast({ type: "ok", text: editingStaffId ? "Staff frissítve!" : "Staff létrehozva!" });
+    } catch {
+      setToast({ type: "error", text: "Hálózati hiba" });
+    }
+  };
+
+  const handleDeleteStaff = async (id, name) => {
+    const ok = await showConfirm(`Biztos hogy törlöd a "${name}" staff fiókot?`);
+    if (!ok) return;
+    try {
+      const res = await fetch("/api/admin/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Hiba a törlés során" });
+        return;
+      }
+      await loadStaff();
+      setToast({ type: "ok", text: "Staff törölve!" });
+    } catch {
+      setToast({ type: "error", text: "Hálózati hiba" });
     }
   };
 
   const handleRemovePlayer = async () => {
-    if (!confirm(`Biztos hogy eltávolítod "${selectedPlayer.username}" játékosadatát a weboldalról?`)) return;
-    if (!confirm("Ez a művelet nem vonható vissza. Folytatod?")) return;
+    const ok1 = await showConfirm(`Biztos hogy eltávolítod "${selectedPlayer.username}" játékosadatát a weboldalról?`);
+    if (!ok1) return;
+    const ok2 = await showConfirm("Ez a művelet nem vonható vissza. Folytatod?");
+    if (!ok2) return;
     try {
       await fetch("/api/admin/remove-player", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: selectedPlayer.username }) });
       await loadTests();
@@ -527,19 +618,120 @@ const toggleRetired = (index) => {
         </div>
       )}
 
+      {confirmState && (
+        <div className="modalOverlay" onClick={() => handleConfirm(false)}>
+          <div className="modalContent modalSmall" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modalTitle">Megerősítés</h3>
+            <p className="modalSubtitle">{confirmState.message}</p>
+            <div className="modalActions">
+              <button className="modalBtn modalBtnCancel" onClick={() => handleConfirm(false)}>
+                Mégse
+              </button>
+              <button className="modalBtn modalBtnConfirm" onClick={() => handleConfirm(true)}>
+                Igen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showStaffModal && (
+        <div className="modalOverlay" onClick={() => setShowStaffModal(false)}>
+          <div className="modalContent modalLarge" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modalTitle">Staff fiókok kezelése</h3>
+            <p className="modalSubtitle">Csak Owner férhető hozzá ehhoz a szekcióhoz.</p>
+
+            <div className="staffList">
+              {staffList.map((s) => (
+                <div key={s.id} className="staffItem">
+                  <div className="staffInfo">
+                    <span className="staffName">{s.admin_name}</span>
+                    <span className={`staffRole staffRole-${s.role}`}>{s.role}</span>
+                  </div>
+                  <div className="staffActions">
+                    <button
+                      className="staffBtn staffBtnEdit"
+                      onClick={() => {
+                        setEditingStaffId(s.id);
+                        setNewStaffName(s.admin_name);
+                        setNewStaffRole(s.role);
+                        setNewStaffPassword("");
+                      }}
+                    >
+                      Szerkesztés
+                    </button>
+                    <button
+                      className="staffBtn staffBtnDelete"
+                      onClick={() => handleDeleteStaff(s.id, s.admin_name)}
+                    >
+                      Törlés
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="staffForm">
+              <h4 className="staffFormTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h4>
+              <input
+                type="text"
+                className="modalInput"
+                placeholder="Staff név..."
+                value={newStaffName}
+                onChange={(e) => setNewStaffName(e.target.value)}
+              />
+              <input
+                type="text"
+                className="modalInput"
+                placeholder="Jelszó..."
+                value={newStaffPassword}
+                onChange={(e) => setNewStaffPassword(e.target.value)}
+              />
+              <select
+                className="modalInput"
+                value={newStaffRole}
+                onChange={(e) => setNewStaffRole(e.target.value)}
+              >
+                <option value="owner">Owner</option>
+                <option value="regulator">Regulator</option>
+              </select>
+              <div className="modalActions">
+                <button className="modalBtn modalBtnCancel" onClick={() => {
+                  setShowStaffModal(false);
+                  setEditingStaffId(null);
+                  setNewStaffName("");
+                  setNewStaffPassword("");
+                  setNewStaffRole("regulator");
+                }}>
+                  Mégse
+                </button>
+                <button className="modalBtn modalBtnConfirm" onClick={handleSaveStaff}>
+                  {editingStaffId ? "Mentés" : "Létrehozás"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="adminNavbar">
         <div className="navbarLeft">
           <h1 className="navbarTitle">Admin Panel</h1>
         </div>
-<nav className="navbarLinks">
+ <nav className="navbarLinks">
            <a href="/" className="navbarLink">Publikus</a>
            <a href="/admin/dashboard" className="navbarLink active">Játékos Kezelő</a>
            <a href="/admin/logs" className="navbarLink">Log</a>
+           {adminRole === "owner" && (
+             <button className="navbarLink staffLink" onClick={() => { setShowStaffModal(true); loadStaff(); }}>
+               Staff fiókok
+             </button>
+           )}
          </nav>
-        <button className="logoutBtn" onClick={handleLogout}>
-          Kijelentkezés
-        </button>
-      </header>
+         <button className="logoutBtn" onClick={handleLogout}>
+           Kijelentkezés
+         </button>
+       </header>
 
       <header className="adminHeader">
          <div className="headerLeft">
@@ -557,39 +749,42 @@ const toggleRetired = (index) => {
         </div>
       </header>
 
-      <main className="adminContent">
-        <div className="searchSection">
-          <div className="searchContainer">
-            <svg className="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <input
-              type="text"
-              className="searchInput"
-              placeholder="Játékos keresése..."
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              autoComplete="off"
-            />
-          </div>
-          <button className="addPlayerBtn" onClick={() => setShowAddPlayerModal(true)}>
-            + Új játékos
-          </button>
-
-          {searchedPlayers.length > 0 && (
-            <div className="searchResults">
-              {searchedPlayers.map((player) => (
-                <button key={player} className="searchResultItem" onClick={() => selectPlayer(player)}>
-                  {player}
-                </button>
-              ))}
+      <main className="adminContent adminContentGrid">
+        <div className="adminLeftCol">
+          <div className="searchSection">
+            <div className="searchContainer">
+              <svg className="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+              <input
+                type="text"
+                className="searchInput"
+                placeholder="Játékos keresése..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                autoComplete="off"
+              />
             </div>
-          )}
+            <button className="addPlayerBtn" onClick={() => setShowAddPlayerModal(true)}>
+              + Új játékos
+            </button>
+
+            {searchedPlayers.length > 0 && (
+              <div className="searchResults searchResultsColumn">
+                {searchedPlayers.map((player) => (
+                  <button key={player} className="searchResultItem searchResultCard" onClick={() => selectPlayer(player)}>
+                    {player}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {selectedPlayer && (
-          <div className="playerDetailsSection">
+        <div className="adminRightCol">
+          {selectedPlayer && (
+            <div className="playerDetailsSection">
             <button className="closeDetailsBtn" onClick={() => setSelectedPlayer(null)}>
               ✕ Bezárás
             </button>
@@ -855,6 +1050,162 @@ const toggleRetired = (index) => {
           gap: 30px;
         }
 
+        .adminContentGrid {
+          grid-template-columns: minmax(320px, 380px) 1fr;
+          align-items: start;
+        }
+
+        .adminLeftCol {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          position: sticky;
+          top: 20px;
+        }
+
+        .adminRightCol {
+          min-height: 500px;
+        }
+
+        .searchResultsColumn {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          max-height: 600px;
+          overflow-y: auto;
+        }
+
+        .searchResultCard {
+          text-align: left;
+          padding: 14px 16px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          color: #fff;
+          cursor: pointer;
+          transition: all 0.2s;
+          font-family: inherit;
+          font-size: 14px;
+          font-weight: 800;
+        }
+
+        .searchResultCard:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .staffLink {
+          color: #4ade80 !important;
+        }
+
+        .staffLink:hover {
+          color: #22c55e !important;
+        }
+
+        .staffList {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          max-height: 300px;
+          overflow-y: auto;
+          margin-bottom: 18px;
+        }
+
+        .staffItem {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px 14px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+        }
+
+        .staffInfo {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .staffName {
+          font-weight: 800;
+          color: #fff;
+        }
+
+        .staffRole {
+          font-size: 11px;
+          font-weight: 800;
+          padding: 3px 8px;
+          border-radius: 4px;
+          text-transform: uppercase;
+        }
+
+        .staffRole-owner {
+          background: rgba(213, 179, 85, 0.2);
+          color: #d5b355;
+        }
+
+        .staffRole-regulator {
+          background: rgba(79, 167, 255, 0.2);
+          color: #4fa7ff;
+        }
+
+        .staffActions {
+          display: flex;
+          gap: 6px;
+        }
+
+        .staffBtn {
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 11px;
+          font-weight: 800;
+          cursor: pointer;
+          border: none;
+          transition: background 0.2s;
+        }
+
+        .staffBtnEdit {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+        }
+
+        .staffBtnEdit:hover {
+          background: rgba(255, 255, 255, 0.18);
+        }
+
+        .staffBtnDelete {
+          background: rgba(196, 30, 58, 0.2);
+          color: #ff6b6b;
+        }
+
+        .staffBtnDelete:hover {
+          background: rgba(196, 30, 58, 0.35);
+        }
+
+        .staffForm {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .staffFormTitle {
+          font-size: 14px;
+          font-weight: 800;
+          color: #fff;
+          margin: 0;
+        }
+
+        .modalSmall {
+          max-width: 360px;
+        }
+
+        .modalLarge {
+          max-width: 520px;
+        }
+
         .searchSection {
           background: rgba(255, 255, 255, 0.04);
           border: 1px solid rgba(255, 255, 255, 0.1);
@@ -896,10 +1247,15 @@ const toggleRetired = (index) => {
         }
 
         .searchResults {
-          display: grid;
+          display: flex;
+          flex-direction: column;
           gap: 8px;
-          max-height: 300px;
+          max-height: 500px;
           overflow-y: auto;
+        }
+
+        .searchResultsColumn {
+          max-height: 500px;
         }
 
         .searchResultItem {
@@ -913,6 +1269,10 @@ const toggleRetired = (index) => {
           transition: all 0.2s;
           font-family: inherit;
           font-size: 14px;
+        }
+
+        .searchResultCard {
+          font-weight: 800;
         }
 
         .searchResultItem:hover {

@@ -12,7 +12,19 @@ export async function GET() {
       );
     }
 
-    return Response.json({ authenticated: true });
+    let adminData = null;
+    try {
+      const parsed = JSON.parse(session.value);
+      adminData = parsed;
+    } catch (e) {
+      // legacy session format, just return basic auth
+    }
+
+    return Response.json({ 
+      authenticated: true, 
+      admin_name: adminData?.admin_name || null,
+      role: adminData?.role || "owner"
+    });
   } catch (err) {
     return Response.json(
       { error: "Auth check failed" },
