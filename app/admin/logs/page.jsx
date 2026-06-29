@@ -185,8 +185,8 @@ export default function AdminLogsPage() {
                 </div>
                 <div className="tableCell colMode">{test.gamemode}</div>
 <div className="tableCell colRank">
-                   <span className="rankBadge" data-rank={test.rank} data-retired={test.retired ? "true" : "false"}>
-                     {test.retired ? `R${test.rank}` : test.rank}
+                   <span className="rankBadge" data-rank={test.elo} data-retired={test.retired ? "true" : "false"}>
+                      {test.retired ? `R${test.elo}` : test.elo}
                    </span>
                  </div>
                 <div className="tableCell colPoints">{test.points}</div>

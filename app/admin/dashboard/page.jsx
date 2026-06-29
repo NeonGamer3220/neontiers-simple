@@ -175,7 +175,7 @@ const [selectedPlayer, setSelectedPlayer] = useState(null);
 
 const entries = playerTests.map((t) => ({
         gamemode: t.gamemode,
-        rank: t.rank != null ? Number(t.rank) : 0,
+        rank: t.elo != null ? Number(t.elo) : 0,
         retired: t.retired === true,
         points: t.points || 0,
         id: t.id,
@@ -200,8 +200,8 @@ const entries = playerTests.map((t) => ({
        }
      }
 
-     const totalPoints = entries.reduce((sum, e) => sum + safeInt(RANK_POINTS[e.rank] ?? 0, 0), 0);
-     const bestRank = findBestRank(entries.map((e) => e.rank));
+     const totalPoints = entries.reduce((sum, e) => sum + safeInt(RANK_POINTS[e.elo] ?? 0, 0), 0);
+     const bestRank = findBestRank(entries.map((e) => e.elo));
 
     return {
       username,
@@ -238,11 +238,11 @@ const entries = playerTests.map((t) => ({
 
 const handleSaveEntry = async (entry) => {
     try {
-      const points = RANK_POINTS[entry.rank] ?? 0;
+      const points = RANK_POINTS[entry.elo] ?? 0;
       const payload = {
         username: selectedPlayer.username,
         gamemode: entry.gamemode,
-        earned_tier: entry.rank,
+        earned_elo: entry.elo,
         points,
         retired: entry.retired === true,
       };
@@ -277,12 +277,13 @@ const handleSaveEntry = async (entry) => {
       if (!prev) return prev;
       const entries = [...prev.entries];
       const current = entries[index];
-      if (field === "rank") {
-        const rank = value;
+      if (field === "elo") {
+        const elo = value;
         entries[index] = {
           ...current,
-          rank: rank,
-          points: RANK_POINTS[rank] ?? 0,
+          elo,
+          rank: elo,
+          points: RANK_POINTS[elo] ?? 0,
         };
       } else {
         entries[index] = { ...current, [field]: value };
@@ -558,7 +559,7 @@ const handleRefreshName = async () => {
                 {selectedPlayer.entries.map((entry, index) => {
                   const isRetired = entry.retired === true;
                   const isUntested = entry.isUntested;
-                  const displayRank = entry.rank || 0;
+                  const displayRank = entry.elo || 0;
                   const displayPoints = RANK_POINTS[displayRank] ?? 0;
 
                   return (
@@ -573,7 +574,7 @@ const handleRefreshName = async () => {
                       <div className="tierEntryControls">
                         <TierSelect
                           value={displayRank}
-                          onChange={(rank) => updateEntryField(index, "rank", rank)}
+                          onChange={(elo) => updateEntryField(index, "elo", elo)}
                           disabled={isRetired}
                         />
                         <span className="tierPointsBadge">{displayPoints} pont</span>
