@@ -169,12 +169,14 @@ const [selectedPlayer, setSelectedPlayer] = useState(null);
     return { uniquePlayers, totalTiers };
   };
 
-  const getPlayerData = (username, includeUntested = false) => {
-    const playerTests = tests.filter((t) => t.username.toLowerCase() === username.toLowerCase());
+   const getPlayerData = (username, includeUntested = false) => {
+    const cleanName = String(username || "").trim();
+    const playerTests = tests.filter((t) => String(t?.username || "").trim().toLowerCase() === cleanName.toLowerCase());
     if (playerTests.length === 0 && !includeUntested) return null;
 
 const entries = playerTests.map((t) => ({
         gamemode: t.gamemode,
+        elo: t.elo != null ? Number(t.elo) : 0,
         rank: t.elo != null ? Number(t.elo) : 0,
         retired: t.retired === true,
         points: t.points || 0,
@@ -187,15 +189,17 @@ const entries = playerTests.map((t) => ({
        const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
        for (const mode of MODE_OPTIONS) {
          if (!testedModes.has(mode.toLowerCase())) {
-           entries.push({
-             gamemode: mode,
-             rank: 0,
-             retired: false,
-             points: 0,
-             id: null,
-             created_at: null,
-             isUntested: true,
-           });
+            entries.push({
+              gamemode: mode,
+              elo: 0,
+              rank: 0,
+        elo: 0,
+              retired: false,
+              points: 0,
+              id: null,
+              created_at: null,
+              isUntested: true,
+            });
          }
        }
      }
@@ -213,18 +217,18 @@ const entries = playerTests.map((t) => ({
     };
   };
 
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-    if (query.length === 0) {
-      setSearchedPlayers([]);
-      return;
-    }
+   const handleSearch = (query) => {
+     setSearchQuery(query);
+     if (query.trim().length === 0) {
+       setSearchedPlayers([]);
+       return;
+     }
 
-    const uniquePlayers = [...new Set(tests.map((t) => t.username))];
-    const filtered = uniquePlayers.filter((p) => p.toLowerCase().includes(query.toLowerCase())).slice(0, 10);
+     const uniquePlayers = [...new Set(tests.map((t) => String(t?.username || "").trim()))];
+     const filtered = uniquePlayers.filter((p) => p.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 10);
 
-    setSearchedPlayers(filtered);
-  };
+     setSearchedPlayers(filtered);
+   };
 
   const selectPlayer = async (username) => {
     const playerData = getPlayerData(username, showUntested);
