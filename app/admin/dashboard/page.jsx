@@ -417,10 +417,13 @@ const toggleRetired = (index) => {
     let uuid = null;
     try {
       const mojangRes = await fetch(`/api/mojang?username=${encodeURIComponent(username)}`);
-      if (!mojangRes.ok) throw new Error("Nem található a játékos a Mojang adatbázisában.");
-      const mojangData = await mojangRes.json();
-      uuid = mojangData.id || null;
+      if (mojangRes.ok) {
+        const mojangData = await mojangRes.json();
+        uuid = mojangData.id || null;
+      }
+    } catch { /* ignore Mojang errors, add without UUID */ }
 
+    try {
       await Promise.all(
         MODE_OPTIONS.map((mode) =>
           fetch("/api/tests", {
