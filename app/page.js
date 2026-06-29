@@ -135,7 +135,10 @@ function safeInt(n, fallback = 0) {
   return Number.isFinite(x) ? x : fallback;
 }
 
-function skinUrl(username) {
+function skinUrl(username, uuid) {
+  if (uuid && uuid.replace(/-/g, "").length === 32) {
+    return `https://mc-heads.net/avatar/${uuid.replace(/-/g, "")}/56`;
+  }
   return `https://mc-heads.net/avatar/${encodeURIComponent(username)}/56`;
 }
 
@@ -200,6 +203,7 @@ const testRes = await fetch("/api/tests");
         id: r?.id,
         username: String(r?.username || "").trim(),
         gamemode: String(r?.gamemode || "").trim(),
+        uuid: r?.uuid || null,
         rank: r?.elo != null ? Number(r.elo) : null,
         retired: r?.retired === true,
         points: r?.points != null
@@ -333,6 +337,7 @@ const closePlayerDetail = () => {
           id: r?.id,
           username: String(r?.username || "").trim(),
           gamemode: String(r?.gamemode || "").trim(),
+          uuid: r?.uuid || null,
           rank: r?.elo != null ? Number(r.elo) : null,
           retired: r?.retired === true,
           points: r?.points != null
@@ -508,7 +513,7 @@ const closePlayerDetail = () => {
                     <span className="rowNum">{idx + 1}.</span>
 <img
                       className="playerSkin"
-                      src={skinUrl(p.username)}
+                      src={skinUrl(p.username, p.uuid)}
                       alt={p.username}
                       width={64}
                       height={64}
@@ -629,7 +634,7 @@ const closePlayerDetail = () => {
                                    >
                                    <img
                                      className="modeTierSkin"
-                                     src={skinUrl(p.username)}
+                                     src={skinUrl(p.username, p.uuid)}
                                      alt={p.username}
                                      width={38}
                                      height={38}
@@ -716,7 +721,7 @@ const tierColors = {
                                >
                                  <img
                                    className="modeTierSkin"
-                                   src={skinUrl(p.username)}
+                                   src={skinUrl(p.username, p.uuid)}
                                    alt={p.username}
                                    width={38}
                                    height={38}
@@ -766,7 +771,7 @@ const totalPoints = selectedPlayer.total;
                      loading="lazy"
                      decoding="async"
                      referrerPolicy="no-referrer"
-                     src={skinUrl(selectedPlayer.username)}
+                      src={skinUrl(selectedPlayer.username, selectedPlayer.uuid)}
                    />
                  </div>
                </div>

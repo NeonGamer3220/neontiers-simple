@@ -176,7 +176,11 @@ export default function AdminLogsPage() {
                   <div className="tableCell colPlayer">
                     <div className="playerCell">
                     <img
-                      src={`https://mc-heads.net/avatar/${encodeURIComponent(test.username)}/32`}
+                      src={
+                       test.uuid
+                         ? `https://mc-heads.net/avatar/${test.uuid.replace(/-/g, "")}/32`
+                         : `https://mc-heads.net/avatar/${encodeURIComponent(test.username)}/32`
+                     }
                       alt={test.username}
                       className="playerAvatar"
                     />

@@ -178,6 +178,7 @@ export default function AdminDashboard() {
 
 const entries = playerTests.map((t) => ({
         gamemode: t.gamemode,
+        uuid: t.uuid || null,
         elo: t.elo != null ? Number(t.elo) : 0,
         rank: t.elo != null ? Number(t.elo) : 0,
         retired: t.retired === true,
@@ -191,11 +192,10 @@ const entries = playerTests.map((t) => ({
        const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
        for (const mode of MODE_OPTIONS) {
          if (!testedModes.has(mode.toLowerCase())) {
-            entries.push({
+             entries.push({
               gamemode: mode,
               elo: 0,
               rank: 0,
-        elo: 0,
               retired: false,
               points: 0,
               id: null,
@@ -209,14 +209,17 @@ const entries = playerTests.map((t) => ({
      const totalPoints = entries.reduce((sum, e) => sum + safeInt(RANK_POINTS[e.elo] ?? 0, 0), 0);
      const bestRank = findBestRank(entries.map((e) => e.elo));
 
-    return {
-      username,
-      entries,
-      totalPoints,
-      bestRank,
-      totalModes: entries.length,
-      modes: entries.map((e) => e.gamemode),
-    };
+      const firstUuid = playerTests.find((t) => t.uuid)?.uuid || null;
+
+     return {
+       username,
+       uuid: firstUuid,
+       entries,
+       totalPoints,
+       bestRank,
+       totalModes: entries.length,
+       modes: entries.map((e) => e.gamemode),
+     };
   };
 
    const handleSearch = (query) => {
@@ -355,21 +358,40 @@ const toggleRetired = (index) => {
     return `${clean.slice(0,8)}-${clean.slice(8,12)}-${clean.slice(12,16)}-${clean.slice(16,20)}-${clean.slice(20)}`;
   }
 
-const handleRefreshName = async () => {
-    if (!newNameInput.trim()) { setToast({ type: "error", text: "Addj meg egy érvényes játékosnevet!" }); return; }
+ const handleRefreshName = async () => {
     if (!selectedPlayer) return;
     try {
-      const validateRes = await fetch(`/api/mojang?username=${encodeURIComponent(newNameInput.trim())}`);
-      if (!validateRes.ok) { setToast({ type: "error", text: "Nem található a játékos a Mojang adatbázisában." }); return; }
-      const validateData = await validateRes.json();
-      
+      const currentName = selectedPlayer.username;
+
+      // Look up current name via UUID if available, else use manual input
+      let currentMojangName = null;
+      if (selectedPlayer.uuid) {
+        const res = await fetch(`/api/mojang?uuid=${selectedPlayer.uuid.replace(/-/g, "")}`);
+        if (res.ok) {
+          const data = await res.json();
+          currentMojangName = data.name;
+        }
+      }
+
+      const targetNewName = currentMojangName || (newNameInput.trim() || null);
+
+      if (!targetNewName) {
+        setToast({ type: "error", text: "Addj meg egy érvényes játékosnevet, vagy add hozzá a UUID-t!" });
+        return;
+      }
+
+      if (targetNewName === currentName && !currentMojangName) {
+        setToast({ type: "error", text: "Az új név megegyezik a jelenlegivel." });
+        return;
+      }
+
       // Call rename API to transfer tiers from old name to new name
       const renameRes = await fetch("/api/tests/rename", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          oldName: selectedPlayer.username,
-          newName: validateData.name,
+          oldName: currentName,
+          newName: targetNewName,
         }),
       });
       const renameData = await renameRes.json();
@@ -377,8 +399,8 @@ const handleRefreshName = async () => {
         setToast({ type: "error", text: renameData.error || "Hiba a név megváltoztatásakor" });
         return;
       }
-      
-      setToast({ type: "ok", text: `Név megváltoztatva: ${selectedPlayer.username} → ${validateData.name}` });
+
+      setToast({ type: "ok", text: `Név megváltoztatva: ${currentName} → ${targetNewName}` });
       await loadTests();
       setNewNameInput("");
     } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
@@ -392,7 +414,13 @@ const handleRefreshName = async () => {
       return;
     }
     const username = newPlayerName.trim();
+    let uuid = null;
     try {
+      const mojangRes = await fetch(`/api/mojang?username=${encodeURIComponent(username)}`);
+      if (!mojangRes.ok) throw new Error("Nem található a játékos a Mojang adatbázisában.");
+      const mojangData = await mojangRes.json();
+      uuid = mojangData.id || null;
+
       await Promise.all(
         MODE_OPTIONS.map((mode) =>
           fetch("/api/tests", {
@@ -400,6 +428,7 @@ const handleRefreshName = async () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               username,
+              uuid,
               gamemode: mode,
               elo: 500,
               points: 1,
@@ -415,7 +444,7 @@ const handleRefreshName = async () => {
         body: JSON.stringify({
           action: "player_add",
           target_username: username,
-          details: { modes: MODE_OPTIONS.length, elo: 500 },
+          details: { modes: MODE_OPTIONS.length, elo: 500, uuid },
         }),
       });
 
@@ -423,8 +452,8 @@ const handleRefreshName = async () => {
       setShowAddPlayerModal(false);
       setNewPlayerName("");
       setToast({ type: "ok", text: `${username} hozzáadva minden gamemode-hoz 500 ELO-val.` });
-    } catch {
-      setToast({ type: "error", text: "Hiba a játékos létrehozása során" });
+    } catch (err) {
+      setToast({ type: "error", text: err.message || "Hiba a játékos létrehozása során" });
     }
   };
 
@@ -566,7 +595,11 @@ const handleRefreshName = async () => {
               {/* ─── HEAD + NAME + UUID ─── */}
               <div className="pdRow pdRowHead">
                 <img
-                  src={`https://mc-heads.net/avatar/${encodeURIComponent(selectedPlayer.username)}/96`}
+                  src={
+                    selectedPlayer.uuid
+                      ? `https://mc-heads.net/avatar/${selectedPlayer.uuid.replace(/-/g, "")}/96`
+                      : `https://mc-heads.net/avatar/${encodeURIComponent(selectedPlayer.username)}/96`
+                  }
                   alt={selectedPlayer.username}
                   className="playerDetailsSkin"
                 />
