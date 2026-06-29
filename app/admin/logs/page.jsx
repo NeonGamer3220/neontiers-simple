@@ -236,10 +236,11 @@ export default function AdminLogsPage() {
                       {log.action === "tier_save" && "Mentés"}
                       {log.action === "tier_delete" && "Törlés"}
                       {log.action === "player_remove" && "Játékos eltávolítás"}
+                      {log.action === "player_add" && "Játékos hozzáadása"}
                       {log.action === "admin_login" && "Bejelentkezés"}
                       {log.action === "high_score_save" && "Magas eredmény"}
                       {log.action === "player_rename" && "Név változtatás"}
-                      {!["tier_save", "tier_delete", "player_remove", "admin_login", "high_score_save", "player_rename"].includes(log.action) && log.action}
+                      {!["tier_save", "tier_delete", "player_remove", "player_add", "admin_login", "high_score_save", "player_rename"].includes(log.action) && log.action}
                     </span>
                   </div>
                   <div className="tableCell colPlayer">{log.target_username || "-"}</div>
@@ -292,7 +293,7 @@ export default function AdminLogsPage() {
 
         .navbarTitle {
           font-size: 18px;
-          font-weight: 700;
+          font-weight: 800;
           margin: 0;
         }
 
@@ -309,7 +310,7 @@ export default function AdminLogsPage() {
           padding: 10px 20px;
           color: rgba(255, 255, 255, 0.65);
           text-decoration: none;
-          font-weight: 600;
+          font-weight: 800;
           font-size: 13px;
           transition: all 0.2s;
           border-bottom: 2px solid transparent;
@@ -335,7 +336,7 @@ export default function AdminLogsPage() {
           border: 1px solid rgba(196, 30, 58, 0.5);
           border-radius: 6px;
           color: #fff;
-          font-weight: 600;
+          font-weight: 800;
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -362,7 +363,7 @@ export default function AdminLogsPage() {
 
         .headerTitle {
           font-size: 24px;
-          font-weight: 700;
+          font-weight: 800;
           margin: 0 0 4px 0;
         }
 
@@ -381,7 +382,7 @@ export default function AdminLogsPage() {
 
         .headerStatValue {
           font-size: 28px;
-          font-weight: 700;
+          font-weight: 800;
         }
 
         .headerStatLabel {
@@ -389,7 +390,7 @@ export default function AdminLogsPage() {
           color: rgba(255, 255, 255, 0.6);
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          font-weight: 600;
+          font-weight: 800;
         }
 
         .logsContent {
@@ -413,7 +414,7 @@ export default function AdminLogsPage() {
 
         .filterLabel {
           font-size: 12px;
-          font-weight: 600;
+          font-weight: 800;
           color: rgba(255, 255, 255, 0.7);
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -454,7 +455,7 @@ export default function AdminLogsPage() {
           padding: 14px 16px;
           background: rgba(255, 255, 255, 0.04);
           border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          font-weight: 700;
+          font-weight: 800;
           font-size: 12px;
           text-transform: uppercase;
           letter-spacing: 0.5px;
@@ -494,7 +495,7 @@ export default function AdminLogsPage() {
         .colPoints {
           text-align: right;
           font-size: 14px;
-          font-weight: 600;
+          font-weight: 800;
         }
 
         .playerCell {
@@ -515,7 +516,7 @@ export default function AdminLogsPage() {
           padding: 4px 10px;
           background: rgba(213, 179, 85, 0.2);
           border-radius: 4px;
-          font-weight: 700;
+          font-weight: 800;
           font-size: 12px;
           text-transform: uppercase;
           letter-spacing: 0.3px;
@@ -570,7 +571,7 @@ export default function AdminLogsPage() {
           border: none;
           color: rgba(255, 255, 255, 0.6);
           cursor: pointer;
-          font-weight: 600;
+          font-weight: 800;
           font-size: 14px;
           transition: all 0.2s;
           border-bottom: 2px solid transparent;
@@ -596,11 +597,11 @@ export default function AdminLogsPage() {
         }
 
         .colAdmin {
-          flex: 0 0 120px;
+          flex: 0 0 80px;
         }
 
         .colAction {
-          flex: 0 0 120px;
+          flex: 0 0 140px;
         }
 
         .colDetails {
@@ -613,7 +614,7 @@ export default function AdminLogsPage() {
           padding: 4px 8px;
           border-radius: 4px;
           font-size: 12px;
-          font-weight: 600;
+          font-weight: 800;
         }
 
         .actionBadge.tier_save {
@@ -648,7 +649,7 @@ export default function AdminLogsPage() {
 
         .emptyTitle {
           font-size: 18px;
-          font-weight: 700;
+          font-weight: 800;
           color: #fff;
           margin-bottom: 8px;
         }
@@ -676,18 +677,38 @@ export default function AdminLogsPage() {
             display: none;
           }
 
-          .tableRow {
-            gap: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-          }
+        .tableRow {
+          display: flex;
+          gap: 0;
+          padding: 10px 14px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          align-items: center;
+          transition: background 0.15s;
+        }
+
+        .tableRow:hover {
+          background: rgba(255, 255, 255, 0.03);
+        }
+
+        .colDate {
+          flex: 0 0 130px;
+          font-size: 13px;
+        }
+
+        .colPlayer {
+          flex: 1;
+          min-width: 120px;
+          font-size: 14px;
+        }
+
+        .colMode {
+          flex: 0 0 110px;
+          font-size: 13px;
+        }
 
           .tableCell::before {
             display: block;
-            font-weight: 600;
+            font-weight: 800;
             font-size: 11px;
             color: rgba(255, 255, 255, 0.5);
             text-transform: uppercase;

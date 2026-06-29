@@ -748,7 +748,7 @@ const toggleRetired = (index) => {
 
         .navbarTitle {
           font-size: 18px;
-          font-weight: 700;
+          font-weight: 800;
           margin: 0;
         }
 
@@ -765,7 +765,7 @@ const toggleRetired = (index) => {
           padding: 10px 20px;
           color: rgba(255, 255, 255, 0.65);
           text-decoration: none;
-          font-weight: 600;
+          font-weight: 800;
           font-size: 13px;
           transition: all 0.2s;
           border-bottom: 2px solid transparent;
@@ -821,7 +821,7 @@ const toggleRetired = (index) => {
 
         .headerStatValue {
           font-size: 24px;
-          font-weight: 700;
+          font-weight: 800;
         }
 
         .headerStatLabel {
@@ -829,7 +829,7 @@ const toggleRetired = (index) => {
           color: rgba(255, 255, 255, 0.6);
           text-transform: uppercase;
           letter-spacing: 0.5px;
-          font-weight: 600;
+          font-weight: 800;
         }
 
         .logoutBtn {
@@ -838,7 +838,7 @@ const toggleRetired = (index) => {
           border: 1px solid rgba(196, 30, 58, 0.5);
           border-radius: 6px;
           color: #fff;
-          font-weight: 600;
+          font-weight: 800;
           cursor: pointer;
           transition: all 0.2s;
         }
@@ -979,7 +979,7 @@ const toggleRetired = (index) => {
           border-radius: 8px;
           color: #fff;
           font-size: 15px;
-          font-weight: 700;
+          font-weight: 800;
           outline: none;
           box-sizing: border-box;
         }
@@ -1078,7 +1078,7 @@ const toggleRetired = (index) => {
         .playerDetailsName {
           font-size: 28px;
           margin: 0 0 12px 0;
-          font-weight: 700;
+          font-weight: 800;
         }
 
         .playerDetailsStats {
@@ -1098,11 +1098,11 @@ const toggleRetired = (index) => {
 
         .detailLabel {
           color: rgba(255, 255, 255, 0.65);
-          font-weight: 600;
+          font-weight: 800;
         }
 
         .detailValue {
-          font-weight: 700;
+          font-weight: 800;
           color: #fff;
           text-align: right;
         }
@@ -1120,7 +1120,7 @@ const toggleRetired = (index) => {
         .tiersSectionTitle {
           margin: 0;
           font-size: 18px;
-          font-weight: 700;
+          font-weight: 800;
         }
 
         .playerTiersList {
@@ -1160,7 +1160,7 @@ const toggleRetired = (index) => {
 
         .tierEntryMode {
           font-size: 13px;
-          font-weight: 700;
+          font-weight: 800;
         }
 
 .tierEntryControls {
@@ -1177,7 +1177,7 @@ const toggleRetired = (index) => {
            min-width: 60px;
            padding: 4px 8px;
            font-size: 11px;
-           font-weight: 600;
+           font-weight: 800;
            border-radius: 6px;
            background: rgba(255, 255, 255, 0.06);
            border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1248,7 +1248,7 @@ const toggleRetired = (index) => {
           gap: 8px;
           color: rgba(255, 255, 255, 0.65);
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 800;
         }
 
         .tierSelect,
@@ -1280,7 +1280,7 @@ const toggleRetired = (index) => {
           border: none;
           border-radius: 10px;
           color: #fff;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
           transition: all 0.2s;
           font-family: inherit;
@@ -1443,7 +1443,7 @@ const toggleRetired = (index) => {
           color: #4fa7ff;
           padding: 2px 6px;
           border-radius: 4px;
-          font-weight: 600;
+          font-weight: 800;
         }
 
         /* Toast notification */
@@ -1455,7 +1455,7 @@ const toggleRetired = (index) => {
           padding: 14px 22px;
           border-radius: 12px;
           font-size: 15px;
-          font-weight: 700;
+          font-weight: 800;
           color: #fff;
           animation: toastSlideIn 0.3s ease-out;
           box-shadow: 0 12px 40px #0000006e;
@@ -1548,7 +1548,7 @@ const toggleRetired = (index) => {
           border: none;
           background: rgba(196,30,58,0.85);
           color: #fff;
-          font-weight: 700;
+          font-weight: 800;
           font-size: 13px;
           cursor: pointer;
           transition: background 0.15s;
@@ -1571,7 +1571,7 @@ const toggleRetired = (index) => {
           border: 1px solid rgba(196,30,58,0.5);
           background: rgba(196,30,58,0.15);
           color: #ff6b6b;
-          font-weight: 700;
+          font-weight: 800;
           font-size: 13px;
           cursor: pointer;
           transition: all 0.15s;
@@ -1604,7 +1604,7 @@ const toggleRetired = (index) => {
 
         .pdBubbleLabel {
           font-size: 10.5px;
-          font-weight: 600;
+          font-weight: 800;
           color: rgba(255,255,255,0.55);
           text-transform: uppercase;
           letter-spacing: 0.4px;
@@ -1669,7 +1669,7 @@ const toggleRetired = (index) => {
 
         .tierModeCircleLabel {
           font-size: 10px;
-          font-weight: 700;
+          font-weight: 800;
           text-align: center;
           white-space: nowrap;
         }
