@@ -212,7 +212,7 @@ export async function POST(req) {
   if (!username || !gamemode || !rank) {
     return json(
       {
-        error: "Missing username/gamemode/rank",
+        error: "Missing username/gamemode/elo",
         received: { username, gamemode, rank },
       },
       400
