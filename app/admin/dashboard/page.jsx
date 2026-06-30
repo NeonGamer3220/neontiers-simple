@@ -121,7 +121,7 @@ export default function AdminDashboard() {
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
   const [adminRole, setAdminRole] = useState("owner");
-  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [showStaffSection, setShowStaffSection] = useState(false);
   const [staffList, setStaffList] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
   const [newStaffName, setNewStaffName] = useState("");
@@ -635,87 +635,85 @@ await loadTests();
         </div>
       )}
 
-      {showStaffModal && (
-        <div className="modalOverlay" onClick={() => setShowStaffModal(false)}>
-          <div className="modalContent modalLarge" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modalTitle">Staff fiókok kezelése</h3>
-            <p className="modalSubtitle">Csak Owner férhető hozzá ehhoz a szekcióhoz.</p>
+      {adminRole === "owner" && showStaffSection && (
+        <section className="staffSection">
+          <h2 className="staffSectionTitle">Staff fiókok kezelése</h2>
+          <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhoz a szekcióhoz.</p>
 
-            <div className="staffList">
-              {staffList.map((s) => (
-                <div key={s.id} className="staffItem">
-                  <div className="staffInfo">
-                    <span className="staffName">{s.admin_name}</span>
-                    <span className={`staffRole staffRole-${s.role}`}>{s.role}</span>
-                  </div>
-                  <div className="staffActions">
-                    <button
-                      className="staffBtn staffBtnEdit"
-                      onClick={() => {
-                        setEditingStaffId(s.id);
-                        setNewStaffName(s.admin_name);
-                        setNewStaffRole(s.role);
-                        setNewStaffPassword("");
-                      }}
-                    >
-                      Szerkesztés
-                    </button>
-                    <button
-                      className="staffBtn staffBtnDelete"
-                      onClick={() => handleDeleteStaff(s.id, s.admin_name)}
-                    >
-                      Törlés
-                    </button>
-                  </div>
+          <div className="staffList">
+            {staffList.map((s) => (
+              <div key={s.id} className="staffItem">
+                <div className="staffInfo">
+                  <span className="staffName">{s.admin_name}</span>
+                  <span className={`staffRole staffRole-${s.role}`}>{s.role}</span>
                 </div>
-              ))}
-            </div>
-
-            <div className="staffForm">
-              <h4 className="staffFormTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h4>
-              <input
-                type="text"
-                className="modalInput"
-                placeholder="Staff név..."
-                value={newStaffName}
-                onChange={(e) => setNewStaffName(e.target.value)}
-              />
-              <input
-                type="text"
-                className="modalInput"
-                placeholder="Jelszó..."
-                value={newStaffPassword}
-                onChange={(e) => setNewStaffPassword(e.target.value)}
-              />
-              <select
-                className="modalInput"
-                value={newStaffRole}
-                onChange={(e) => setNewStaffRole(e.target.value)}
-              >
-                <option value="regulator">Regulator</option>
-                <option value="owner">Owner</option>
-              </select>
-              <div className="modalActions">
-                {editingStaffId && (
+                <div className="staffActions">
                   <button
-                    className="modalBtn modalBtnCancel"
+                    className="staffBtn staffBtnEdit"
                     onClick={() => {
-                      setEditingStaffId(null);
-                      setNewStaffName("");
+                      setEditingStaffId(s.id);
+                      setNewStaffName(s.admin_name);
+                      setNewStaffRole(s.role);
                       setNewStaffPassword("");
-                      setNewStaffRole("regulator");
                     }}
                   >
-                    Mégse
+                    Szerkesztés
                   </button>
-                )}
-                <button className="modalBtn modalBtnConfirm" onClick={handleSaveStaff}>
-                  {editingStaffId ? "Mentés" : "Létrehozás"}
-                </button>
+                  <button
+                    className="staffBtn staffBtnDelete"
+                    onClick={() => handleDeleteStaff(s.id, s.admin_name)}
+                  >
+                    Törlés
+                  </button>
+                </div>
               </div>
+            ))}
+          </div>
+
+          <div className="staffForm">
+            <h4 className="staffFormTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h4>
+            <input
+              type="text"
+              className="modalInput"
+              placeholder="Staff név..."
+              value={newStaffName}
+              onChange={(e) => setNewStaffName(e.target.value)}
+            />
+            <input
+              type="text"
+              className="modalInput"
+              placeholder="Jelszó..."
+              value={newStaffPassword}
+              onChange={(e) => setNewStaffPassword(e.target.value)}
+            />
+            <select
+              className="modalInput"
+              value={newStaffRole}
+              onChange={(e) => setNewStaffRole(e.target.value)}
+            >
+              <option value="regulator">Regulator</option>
+              <option value="owner">Owner</option>
+            </select>
+            <div className="modalActions">
+              {editingStaffId && (
+                <button
+                  className="modalBtn modalBtnCancel"
+                  onClick={() => {
+                    setEditingStaffId(null);
+                    setNewStaffName("");
+                    setNewStaffPassword("");
+                    setNewStaffRole("regulator");
+                  }}
+                >
+                  Mégse
+                </button>
+              )}
+              <button className="modalBtn modalBtnConfirm" onClick={handleSaveStaff}>
+                {editingStaffId ? "Mentés" : "Létrehozás"}
+              </button>
             </div>
           </div>
-        </div>
+        </section>
       )}
 
       <header className="adminNavbar">
@@ -726,21 +724,27 @@ await loadTests();
             <a href="/" className="navbarLink">Publikus</a>
             <a href="/admin/dashboard" className="navbarLink active">Játékos Kezelő</a>
             <a href="/admin/logs" className="navbarLink">Log</a>
-            {adminRole === "owner" && (
-              <button className="navbarLink staffLink" onClick={() => { setShowStaffModal(true); loadStaff(); }}>
-                Staff fiókok
-              </button>
-            )}
           </nav>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés
         </button>
       </header>
 
-      <header className="adminHeader">
-         <div className="headerLeft">
-           <p className="headerSubtitle">Áttekintés</p>
-         </div>
+<header className="adminHeader">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%" }}>
+          <div className="headerLeft">
+            <p className="headerSubtitle">Áttekintés</p>
+          </div>
+          {adminRole === "owner" && (
+            <button
+              className="staffSectionBtn"
+              onClick={() => { setShowStaffSection(!showStaffSection); loadStaff(); }}
+              style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", marginLeft: "auto" }}
+            >
+              {showStaffSection ? "Játékos kezelés" : "Staff fiókok"}
+            </button>
+          )}
+        </div>
         <div className="headerStats">
           <div className="headerStat">
             <span className="headerStatValue">{stats.uniquePlayers}</span>
@@ -1878,13 +1882,128 @@ await loadTests();
           flex-wrap: wrap;
         }
 
-        .tiersSubtitle {
-          font-size: 12px;
-          color: rgba(255,255,255,0.45);
-          margin: 0;
-        }
+.tiersSubtitle {
+           font-size: 12px;
+           color: rgba(255,255,255,0.45);
+           margin: 0;
+         }
 
-        /* ─── Misc cleanups ─── */
+         /* ─── Staff Section ─── */
+         .staffSection {
+           background: rgba(255,255,255,0.04);
+           border: 1px solid rgba(255,255,255,0.1);
+           border-radius: 16px;
+           padding: 24px;
+           display: flex;
+           flex-direction: column;
+           gap: 16px;
+         }
+
+         .staffSectionTitle {
+           font-size: 18px;
+           font-weight: 800;
+           margin: 0;
+         }
+
+         .staffSectionSubtitle {
+           font-size: 13px;
+           color: rgba(255,255,255,0.6);
+           margin: 0 0 8px 0;
+         }
+
+         .staffList {
+           display: flex;
+           flex-direction: column;
+           gap: 10px;
+         }
+
+         .staffItem {
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           padding: 12px 16px;
+           background: rgba(255,255,255,0.04);
+           border: 1px solid rgba(255,255,255,0.08);
+           border-radius: 12px;
+         }
+
+         .staffInfo {
+           display: flex;
+           align-items: center;
+           gap: 12px;
+         }
+
+         .staffName {
+           font-weight: 600;
+           font-size: 15px;
+         }
+
+         .staffRole {
+           font-size: 11px;
+           font-weight: 800;
+           text-transform: uppercase;
+           padding: 4px 8px;
+           border-radius: 6px;
+           background: rgba(196, 30, 58, 0.2);
+           color: #c41e3a;
+         }
+
+         .staffRole-owner {
+           background: rgba(213, 179, 85, 0.2);
+           color: #d5b355;
+         }
+
+         .staffActions {
+           display: flex;
+           gap: 8px;
+         }
+
+         .staffBtn {
+           padding: 6px 12px;
+           font-size: 12px;
+           font-weight: 600;
+           border: none;
+           border-radius: 6px;
+           cursor: pointer;
+         }
+
+         .staffBtnEdit {
+           background: rgba(255,255,255,0.1);
+           color: #fff;
+         }
+
+         .staffBtnDelete {
+           background: rgba(196, 30, 58, 0.2);
+           color: #c41e3a;
+         }
+
+         .staffForm {
+           display: flex;
+           flex-direction: column;
+           gap: 12px;
+           padding-top: 16px;
+           border-top: 1px solid rgba(255,255,255,0.08);
+         }
+
+         .staffFormTitle {
+           font-size: 14px;
+           font-weight: 700;
+           margin: 0;
+         }
+
+         .staffSectionBtn {
+           background: rgba(196, 30, 58, 0.15);
+           color: #c41e3a;
+           border: 1px solid rgba(196, 30, 58, 0.3);
+           border-radius: 8px;
+           font-weight: 600;
+         }
+
+         .staffSectionBtn:hover {
+           background: rgba(196, 30, 58, 0.25);
+         }
+
+         /* ─── Misc cleanups ─── */
         .playerDetailsSkin { border-radius: 50%; }
         .closeDetailsBtn { flex-shrink: 0; }
 
