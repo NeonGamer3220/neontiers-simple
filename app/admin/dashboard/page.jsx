@@ -635,87 +635,6 @@ await loadTests();
         </div>
       )}
 
-      {adminRole === "owner" && showStaffSection && (
-        <section className="staffSection">
-          <h2 className="staffSectionTitle">Staff fiókok kezelése</h2>
-          <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhoz a szekcióhoz.</p>
-
-          <div className="staffList">
-            {staffList.map((s) => (
-              <div key={s.id} className="staffItem">
-                <div className="staffInfo">
-                  <span className="staffName">{s.admin_name}</span>
-                  <span className={`staffRole staffRole-${s.role}`}>{s.role}</span>
-                </div>
-                <div className="staffActions">
-                  <button
-                    className="staffBtn staffBtnEdit"
-                    onClick={() => {
-                      setEditingStaffId(s.id);
-                      setNewStaffName(s.admin_name);
-                      setNewStaffRole(s.role);
-                      setNewStaffPassword("");
-                    }}
-                  >
-                    Szerkesztés
-                  </button>
-                  <button
-                    className="staffBtn staffBtnDelete"
-                    onClick={() => handleDeleteStaff(s.id, s.admin_name)}
-                  >
-                    Törlés
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="staffForm">
-            <h4 className="staffFormTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h4>
-            <input
-              type="text"
-              className="modalInput"
-              placeholder="Staff név..."
-              value={newStaffName}
-              onChange={(e) => setNewStaffName(e.target.value)}
-            />
-            <input
-              type="text"
-              className="modalInput"
-              placeholder="Jelszó..."
-              value={newStaffPassword}
-              onChange={(e) => setNewStaffPassword(e.target.value)}
-            />
-            <select
-              className="modalInput"
-              value={newStaffRole}
-              onChange={(e) => setNewStaffRole(e.target.value)}
-            >
-              <option value="regulator">Regulator</option>
-              <option value="owner">Owner</option>
-            </select>
-            <div className="modalActions">
-              {editingStaffId && (
-                <button
-                  className="modalBtn modalBtnCancel"
-                  onClick={() => {
-                    setEditingStaffId(null);
-                    setNewStaffName("");
-                    setNewStaffPassword("");
-                    setNewStaffRole("regulator");
-                  }}
-                >
-                  Mégse
-                </button>
-              )}
-              <button className="modalBtn modalBtnConfirm" onClick={handleSaveStaff}>
-                {editingStaffId ? "Mentés" : "Létrehozás"}
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
-
       <header className="adminNavbar">
         <div className="navbarLeft">
           <h1 className="navbarTitle">Admin Panel</h1>
@@ -855,7 +774,88 @@ await loadTests();
               <div className="tiersSectionHeader">
                 <h3 className="tiersSectionTitle">Játékmódok</h3>
                 <span className="tiersSubtitle">Tier kezelés admin joggal.</span>
-                {selectedPlayer && (
+{adminRole === "owner" && showStaffSection && (
+          <section className="staffSection">
+            <h2 className="staffSectionTitle">Staff fiókok kezelése</h2>
+            <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhoz a szekcióhoz.</p>
+
+            <div className="staffList">
+              {staffList.map((s) => (
+                <div key={s.id} className="staffItem">
+                  <div className="staffInfo">
+                    <span className="staffName">{s.admin_name}</span>
+                    <span className={`staffRole staffRole-${s.role}`}>{s.role}</span>
+                  </div>
+                  <div className="staffActions">
+                    <button
+                      className="staffBtn staffBtnEdit"
+                      onClick={() => {
+                        setEditingStaffId(s.id);
+                        setNewStaffName(s.admin_name);
+                        setNewStaffRole(s.role);
+                        setNewStaffPassword("");
+                      }}
+                    >
+                      Szerkesztés
+                    </button>
+                    <button
+                      className="staffBtn staffBtnDelete"
+                      onClick={() => handleDeleteStaff(s.id, s.admin_name)}
+                    >
+                      Törlés
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="staffForm">
+              <h4 className="staffFormTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h4>
+              <input
+                type="text"
+                className="modalInput"
+                placeholder="Staff név..."
+                value={newStaffName}
+                onChange={(e) => setNewStaffName(e.target.value)}
+              />
+              <input
+                type="text"
+                className="modalInput"
+                placeholder="Jelszó..."
+                value={newStaffPassword}
+                onChange={(e) => setNewStaffPassword(e.target.value)}
+              />
+              <select
+                className="modalInput"
+                value={newStaffRole}
+                onChange={(e) => setNewStaffRole(e.target.value)}
+              >
+                <option value="regulator">Regulator</option>
+                <option value="owner">Owner</option>
+              </select>
+              <div className="modalActions">
+                {editingStaffId && (
+                  <button
+                    className="modalBtn modalBtnCancel"
+                    onClick={() => {
+                      setEditingStaffId(null);
+                      setNewStaffName("");
+                      setNewStaffPassword("");
+                      setNewStaffRole("regulator");
+                    }}
+                  >
+                    Mégse
+                  </button>
+                )}
+                <button className="modalBtn modalBtnConfirm" onClick={handleSaveStaff}>
+                  {editingStaffId ? "Mentés" : "Létrehozás"}
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {selectedPlayer && (
                   <button
                     className={`toggleUntestedBtn ${showUntested ? 'active' : ''}`}
                     onClick={() => {
