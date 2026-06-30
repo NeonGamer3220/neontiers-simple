@@ -121,7 +121,7 @@ export default function AdminDashboard() {
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
   const [adminRole, setAdminRole] = useState("owner");
-  const [showStaffSection, setShowStaffSection] = useState(false);
+  const [showStaffSection, setShowStaffSection] = useState(true);
   const [staffList, setStaffList] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
   const [newStaffName, setNewStaffName] = useState("");
@@ -151,6 +151,7 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.role) setAdminRole(data.role);
       await loadTests();
+      await loadStaff();
       setLoading(false);
     };
     checkAuth();
@@ -649,32 +650,21 @@ await loadTests();
         </button>
       </header>
 
-<header className="adminHeader">
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", width: "100%" }}>
+      <header className="adminHeader">
           <div className="headerLeft">
             <p className="headerSubtitle">Áttekintés</p>
           </div>
-          {adminRole === "owner" && (
-            <button
-              className="staffSectionBtn"
-              onClick={() => { setShowStaffSection(!showStaffSection); loadStaff(); }}
-              style={{ padding: "8px 16px", fontSize: "13px", cursor: "pointer", marginLeft: "auto" }}
-            >
-              {showStaffSection ? "Játékos kezelés" : "Staff fiókok"}
-            </button>
-          )}
-        </div>
-        <div className="headerStats">
-          <div className="headerStat">
-            <span className="headerStatValue">{stats.uniquePlayers}</span>
-            <span className="headerStatLabel">Játékos</span>
-          </div>
-          <div className="headerStat">
-            <span className="headerStatValue">{stats.totalTiers}</span>
-            <span className="headerStatLabel">Tier</span>
-          </div>
-        </div>
-      </header>
+         <div className="headerStats">
+           <div className="headerStat">
+             <span className="headerStatValue">{stats.uniquePlayers}</span>
+             <span className="headerStatLabel">Játékos</span>
+           </div>
+           <div className="headerStat">
+             <span className="headerStatValue">{stats.totalTiers}</span>
+             <span className="headerStatLabel">Tier</span>
+           </div>
+         </div>
+       </header>
 
       <main className="adminContent">
         <div className="searchSection">
@@ -707,7 +697,7 @@ await loadTests();
           )}
         </div>
 
-{adminRole === "owner" && showStaffSection && (
+      {adminRole === "owner" && (
           <section className="staffSection">
             <h2 className="staffSectionTitle">Staff fiókok kezelése</h2>
             <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhez a szekcióhoz.</p>
