@@ -151,11 +151,16 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.role) setAdminRole(data.role);
       await loadTests();
-      await loadStaff();
       setLoading(false);
     };
     checkAuth();
   }, [router]);
+
+  useEffect(() => {
+    if (adminRole === "owner") {
+      loadStaff();
+    }
+  }, [adminRole]);
 
   // Auto-dismiss toast after 2 s
   useEffect(() => {
