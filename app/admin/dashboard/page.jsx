@@ -530,7 +530,7 @@ await loadTests();
       }
 
       await loadStaff();
-      setShowStaffModal(false);
+      setShowStaffSection(false);
       setNewStaffName("");
       setNewStaffPassword("");
       setNewStaffRole("regulator");
@@ -707,77 +707,10 @@ await loadTests();
           )}
         </div>
 
-        {selectedPlayer && (
-          <div className="playerDetailsSection">
-            <button className="closeDetailsBtn" onClick={() => setSelectedPlayer(null)}>
-              ✕ Bezárás
-            </button>
-
-            <div className="playerDetailsCard">
-              {/* ─── HEAD + NAME + UUID ─── */}
-              <div className="pdRow pdRowHead">
-                <img
-                  src={
-                    selectedPlayer.uuid
-                      ? `https://mc-heads.net/avatar/${selectedPlayer.uuid.replace(/-/g, "")}/96`
-                      : `https://mc-heads.net/avatar/${encodeURIComponent(selectedPlayer.username)}/96`
-                  }
-                  alt={selectedPlayer.username}
-                  className="playerDetailsSkin"
-                />
-                <div className="pdNameBlock">
-                  <h2 className="playerDetailsName">{selectedPlayer.username}</h2>
-                  <span className="pdUuid">{selectedPlayerUUID || "Minecraft UUID betöltése…"}</span>
-                  <div className="pdNameRefresh">
-                    <input
-                      type="text"
-                      className="pdNameInput"
-                      placeholder="Minecraft név frissítése…"
-                      value={newNameInput}
-                      onChange={(e) => setNewNameInput(e.target.value)}
-                    />
-                    <button className="pdRefreshBtn" onClick={handleRefreshName}>
-                      Név frissítése
-                    </button>
-                  </div>
-                  <div className="pdActionBtns">
-                    <button className="pdRemoveBtn" onClick={handleRemovePlayer}>
-                      Eltávolítás
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* ─── STAT BUBBLES ─── */}
-              <div className="pdRow pdBubbles">
-                <div className="pdBubble">
-                  <span className="pdBubbleLabel">Összpont</span>
-                  <span className="pdBubbleValue">{selectedPlayer.totalPoints}</span>
-                </div>
-                <div className="pdBubble">
-                  <span className="pdBubbleLabel">Tesztelt módok</span>
-                  <span className="pdBubbleValue">{selectedPlayer.totalModes}</span>
-                </div>
-<div className="pdBubble">
-                       <span className="pdBubbleLabel">Legjobb Tier</span>
-                       <span className="pdBubbleValue tierBadgeInline">{selectedPlayer.bestRank}</span>
-                     </div>
-                <div className="pdBubble">
-                  <span className="pdBubbleLabel">Globális Állapot</span>
-                  <span className="pdBubbleValue">Aktív</span>
-                </div>
-              </div>
-            </div>
-
-            {/* ─── GAMEMODE TIER MANAGEMENT ─── */}
-            <div className="playerTiersSection">
-              <div className="tiersSectionHeader">
-                <h3 className="tiersSectionTitle">Játékmódok</h3>
-                <span className="tiersSubtitle">Tier kezelés admin joggal.</span>
 {adminRole === "owner" && showStaffSection && (
           <section className="staffSection">
             <h2 className="staffSectionTitle">Staff fiókok kezelése</h2>
-            <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhoz a szekcióhoz.</p>
+            <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhez a szekcióhoz.</p>
 
             <div className="staffList">
               {staffList.map((s) => (
@@ -856,23 +789,75 @@ await loadTests();
         )}
 
         {selectedPlayer && (
-                  <button
-                    className={`toggleUntestedBtn ${showUntested ? 'active' : ''}`}
-                    onClick={() => {
-                      setShowUntested(!showUntested);
-                      if (selectedPlayer) {
-                        const refreshed = getPlayerData(selectedPlayer.username, !showUntested);
-                        setSelectedPlayer(refreshed);
-                      }
-                    }}
-                    title="Mutasd a tesztelt nélküli módokat is"
-                  >
-                    {showUntested ? 'Elrejt' : 'Mutat'} teszt nélküli
-                  </button>
-                )}
+          <div className="playerDetailsSection">
+            <button className="closeDetailsBtn" onClick={() => setSelectedPlayer(null)}>
+              ✕ Bezárás
+            </button>
+
+            <div className="playerDetailsCard">
+              {/* ─── HEAD + NAME + UUID ─── */}
+              <div className="pdRow pdRowHead">
+                <img
+                  src={
+                    selectedPlayer.uuid
+                      ? `https://mc-heads.net/avatar/${selectedPlayer.uuid.replace(/-/g, "")}/96`
+                      : `https://mc-heads.net/avatar/${encodeURIComponent(selectedPlayer.username)}/96`
+                  }
+                  alt={selectedPlayer.username}
+                  className="playerDetailsSkin"
+                />
+                <div className="pdNameBlock">
+                  <h2 className="playerDetailsName">{selectedPlayer.username}</h2>
+                  <span className="pdUuid">{selectedPlayerUUID || "Minecraft UUID betöltése…"}</span>
+                  <div className="pdNameRefresh">
+                    <input
+                      type="text"
+                      className="pdNameInput"
+                      placeholder="Minecraft név frissítése…"
+                      value={newNameInput}
+                      onChange={(e) => setNewNameInput(e.target.value)}
+                    />
+                    <button className="pdRefreshBtn" onClick={handleRefreshName}>
+                      Név frissítése
+                    </button>
+                  </div>
+                  <div className="pdActionBtns">
+                    <button className="pdRemoveBtn" onClick={handleRemovePlayer}>
+                      Eltávolítás
+                    </button>
+                  </div>
+                </div>
               </div>
-{/*.adminTiersList */}
-<div className="playerTiersList">
+
+              {/* ─── STAT BUBBLES ─── */}
+              <div className="pdRow pdBubbles">
+                <div className="pdBubble">
+                  <span className="pdBubbleLabel">Összpont</span>
+                  <span className="pdBubbleValue">{selectedPlayer.totalPoints}</span>
+                </div>
+                <div className="pdBubble">
+                  <span className="pdBubbleLabel">Tesztelt módok</span>
+                  <span className="pdBubbleValue">{selectedPlayer.totalModes}</span>
+                </div>
+<div className="pdBubble">
+                       <span className="pdBubbleLabel">Legjobb Tier</span>
+                       <span className="pdBubbleValue tierBadgeInline">{selectedPlayer.bestRank}</span>
+                     </div>
+                <div className="pdBubble">
+                  <span className="pdBubbleLabel">Globális Állapot</span>
+                  <span className="pdBubbleValue">Aktív</span>
+                </div>
+              </div>
+            </div>
+
+            {/* ─── GAMEMODE TIER MANAGEMENT ─── */}
+            <div className="playerTiersSection">
+<div className="tiersSectionHeader">
+                <h3 className="tiersSectionTitle">Játékmódok</h3>
+                <span className="tiersSubtitle">Tier kezelés admin joggal.</span>
+</div>
+              {/*.adminTiersList */}
+              <div className="playerTiersList">
                 {selectedPlayer.entries.map((entry, index) => {
                   const isRetired = entry.retired === true;
                   const isUntested = entry.isUntested;
