@@ -1,4 +1,17 @@
 import { cookies } from "next/headers";
+import { createClient } from "@supabase/supabase-js";
+
+export const dynamic = "force-dynamic";
+
+const SUPABASE_URL = process.env.SUPABASE_URL || "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+const supabase =
+  SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { persistSession: false },
+      })
+    : null;
 
 export async function GET() {
   try {
@@ -17,13 +30,24 @@ export async function GET() {
       const parsed = JSON.parse(session.value);
       adminData = parsed;
     } catch (e) {
-      // legacy session format, just return basic auth
+      // legacy session format
     }
 
-    return Response.json({ 
-      authenticated: true, 
+    let role = adminData?.role || "owner";
+
+    if (supabase && adminData?.admin_name) {
+      const { data } = await supabase
+        .from("admins")
+        .select("role")
+        .eq("admin_name", adminData.admin_name)
+        .maybeSingle();
+      if (data?.role) role = data.role;
+    }
+
+    return Response.json({
+      authenticated: true,
       admin_name: adminData?.admin_name || null,
-      role: adminData?.role || "owner"
+      role
     });
   } catch (err) {
     return Response.json(

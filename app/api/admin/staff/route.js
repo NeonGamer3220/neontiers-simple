@@ -58,6 +58,10 @@ export async function GET(req) {
   const adminSession = await getAdminFromSession();
   if (!adminSession) return json({ error: "Not authenticated" }, 401);
 
+  if (adminSession.role !== "owner") {
+    return json({ error: "Hozzáférés megtagadva: csak Owner f érhető ehhez" }, 403);
+  }
+
   const resolvedName = await resolveAdminName(adminSession);
   if (!resolvedName) return json({ error: "Invalid session" }, 401);
 
