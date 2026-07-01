@@ -933,8 +933,8 @@ await loadTests();
 
         .logoutBtn {
           padding: 10px 20px;
-          background: rgba(196, 30, 58, 0.8);
-          border: 1px solid rgba(196, 30, 58, 0.5);
+          background: #d64747;
+          border: 1px solid rgba(214, 71, 71, 0.7);
           border-radius: 6px;
           color: #fff;
           font-weight: 800;
@@ -943,7 +943,7 @@ await loadTests();
         }
 
         .logoutBtn:hover {
-          background: rgba(196, 30, 58, 1);
+          background: #c23f3f;
         }
 
         .adminContent {
