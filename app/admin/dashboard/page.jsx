@@ -27,6 +27,23 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
 
   const currentColor = RANK_COLORS[value] || "#888d95";
 
+  const hexToRgba = (hex, alpha) => {
+    const clean = String(hex || "").replace("#", "");
+    if (clean.length === 4) {
+      const r = clean[0];
+      const g = clean[1];
+      const b = clean[2];
+      return `rgba(${r},${r},${g},${g},${b},${b},${alpha})`;
+    }
+    if (clean.length >= 6) {
+      const r = clean.slice(0, 2);
+      const g = clean.slice(2, 4);
+      const b = clean.slice(4, 6);
+      return `rgba(${parseInt(r, 16)},${parseInt(g, 16)},${parseInt(b, 16)},${alpha})`;
+    }
+    return `rgba(136,141,149,${alpha})`;
+  };
+
   useEffect(() => {
     if (!open || disabled) {
       setOpen(false);
@@ -48,13 +65,19 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
     setOpen(false);
   };
 
+  const buttonStyle = {
+    "--admin-rank-color": currentColor,
+    background: hexToRgba(currentColor, 0.18),
+    borderColor: currentColor,
+  };
+
   return (
     <div className="adminModeControls noTester" ref={pickerRef} data-admin-rank-picker="true">
       <div className="adminRankPicker">
         <button
           type="button"
           className="adminRankButton"
-          style={{ "--admin-rank-color": currentColor }}
+          style={buttonStyle}
           onClick={() => !disabled && setOpen((v) => !v)}
           aria-expanded={open && !disabled}
           disabled={disabled}
@@ -2025,7 +2048,6 @@ await loadTests();
           padding: 6px 12px;
           border-radius: 8px;
           border: 1.5px solid var(--admin-rank-color, #888d95);
-          background: rgba(255, 255, 255, 0.04);
           color: #fff;
           cursor: pointer;
           font-family: Montserrat, inherit;
@@ -2037,7 +2059,7 @@ await loadTests();
         }
 
         .adminRankButton:hover {
-          background: rgba(255, 255, 255, 0.08);
+          filter: brightness(1.25);
           transform: translateY(-1px);
         }
 
@@ -2159,19 +2181,18 @@ await loadTests();
           padding: 6px 12px;
           border-radius: 8px;
           border: 1.5px solid var(--admin-rank-color, #888d95);
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 14%, transparent);
           color: #fff;
           cursor: pointer;
           font-family: Montserrat, inherit;
           font-weight: 800;
           font-size: 12px;
           letter-spacing: 0.04em;
-          transition: background 0.15s, transform 0.1s;
+          transition: filter 0.15s, transform 0.1s;
           white-space: nowrap;
         }
 
         .adminRankButton:hover {
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 24%, transparent);
+          filter: brightness(1.25);
           transform: translateY(-1px);
         }
 
@@ -2244,7 +2265,7 @@ await loadTests();
         }
 
         .adminRankOption.selected {
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 18%, transparent);
+          background: rgba(255, 255, 255, 0.12);
           color: #fff;
         }
 
