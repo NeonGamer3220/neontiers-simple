@@ -18,7 +18,7 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
     { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
     { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
     { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
-    { value: "LT1", label: "LT1", points: 28, color: "#888d95" },
+    { value: "LT1", label: "LT1", points: 28, color: "#d5b355" },
     { value: "RLT1", label: "RLT1", points: 28, color: "#8f7cff", retired: true },
     { value: "HT1", label: "HT1", points: 34, color: "#ffcf4a" },
     { value: "RHT1", label: "RHT1", points: 34, color: "#8f7cff", retired: true },
@@ -1929,71 +1929,19 @@ await loadTests();
           margin-left: 2px;
         }
 
-        .adminRankDropdown {
+        .adminRankMenu {
           position: absolute;
           top: calc(100% + 6px);
           left: 0;
           z-index: 50;
-          width: 260px;
+          min-width: 220px;
           background: #151922;
           border: 1px solid rgba(255, 255, 255, 0.12);
           border-radius: 12px;
           box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
           animation: fadeIn 0.12s ease-out;
           overflow: hidden;
-        }
-
-        .adminRankDropdownHeader {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 12px 14px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          font-size: 12px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        .adminRankDropdownClose {
-          background: none;
-          border: none;
-          color: rgba(255, 255, 255, 0.6);
-          cursor: pointer;
-          font-size: 14px;
-          padding: 0;
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 4px;
-          transition: background 0.15s;
-        }
-
-        .adminRankDropdownClose:hover {
-          background: rgba(255, 255, 255, 0.1);
-          color: #fff;
-        }
-
-        .adminRankGroup {
-          padding: 8px 10px;
-        }
-
-        .adminRankGroupLabel {
-          font-size: 10px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          color: rgba(255, 255, 255, 0.4);
-          padding: 4px 6px 6px;
-        }
-
-        .adminRankOptions {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
+          padding: 6px;
         }
 
         .adminRankOption {
@@ -2002,10 +1950,10 @@ await loadTests();
           justify-content: space-between;
           gap: 8px;
           width: 100%;
-          padding: 7px 10px;
+          padding: 8px 10px;
           background: transparent;
           border: none;
-          border-radius: 6px;
+          border-radius: 8px;
           color: rgba(255, 255, 255, 0.85);
           cursor: pointer;
           font-family: Montserrat, inherit;
@@ -2019,9 +1967,15 @@ await loadTests();
           background: rgba(255, 255, 255, 0.06);
         }
 
-        .adminRankOption.active {
+        .adminRankOption.selected {
           background: color-mix(in srgb, var(--admin-rank-color, #888d95) 22%, transparent);
           color: #fff;
+        }
+
+        .adminRankOptionMain {
+          display: flex;
+          align-items: center;
+          gap: 10px;
         }
 
         .adminRankOptionLabel {
@@ -2029,10 +1983,22 @@ await loadTests();
           letter-spacing: 0.04em;
         }
 
-        .adminRankOptionPoints {
+        .adminRankOptionMeta {
           font-size: 10px;
           opacity: 0.7;
           font-weight: 700;
+        }
+
+        .adminRankOption em {
+          font-style: normal;
+          font-size: 9px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: rgba(143, 124, 255, 0.2);
+          color: #8f7cff;
         }
       `}</style>
     </div>
