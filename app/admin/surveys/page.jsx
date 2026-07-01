@@ -15,8 +15,45 @@ export default function AdminSurveysPage() {
   const [situationalCode, setSituationalCode] = useState("");
   const [duration, setDuration] = useState(180);
   const [questionsText, setQuestionsText] = useState("");
+  const [parsedQuestionsPreview, setParsedQuestionsPreview] = useState("");
   const [toast, setToast] = useState(null);
   const [selectedSurvey, setSelectedSurvey] = useState(null);
+
+  const parseQuestionsText = (text) => {
+    const trimmed = String(text || "").trim();
+    if (!trimmed) return [];
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // ignore invalid JSON and try line-based parse
+    }
+
+    return trimmed
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line, index) => {
+        const match = line.match(/^([^:|]+)\s*[:|]\s*(.+)$/);
+        const stage = match ? match[1].trim().toLowerCase() : "alap";
+        const question = match ? match[2].trim() : line;
+        return {
+          stage,
+          question,
+          key: `q${index + 1}`,
+        };
+      });
+  };
+
+  useEffect(() => {
+    const preview = parseQuestionsText(questionsText);
+    if (preview.length > 0) {
+      setParsedQuestionsPreview(JSON.stringify(preview, null, 2));
+    } else {
+      setParsedQuestionsPreview("");
+    }
+  }, [questionsText]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -60,11 +97,9 @@ export default function AdminSurveysPage() {
       return;
     }
 
-    let questions = null;
-    try {
-      questions = JSON.parse(questionsText);
-    } catch (e) {
-      showToast("error", "A kérdéseknek érvényes JSON-formátumban kell lenniük");
+    const questions = parseQuestionsText(questionsText);
+    if (questions.length === 0) {
+      showToast("error", "Adj meg legalább egy kérdést JSON-formátumban vagy soronként");
       return;
     }
 
@@ -156,8 +191,20 @@ export default function AdminSurveysPage() {
             <input value={logicCode} onChange={(e) => setLogicCode(e.target.value)} placeholder="Logikai kód" className="surveyInput" />
             <input value={grammarCode} onChange={(e) => setGrammarCode(e.target.value)} placeholder="Nyelvtani kód" className="surveyInput" />
             <input value={situationalCode} onChange={(e) => setSituationalCode(e.target.value)} placeholder="Helyzeti kód" className="surveyInput" />
-            <input type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} placeholder="Alap időkeret másodpercben" className="surveyInput" min="10" />
-            <textarea value={questionsText} onChange={(e) => setQuestionsText(e.target.value)} placeholder='Kérdések JSON-formátumban (pl. [{"stage":"alap","question":"..."}])' className="surveyTextarea" rows="10" />
+            <div className="durationRow">
+              <label className="durationLabel">Alap időkeret (másodpercben)</label>
+              <input type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="surveyInput" min="10" />
+            </div>
+            <textarea
+              value={questionsText}
+              onChange={(e) => setQuestionsText(e.target.value)}
+              placeholder='Kérdések soronként: alap: Mi a neved? vagy teljes JSON tömb'
+              className="surveyTextarea"
+              rows="8"
+            />
+            <div className="inputHint">Használhatod a gyors soros alakot vagy adhatod meg közvetlenül JSON-ként.</div>
+            <div className="previewLabel">Automatikus JSON konverzió:</div>
+            <pre className="jsonPreview">{parsedQuestionsPreview || "Írd be a kérdéseket a JSON előnézethez."}</pre>
             <button className="surveyButton" onClick={handleCreateSurvey}>Felmérés mentése</button>
           </div>
         </section>
@@ -191,6 +238,11 @@ export default function AdminSurveysPage() {
         .surveyForm { display:grid; gap:14px; }
         .surveyInput, .surveyTextarea { width:100%; border:1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color:#fff; padding:12px 14px; border-radius:10px; font-family:inherit; }
         .surveyButton { width:fit-content; padding:12px 20px; border:none; border-radius:10px; background:#d64747; color:#fff; font-weight:800; cursor:pointer; }
+        .durationRow { display:flex; flex-direction:column; gap:6px; }
+        .durationLabel { color: rgba(255,255,255,0.75); font-size:13px; font-weight:700; }
+        .inputHint { color: rgba(148, 163, 184, 0.8); font-size:13px; margin-top:-4px; margin-bottom:8px; }
+        .previewLabel { color: rgba(255,255,255,0.75); font-size:13px; font-weight:700; margin-top:8px; }
+        .jsonPreview { width:100%; min-height:140px; margin:0; padding:14px 16px; border-radius:12px; background: rgba(15,23,42,0.95); border:1px solid rgba(255,255,255,0.08); color:#d1d5db; font-size:13px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
         .surveyList { display:grid; gap:14px; }
         .surveyCard { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:16px 18px; background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:16px; }
         .surveyDeleteBtn { background: rgba(214,71,71,0.22); border:none; color:#d64747; padding:10px 16px; border-radius:10px; cursor:pointer; }
