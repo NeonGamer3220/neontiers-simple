@@ -221,7 +221,7 @@ export default function AdminStaffPage() {
                     <div className="staffInfo">
                       <span className="staffName">{staff.admin_name}</span>
                       <span className={`staffRole staffRole-${normalizedRole}`}>
-                        {normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1)}
+                        {normalizedRole.toUpperCase()}
                       </span>
                     </div>
                     <div className="staffActions">
