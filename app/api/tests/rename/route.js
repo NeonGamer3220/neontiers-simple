@@ -78,12 +78,19 @@ function requireAdmin(authHeader) {
   return null;
 }
 
+function normalizeTestsRow(r) {
+  if (!r || typeof r !== "object") return r;
+  return {
+    ...r,
+    elo: r.rank,
+  };
+}
+
 // POST: /api/tests/rename - Change player name on tierlist (admin only)
 export async function POST(req) {
   const missing = requireSupabase();
   if (missing) return missing;
-  
-  // Check admin authentication (Bearer token or session cookie)
+
   const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
   const authError = requireAdmin(authHeader);
   if (authError) {
@@ -116,10 +123,9 @@ export async function POST(req) {
     );
   }
 
-  // Check if old name exists
   const { data: existing, error: findErr } = await supabase
-    .from("elos")
-    .select("id, username, gamemode, elo, points, created_at")
+    .from("tests")
+    .select("id, username, gamemode, rank, points, created_at")
     .ilike("username", oldName);
 
   if (findErr) return json({ error: findErr.message }, 500);
@@ -134,16 +140,14 @@ export async function POST(req) {
     );
   }
 
-  // Update all records with old name to new name
   const { data: updated, error: updateErr } = await supabase
-    .from("elos")
+    .from("tests")
     .update({ username: newName })
     .ilike("username", oldName)
-    .select("id, username, gamemode, elo, points, created_at");
+    .select("id, username, gamemode, rank, points, created_at");
 
   if (updateErr) return json({ error: updateErr.message }, 500);
 
-  // Audit log
   const admin_name = await checkAdminSession();
   if (admin_name) {
     try {
@@ -162,10 +166,7 @@ export async function POST(req) {
   }
 
   const normalizedUpdated = Array.isArray(updated)
-    ? updated.map((item) => ({
-        ...item,
-        rank: item.elo,
-      }))
+    ? updated.map((item) => normalizeTestsRow(item))
     : [];
 
   return json(
@@ -179,7 +180,6 @@ export async function POST(req) {
   );
 }
 
-// PUT: Also support PUT for compatibility
 export async function PUT(req) {
   return POST(req);
 }

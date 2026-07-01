@@ -75,7 +75,7 @@ function requireAdmin(authHeader) {
 export async function POST(req) {
   const missing = requireSupabase();
   if (missing) return missing;
-  // Allow admin cookie OR admin API key
+
   let admin_name = null;
   try {
     const cookieStore = await cookies();
@@ -112,10 +112,9 @@ export async function POST(req) {
   }
 
   if (gamemode) {
-    // Delete only specific gamemode entry
     const { data: existing, error: findErr } = await supabase
-      .from("elos")
-      .select("id, username, gamemode, elo as rank, points")
+      .from("tests")
+      .select("id, username, gamemode, rank, points")
       .ilike("username", username)
       .ilike("gamemode", gamemode);
 
@@ -131,7 +130,7 @@ export async function POST(req) {
     }
 
     const { error: delErr } = await supabase
-      .from("elos")
+      .from("tests")
       .delete()
       .ilike("username", username)
       .ilike("gamemode", gamemode);
@@ -139,10 +138,9 @@ export async function POST(req) {
     if (delErr) return json({ error: delErr.message }, 500);
 
     const details = existing
-      .map((r) => `${r.gamemode}: ${r.rank} (${r.points}pt)`)
+      .map((r) => `${r.gamemode}: ${r.rank ?? "-"} (${r.points ?? 0}pt)`)
       .join(", ");
 
-    // Insert audit record
     try {
       await supabase.from("audit_logs").insert({
         admin_name,
@@ -168,10 +166,9 @@ export async function POST(req) {
     });
   }
 
-  // Delete ALL entries for this username
   const { data: existing, error: findErr } = await supabase
-    .from("elos")
-    .select("id, username, gamemode, elo as rank, points")
+    .from("tests")
+    .select("id, username, gamemode, rank, points")
     .ilike("username", username);
 
   if (findErr) return json({ error: findErr.message }, 500);
@@ -186,7 +183,7 @@ export async function POST(req) {
   }
 
   const { error: delErr } = await supabase
-    .from("elos")
+    .from("tests")
     .delete()
     .ilike("username", username);
 
@@ -194,10 +191,9 @@ export async function POST(req) {
 
   const modesList = [...new Set(existing.map((r) => r.gamemode))].join(", ");
   const details = existing
-    .map((r) => `${r.gamemode}: ${r.rank} (${r.points}pt)`)
+    .map((r) => `${r.gamemode}: ${r.rank ?? "-"} (${r.points ?? 0}pt)`)
     .join(", ");
 
-  // Insert audit record for full-delete
   try {
     await supabase.from("audit_logs").insert({
       admin_name,

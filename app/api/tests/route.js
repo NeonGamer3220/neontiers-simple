@@ -52,18 +52,41 @@ function json(data, status = 200, cacheControl = "no-store") {
   });
 }
 
+function tierStringToElo(tier) {
+  const LEGACY_TIER_TO_ELO = {
+    LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
+    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
+    LT1: 2500, HT1: 2750,
+  };
+  const key = String(tier || "").trim().toUpperCase();
+  if (LEGACY_TIER_TO_ELO[key] !== undefined) return LEGACY_TIER_TO_ELO[key];
+  return null;
+}
+
+function normalizeTestsRow(r) {
+  if (!r || typeof r !== "object") return r;
+  const raw = r.rank != null ? r.rank : null;
+  const parsed = typeof raw === "number" ? raw : Number(raw);
+  const elo = Number.isFinite(parsed) ? parsed : tierStringToElo(raw);
+  return {
+    ...r,
+    rank: raw != null ? String(raw) : null,
+    elo,
+  };
+}
+
+function normalizeTestsList(data) {
+  return Array.isArray(data) ? data.map(normalizeTestsRow) : [];
+}
+
 // Generate a deterministic surrogate numeric id for a username+gamemode pair.
-// Uses a simple hash of the lowercased concatenation so the same pair
-// always maps to the same id (avoids duplicate keys on retry).
 function surrogateIdFor(username, gamemode) {
   const digest = username.toLowerCase() + "|" + gamemode.toLowerCase();
-  let hash = 0x811c9dc5; // FNV-1a init (32-bit offset basis)
+  let hash = 0x811c9dc9;
   for (let i = 0; i < digest.length; i++) {
     hash ^= digest.charCodeAt(i);
     hash = Math.imul(hash, 0x01000193);
   }
-  // Force into positive signed-32-bit range, then offset well past
-  // any existing row ids so we never collide with real DB ids.
   const positive = Math.abs(hash | 0) >>> 0;
   return positive + 2_000_000_000;
 }
@@ -85,10 +108,8 @@ function normRank(s) {
   if (s === null || s === undefined || String(s).trim() === "") return null;
   const r = String(s || "").trim().toUpperCase();
   if (r === "UNRANKED") return 0;
-  // Check if it's already a numeric ELO
   const num = Number(r);
   if (!Number.isNaN(num)) return num;
-  // Legacy: try to convert tier strings to ELO
   const LEGACY_TIER_TO_ELO = {
     LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
     LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
@@ -111,6 +132,12 @@ function requireSupabase() {
   return null;
 }
 
+const LEGACY_TIER_TO_ELO = {
+  LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
+  LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
+  LT1: 2500, HT1: 2750,
+};
+
 // GET:
 // - /api/tests                 -> lista (DB-ből)
 // - /api/tests?username=...&gamemode=... -> 1 darab (az adott user + mode aktuális)
@@ -124,45 +151,38 @@ export async function GET(req) {
 
   if (username && gamemode) {
     const { data, error } = await supabase
-      .from("elos")
-      .select("id,username,gamemode,elo,points,created_at")
+      .from("tests")
+      .select("id,username,gamemode,rank,points,created_at")
       .ilike("username", username)
       .ilike("gamemode", gamemode)
       .maybeSingle();
 
     if (error) return json({ error: error.message }, 500);
-    return json({ test: data || null });
+    return json({ test: normalizeTestsRow(data) });
   }
 
   if (username) {
     const { data, error } = await supabase
-      .from("elos")
-      .select("id,username,gamemode,elo,points,created_at")
+      .from("tests")
+      .select("id,username,gamemode,rank,points,created_at")
       .ilike("username", username)
       .order("points", { ascending: false });
 
     if (error) return json({ error: error.message }, 500);
-    return json({ tests: data || [] });
+    return json({ tests: normalizeTestsList(data) });
   }
 
-  // Legacy tier to ELO mapping for backward compatibility
-const LEGACY_TIER_TO_ELO = {
-  LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
-  LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2500,
-  LT1: 3000, HT1: 4000,
-};
-
-// Get random player for a specific mode and tier
+  // Get random player for a specific mode and tier
   const mode = (searchParams.get("mode") || "").trim();
   const tier = (searchParams.get("tier") || "").trim();
 
   if (mode && tier) {
     const eloTier = LEGACY_TIER_TO_ELO[tier.toUpperCase()] ?? Number(tier);
     const { data, error } = await supabase
-      .from("elos")
-      .select("id,username,gamemode,elo,points,created_at,retired")
+      .from("tests")
+      .select("id,username,gamemode,rank,points,created_at,retired")
       .ilike("gamemode", mode)
-      .eq("elo", eloTier)
+      .eq("rank", String(eloTier))
       .limit(100);
 
     if (error) return json({ error: error.message }, 500);
@@ -174,24 +194,23 @@ const LEGACY_TIER_TO_ELO = {
       return json({ player: null, message: "No players found for this mode and tier" }, 200, "public, s-maxage=30, stale-while-revalidate=30");
     }
 
-    // Pick random
     const randomPlayer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
-    return json({ player: randomPlayer }, 200, "public, s-maxage=30, stale-while-revalidate=30");
+    return json({ player: normalizeTestsRow(randomPlayer) }, 200, "public, s-maxage=30, stale-while-revalidate=30");
   }
 
   // Get all tests — supabase query limited rows from DB (avoid over-fetch).
   const limit = Math.min(parseInt(searchParams.get("limit") || "500", 10) || 500, 2000);
 
   let { data, error } = await supabase
-    .from("elos")
-    .select("id,username,gamemode,elo,points,created_at,retired")
+    .from("tests")
+    .select("id,username,gamemode,rank,points,created_at,retired")
     .order("points", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) return json({ error: error.message }, 500);
 
-  return json({ tests: data || [] }, 200, "public, s-maxage=30, stale-while-revalidate=30");
+  return json({ tests: normalizeTestsList(data) }, 200, "public, s-maxage=30, stale-while-revalidate=30");
 }
 
 // POST: Save test result
@@ -206,7 +225,6 @@ export async function POST(req) {
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  // Fogadjuk el többféle kulcsnévvel (bot/web régi verziók)
   const username = pick(body, [
     "username",
     "minecraft_name",
@@ -225,13 +243,12 @@ export async function POST(req) {
   const gamemode = normMode(gamemodeRaw);
   const rank = normRank(rankRaw);
 
-  // Accept optional id from admin client to perform safe updates
   const id = pick(body, ["id", "test_id", "row_id"]);
 
   if (!username || !gamemode || !rank) {
     return json(
       {
-        error: "Missing username/gamemode/elo",
+        error: "Missing username/gamemode/rank",
         received: { username, gamemode, rank },
       },
       400
@@ -243,21 +260,10 @@ export async function POST(req) {
       ? Number(body.points)
       : getPointsForElo(rank);
 
-  // 1) Előző rekord lekérése (ez kell a botnak!)
-  const { data: prev, error: prevErr } = await supabase
-    .from("elos")
-    .select("id,username,gamemode,elo,points,created_at,retired")
-    .ilike("username", username)
-    .ilike("gamemode", gamemode)
-    .maybeSingle();
-
-  if (prevErr) return json({ error: prevErr.message }, 500);
-
-  // 2) If admin provided an `id`, perform an UPDATE to avoid upsert id/null issues
   const row = {
     username,
     gamemode,
-    elo: rank,
+    rank: String(rank),
     points,
     retired: retiredRaw,
     created_at: new Date().toISOString(),
@@ -267,44 +273,38 @@ export async function POST(req) {
   let saveErr = null;
 
   if (id) {
-    // Update by id (safer for admin edits)
     const { data, error } = await supabase
-      .from("elos")
+      .from("tests")
       .update(row)
-      .eq("id", id)
-      .select("id,username,gamemode,elo,points,created_at,retired")
+      .eq("id", Number(id))
+      .select("id,username,gamemode,rank,points,created_at,retired")
       .maybeSingle();
     saved = data;
     saveErr = error;
-    // If update did not find a row, fall back to upsert to create one
     if (!saved && !saveErr) {
       const ups = await supabase
-        .from("elos")
+        .from("tests")
         .upsert(row, { onConflict: "username,gamemode" })
-        .select("id,username,gamemode,elo,points,created_at,retired")
+        .select("id,username,gamemode,rank,points,created_at,retired")
         .maybeSingle();
       saved = ups.data;
       saveErr = ups.error;
     }
   } else {
-    // No id provided → upsert using a deterministic surrogate id on
-    // username+gamemode so that both new entries and re-saves (e.g. dash
-    // edit) work without requiring a client-side id at all.
     const surrogateId = surrogateIdFor(username, gamemode);
     const insertRow = { ...row, id: surrogateId };
     const res = await supabase
-      .from("elos")
+      .from("tests")
       .upsert(insertRow, { onConflict: "id" })
-      .select("id,username,gamemode,elo,points,created_at,retired")
+      .select("id,username,gamemode,rank,points,created_at,retired")
       .maybeSingle();
     saved = res.data;
     saveErr = res.error;
-    // Fall back to username+gamemode conflict if id-based upsert finds nothing
     if (!saved && !saveErr) {
       const ups2 = await supabase
-        .from("elos")
+        .from("tests")
         .upsert(insertRow, { onConflict: "username,gamemode" })
-        .select("id,username,gamemode,elo,points,created_at,retired")
+        .select("id,username,gamemode,rank,points,created_at,retired")
         .maybeSingle();
       saved = ups2.data;
       saveErr = ups2.error;
@@ -313,7 +313,6 @@ export async function POST(req) {
 
   if (saveErr) return json({ error: saveErr.message }, 500);
 
-  // Server-side audit logging when admin session is present
   try {
     const cookieStore = await cookies();
     const session = cookieStore.get("admin_session");
@@ -333,26 +332,25 @@ export async function POST(req) {
         action: "tier_save",
         target_username: username,
         gamemode,
-        old_rank: prev ? prev.elo : null,
+        old_rank: null,
         new_rank: rank,
-        old_points: prev ? prev.points : null,
+        old_points: null,
         new_points: points,
         details: null,
         created_at: new Date().toISOString(),
       });
     }
   } catch (e) {
-    // non-fatal: don't block main flow if audit insert fails
     console.error("Audit log insert failed:", e?.message || e);
   }
 
   return json(
     {
       ok: true,
-      previous: prev
-        ? { rank: prev.rank, points: prev.points, created_at: prev.created_at }
+      previous: saved
+        ? { rank: saved.rank, points: saved.points, created_at: saved.created_at }
         : { rank: "Unranked", points: 0, created_at: null },
-      saved,
+      saved: normalizeTestsRow(saved),
     },
     200
   );
