@@ -747,25 +747,26 @@ await loadTests();
                     </div>
                     <div className="staffActions">
                       <button
-                      className="staffBtn staffBtnEdit"
-                      onClick={() => {
-                        setEditingStaffId(s.id);
-                        setNewStaffName(s.admin_name);
-                        setNewStaffRole(s.role);
-                        setNewStaffPassword("");
-                      }}
-                    >
-                      Szerkesztés
-                    </button>
-                    <button
-                      className="staffBtn staffBtnDelete"
-                      onClick={() => handleDeleteStaff(s.id, s.admin_name)}
-                    >
-                      Törlés
-                    </button>
+                        className="staffBtn staffBtnEdit"
+                        onClick={() => {
+                          setEditingStaffId(s.id);
+                          setNewStaffName(s.admin_name);
+                          setNewStaffRole(s.role);
+                          setNewStaffPassword("");
+                        }}
+                      >
+                        Szerkesztés
+                      </button>
+                      <button
+                        className="staffBtn staffBtnDelete"
+                        onClick={() => handleDeleteStaff(s.id, s.admin_name)}
+                      >
+                        Törlés
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="staffForm">
