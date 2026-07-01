@@ -58,7 +58,8 @@ export async function GET(req) {
   const adminSession = await getAdminFromSession();
   if (!adminSession) return json({ error: "Not authenticated" }, 401);
 
-  if (adminSession.role !== "owner") {
+  const sessionRole = String(adminSession.role || "").toLowerCase();
+  if (sessionRole !== "owner") {
     return json({ error: "Hozzáférés megtagadva: csak Owner f érhető ehhez" }, 403);
   }
 
@@ -90,7 +91,8 @@ export async function POST(req) {
   const adminSession = await getAdminFromSession();
   if (!adminSession) return json({ error: "Not authenticated" }, 401);
 
-  if (adminSession.role !== "owner") {
+  const sessionRole = String(adminSession.role || "").toLowerCase();
+  if (sessionRole !== "owner") {
     return json({ error: "Hozzáférés megtagadva: csak Owner f érhető ehhez" }, 403);
   }
 

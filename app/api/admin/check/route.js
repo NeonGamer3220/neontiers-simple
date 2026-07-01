@@ -33,7 +33,7 @@ export async function GET() {
       // legacy session format
     }
 
-    let role = adminData?.role || "owner";
+    let role = adminData?.role ? String(adminData.role).toLowerCase() : "owner";
 
     if (supabase && adminData?.admin_name) {
       const { data } = await supabase
@@ -41,7 +41,7 @@ export async function GET() {
         .select("role")
         .eq("admin_name", adminData.admin_name)
         .maybeSingle();
-      if (data?.role) role = data.role;
+      if (data?.role) role = String(data.role).toLowerCase();
     }
 
     return Response.json({
