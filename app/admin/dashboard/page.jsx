@@ -3,35 +3,258 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
+function AdminRankPicker({ value, onChange, disabled = false }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
-
-  const ALL_RANKS = [
-    { value: "", label: "Unranked", points: 0, color: "rgba(255, 255, 255, 0.68)" },
-    { value: "LT5", label: "LT5", points: 1, color: "#40384f" },
-    { value: "HT5", label: "HT5", points: 2, color: "#6f6389" },
-    { value: "LT4", label: "LT4", points: 3, color: "#514764" },
-    { value: "HT4", label: "HT4", points: 4, color: "#b7aadf" },
-    { value: "LT3", label: "LT3", points: 6, color: "#b36830" },
-    { value: "HT3", label: "HT3", points: 10, color: "#dd8849" },
-    { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
-    { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
-    { value: "HT2", label: "HT2", points: 28, color: "#a4b3c7" },
-    { value: "RHT2", label: "RHT2", points: 28, color: "#8f7cff", retired: true },
-    { value: "LT1", label: "LT1", points: 40, color: "#d5b355" },
-    { value: "RLT1", label: "RLT1", points: 40, color: "#8f7cff", retired: true },
-    { value: "HT1", label: "HT1", points: 60, color: "#ffcf4a" },
-    { value: "RHT1", label: "RHT1", points: 60, color: "#8f7cff", retired: true },
-  ];
-
-  const currentRank = ALL_RANKS.find((r) => r.value === value) || ALL_RANKS[0];
 
   useEffect(() => {
     if (!open || disabled) {
       setOpen(false);
       return;
     }
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, disabled]);
+
+  const handleSelect = (rankValue) => {
+    if (!disabled) {
+      onChange(rankValue);
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div className="adminModeControls noTester" ref={pickerRef} data-admin-rank-picker="true">
+      <div className="adminRankPicker">
+        <button
+          type="button"
+          className="adminRankButton"
+          style={{ "--admin-rank-color": value === "" ? "rgba(255, 255, 255, 0.68)" : "#888d95" }}
+          onClick={() => !disabled && setOpen((v) => !v)}
+          aria-expanded={open && !disabled}
+          disabled={disabled}
+        >
+          <span className="adminRankButtonText">
+            <strong>{value === "" ? "Unranked" : value}</strong>
+            <span>
+              {value === ""
+                ? "0 pont"
+                : value === "LT5"
+                  ? "1 pont"
+                  : value === "HT5"
+                    ? "2 pont"
+                    : value === "LT4"
+                      ? "3 pont"
+                      : value === "HT4"
+                        ? "4 pont"
+                        : value === "LT3"
+                          ? "6 pont"
+                          : value === "HT3"
+                            ? "10 pont"
+                            : value === "LT2"
+                              ? "16 pont"
+                              : value === "RLT2"
+                                ? "16 pont"
+                                : value === "HT2"
+                                  ? "28 pont"
+                                  : value === "RHT2"
+                                    ? "28 pont"
+                                    : value === "LT1"
+                                      ? "40 pont"
+                                      : value === "RLT1"
+                                        ? "40 pont"
+                                        : value === "HT1"
+                                          ? "60 pont"
+                                          : value === "RHT1"
+                                            ? "60 pont"
+                                            : "0 pont"}
+            </span>
+          </span>
+          <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
+        </button>
+
+        {open && !disabled && (
+          <div className="adminRankMenu">
+            <button
+              type="button"
+              className={`adminRankOption ${value === "" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "rgba(255, 255, 255, 0.68)" }}
+              onClick={() => handleSelect("")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">Unranked</span>
+                <span className="adminRankOptionMeta">0 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "LT5" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#40384f" }}
+              onClick={() => handleSelect("LT5")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">LT5</span>
+                <span className="adminRankOptionMeta">1 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "HT5" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#6f6389" }}
+              onClick={() => handleSelect("HT5")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">HT5</span>
+                <span className="adminRankOptionMeta">2 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "LT4" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#514764" }}
+              onClick={() => handleSelect("LT4")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">LT4</span>
+                <span className="adminRankOptionMeta">3 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "HT4" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#b7aadf" }}
+              onClick={() => handleSelect("HT4")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">HT4</span>
+                <span className="adminRankOptionMeta">4 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "LT3" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#b36830" }}
+              onClick={() => handleSelect("LT3")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">LT3</span>
+                <span className="adminRankOptionMeta">6 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "HT3" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#dd8849" }}
+              onClick={() => handleSelect("HT3")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">HT3</span>
+                <span className="adminRankOptionMeta">10 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "LT2" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#888d95" }}
+              onClick={() => handleSelect("LT2")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">LT2</span>
+                <span className="adminRankOptionMeta">16 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "RLT2" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#8f7cff" }}
+              onClick={() => handleSelect("RLT2")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">RLT2</span>
+                <span className="adminRankOptionMeta">16 pont</span>
+              </span>
+              <em>Retired</em>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "HT2" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#a4b3c7" }}
+              onClick={() => handleSelect("HT2")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">HT2</span>
+                <span className="adminRankOptionMeta">28 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "RHT2" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#8f7cff" }}
+              onClick={() => handleSelect("RHT2")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">RHT2</span>
+                <span className="adminRankOptionMeta">28 pont</span>
+              </span>
+              <em>Retired</em>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "LT1" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#d5b355" }}
+              onClick={() => handleSelect("LT1")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">LT1</span>
+                <span className="adminRankOptionMeta">40 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "RLT1" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#8f7cff" }}
+              onClick={() => handleSelect("RLT1")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">RLT1</span>
+                <span className="adminRankOptionMeta">40 pont</span>
+              </span>
+              <em>Retired</em>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "HT1" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#ffcf4a" }}
+              onClick={() => handleSelect("HT1")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">HT1</span>
+                <span className="adminRankOptionMeta">60 pont</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`adminRankOption ${value === "RHT1" ? "selected" : ""}`}
+              style={{ "--admin-rank-color": "#8f7cff" }}
+              onClick={() => handleSelect("RHT1")}
+            >
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">RHT1</span>
+                <span className="adminRankOptionMeta">60 pont</span>
+              </span>
+              <em>Retired</em>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
     const handler = (e) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
         setOpen(false);
@@ -1881,6 +2104,140 @@ await loadTests();
           align-items: center;
           gap: 10px;
           position: relative;
+        }
+
+        .adminRankPicker {
+          position: relative;
+          display: inline-flex;
+        }
+
+        .adminRankButton {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 6px 12px;
+          border-radius: 8px;
+          border: 1.5px solid var(--admin-rank-color, #888d95);
+          background: rgba(255, 255, 255, 0.04);
+          color: #fff;
+          cursor: pointer;
+          font-family: Montserrat, inherit;
+          font-weight: 800;
+          font-size: 12px;
+          letter-spacing: 0.04em;
+          transition: background 0.15s, transform 0.1s;
+          white-space: nowrap;
+        }
+
+        .adminRankButton:hover {
+          background: rgba(255, 255, 255, 0.08);
+          transform: translateY(-1px);
+        }
+
+        .adminRankButton[disabled],
+        .adminRankButton.disabled {
+          opacity: 0.42;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+
+        .adminRankButtonText {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: flex-start;
+          line-height: 1.15;
+        }
+
+        .adminRankButtonText strong {
+          font-size: 13px;
+          text-transform: uppercase;
+        }
+
+        .adminRankButtonText span {
+          font-size: 10px;
+          opacity: 0.75;
+          font-weight: 700;
+        }
+
+        .adminRankChevron {
+          font-size: 10px;
+          opacity: 0.65;
+          margin-left: 1px;
+        }
+
+        .adminRankMenu {
+          position: absolute;
+          top: calc(100% + 6px);
+          left: 0;
+          z-index: 50;
+          min-width: 220px;
+          background: #13161f;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+          animation: fadeIn 0.1s ease-out;
+          overflow: hidden;
+          padding: 4px;
+        }
+
+        .adminRankOption {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          width: 100%;
+          padding: 9px 10px;
+          background: transparent;
+          border: none;
+          border-radius: 6px;
+          color: rgba(255, 255, 255, 0.85);
+          cursor: pointer;
+          font-family: Montserrat, inherit;
+          font-size: 12px;
+          font-weight: 800;
+          transition: background 0.12s;
+          text-align: left;
+        }
+
+        .adminRankOption:hover {
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .adminRankOption.selected {
+          background: rgba(255, 255, 255, 0.12);
+          color: #fff;
+        }
+
+        .adminRankOptionMain {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
+        }
+
+        .adminRankOptionLabel {
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .adminRankOptionMeta {
+          font-size: 10px;
+          opacity: 0.7;
+          font-weight: 700;
+          margin-left: auto;
+          padding-right: 4px;
+        }
+
+        .adminRankOption em {
+          margin-left: 8px;
+          font-style: normal;
+          font-size: 9px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: rgba(143, 124, 255, 0.22);
+          color: #b8a9ff;
         }
 
         .adminRankPicker {
