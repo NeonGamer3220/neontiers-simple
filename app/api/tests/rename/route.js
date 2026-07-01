@@ -119,7 +119,7 @@ export async function POST(req) {
   // Check if old name exists
   const { data: existing, error: findErr } = await supabase
     .from("elos")
-    .select("id, username, gamemode, elo as rank, points, created_at")
+    .select("id, username, gamemode, elo, points, created_at")
     .ilike("username", oldName);
 
   if (findErr) return json({ error: findErr.message }, 500);
@@ -139,7 +139,7 @@ export async function POST(req) {
     .from("elos")
     .update({ username: newName })
     .ilike("username", oldName)
-    .select("id, username, gamemode, elo as rank, points, created_at");
+    .select("id, username, gamemode, elo, points, created_at");
 
   if (updateErr) return json({ error: updateErr.message }, 500);
 
@@ -161,12 +161,19 @@ export async function POST(req) {
     }
   }
 
+  const normalizedUpdated = Array.isArray(updated)
+    ? updated.map((item) => ({
+        ...item,
+        rank: item.elo,
+      }))
+    : [];
+
   return json(
     {
       ok: true,
       message: `Successfully renamed "${oldName}" to "${newName}"`,
-      updatedCount: existing.length,
-      updatedRecords: updated,
+      updatedCount: Array.isArray(existing) ? existing.length : 0,
+      updatedRecords: normalizedUpdated,
     },
     200
   );
