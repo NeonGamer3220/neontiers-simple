@@ -255,7 +255,33 @@ export default function AdminSurveysPage() {
   }
 
   if (unauthorized) {
-    return <div className="adminPage">Csak Owner jogosultsággal használható ez az oldal.</div>;
+    return (
+      <div className="adminPage">
+        <header className="adminNavbar">
+          <div className="navbarLeft">
+            <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
+          </div>
+          <nav className="navbarLinks">
+            <a href="/" className="navbarLink">Publikus</a>
+            <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
+            <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
+            <a href="/admin/surveys" className="navbarLink active">Felmérések</a>
+            <a href="/admin/logs" className="navbarLink">Logok</a>
+          </nav>
+          <div className="adminUserBadge">
+            <span>{adminName || "Admin"}</span>
+            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
+          </div>
+          <button className="logoutBtn" onClick={handleLogout}>Kijelentkezés</button>
+        </header>
+        <main className="adminContent">
+          <div className="emptyStateCard">
+            <h2>Hozzáférés megtagadva</h2>
+            <p>Csak Owner jogosultsággal használható ez az oldal.</p>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -456,6 +482,45 @@ export default function AdminSurveysPage() {
           background: rgba(255, 255, 255, 0.08);
           transform: translateY(-1px);
         }
+
+        .adminUserBadge {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 14px;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .adminUserBadge span {
+          opacity: 0.75;
+        }
+
+        .adminUserBadge strong {
+          font-weight: 800;
+          letter-spacing: 0.08em;
+        }
+
+        .logoutBtn {
+          padding: 10px 20px;
+          background: #d64747;
+          border: 1px solid rgba(214, 71, 71, 0.7);
+          border-radius: 10px;
+          color: #fff;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background 0.18s ease, transform 0.18s ease;
+        }
+
+        .logoutBtn:hover {
+          background: #c23f3f;
+          transform: translateY(-1px);
+        }
+
         .adminContent { max-width: 1180px; margin: 24px auto; padding: 0 24px; display:grid; gap:32px; }
         .surveySection, .surveyListSection { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 24px; }
         .surveyForm { display:grid; gap:14px; }

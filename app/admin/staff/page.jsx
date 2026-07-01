@@ -164,6 +164,10 @@ export default function AdminStaffPage() {
             <a href="/admin/surveys" className="navbarLink">Felmérések</a>
             <a href="/admin/logs" className="navbarLink">Logok</a>
           </nav>
+          <div className="adminUserBadge">
+            <span>{adminName || "Admin"}</span>
+            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
+          </div>
           <button className="logoutBtn" onClick={handleLogout}>Kijelentkezés</button>
         </header>
         <main className="adminContent">

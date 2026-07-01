@@ -155,10 +155,20 @@ export default function AdminLogsPage() {
           <div className="navbarLeft">
             <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
           </div>
-          <div className="unauthorizedNotice">
-            <h2>Hozzáférés megtagadva</h2>
-            <p>Csak Owner jogosultsággal érhető el ez az oldal.</p>
+          <nav className="navbarLinks">
+            <a href="/" className="navbarLink">Publikus</a>
+            <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
+            <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
+            <a href="/admin/surveys" className="navbarLink">Felmérések</a>
+            <a href="/admin/logs" className="navbarLink active">Logok</a>
+          </nav>
+          <div className="adminUserBadge">
+            <span>{adminName || "Admin"}</span>
+            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
           </div>
+          <button className="logoutBtn" onClick={handleLogout}>
+            Kijelentkezés
+          </button>
         </header>
       </div>
     );
@@ -467,8 +477,8 @@ export default function AdminLogsPage() {
 
         .logoutBtn {
           padding: 10px 20px;
-          background: rgba(196, 30, 58, 0.85);
-          border: 1px solid rgba(196, 30, 58, 0.5);
+          background: #d64747;
+          border: 1px solid rgba(214, 71, 71, 0.7);
           border-radius: 10px;
           color: #fff;
           font-weight: 800;
@@ -477,7 +487,7 @@ export default function AdminLogsPage() {
         }
 
         .logoutBtn:hover {
-          background: rgba(196, 30, 58, 1);
+          background: #c23f3f;
           transform: translateY(-1px);
         }
 
