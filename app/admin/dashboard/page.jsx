@@ -3,22 +3,22 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-function AdminRankPicker({ value, onChange, disabled = false }) {
+function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
 
   const ALL_RANKS = [
-    { value: "", label: "Unranked", points: 0, color: "#888d95" },
-    { value: "LT5", label: "LT5", points: 1, color: "#6f6389" },
+    { value: "", label: "Unranked", points: 0, color: "rgba(255, 255, 255, 0.68)" },
+    { value: "LT5", label: "LT5", points: 1, color: "#40384f" },
     { value: "HT5", label: "HT5", points: 2, color: "#6f6389" },
-    { value: "LT4", label: "LT4", points: 3, color: "#b7aadf" },
+    { value: "LT4", label: "LT4", points: 3, color: "#514764" },
     { value: "HT4", label: "HT4", points: 4, color: "#b7aadf" },
-    { value: "LT3", label: "LT3", points: 6, color: "#dd8849" },
+    { value: "LT3", label: "LT3", points: 6, color: "#b36830" },
     { value: "HT3", label: "HT3", points: 10, color: "#dd8849" },
-    { value: "LT2", label: "LT2", points: 16, color: "#a4b3c7" },
+    { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
     { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
     { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
-    { value: "LT1", label: "LT1", points: 28, color: "#d5b355" },
+    { value: "LT1", label: "LT1", points: 28, color: "#888d95" },
     { value: "RLT1", label: "RLT1", points: 28, color: "#8f7cff", retired: true },
     { value: "HT1", label: "HT1", points: 34, color: "#d5b355" },
     { value: "RHT1", label: "RHT1", points: 34, color: "#8f7cff", retired: true },
@@ -50,41 +50,52 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
   };
 
   return (
-    <div className="adminRankPicker" ref={pickerRef} data-admin-rank-picker="true">
-      <button
-        type="button"
-        className="adminRankButton"
-        style={{
-          "--admin-rank-color": currentColor,
-          opacity: disabled ? 0.45 : 1,
-          cursor: disabled ? "not-allowed" : "pointer",
-        }}
-        onClick={() => !disabled && setOpen((v) => !v)}
-        aria-expanded={open && !disabled}
-        disabled={disabled}
-      >
-        <span className="adminRankButtonTier">{currentRank.label}</span>
-        <span className="adminRankButtonPoints">{currentPoints} pont</span>
-        <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
-      </button>
+    <div className="adminModeControls" ref={pickerRef} data-admin-rank-picker="true">
+      <div className="adminRankPicker">
+        <button
+          type="button"
+          className="adminRankButton"
+          style={{ "--admin-rank-color": currentColor }}
+          onClick={() => !disabled && setOpen((v) => !v)}
+          aria-expanded={open && !disabled}
+          disabled={disabled}
+        >
+          <span className="adminRankButtonText">
+            <strong>{currentRank.label}</strong>
+            <span>{currentPoints} pont</span>
+          </span>
+          <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
+        </button>
 
-      {open && !disabled && (
-        <div className="adminRankMenu">
-          {ALL_RANKS.map((tier) => (
-            <button
-              key={tier.value}
-              type="button"
-              className={`adminRankOption ${value === tier.value ? "selected" : ""} ${tier.retired ? "retired" : ""}`}
-              style={{ "--admin-rank-color": tier.color }}
-              onClick={() => handleSelect(tier.value)}
-            >
-              <span className="adminRankOptionColor" />
-              <span className="adminRankOptionLabel">{tier.label}</span>
-              <span className="adminRankOptionMeta">{tier.points} pont</span>
-              {tier.retired && <span className="adminRankOptionRetired">Retired</span>}
-            </button>
-          ))}
-        </div>
+        {open && !disabled && (
+          <div className="adminRankMenu">
+            {ALL_RANKS.map((tier) => (
+              <button
+                key={tier.value}
+                type="button"
+                className={`adminRankOption ${value === tier.value ? "selected" : ""}`}
+                style={{ "--admin-rank-color": tier.color }}
+                onClick={() => handleSelect(tier.value)}
+              >
+                <span className="adminRankOptionMain">
+                  <span className="adminRankOptionLabel">{tier.label}</span>
+                  <span className="adminRankOptionMeta">{tier.points} pont</span>
+                </span>
+                {tier.retired && <em>Retired</em>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {onSave && (
+        <button
+          type="button"
+          className="adminPrimaryButton adminSaveButton"
+          onClick={onSave}
+        >
+          Mentés
+        </button>
       )}
     </div>
   );
@@ -251,35 +262,33 @@ export default function AdminDashboard() {
      const playerTests = tests.filter((t) => String(t?.username || "").trim().toLowerCase() === cleanName.toLowerCase());
      if (playerTests.length === 0 && !includeUntested) return null;
 
-      let entries = playerTests.map((t) => ({
-       gamemode: t.gamemode,
-       uuid: t.uuid || null,
-       rank: t.rank || "",
-       retired: t.retired === true,
-       points: t.points || 0,
-       id: t.id,
-       created_at: t.created_at || null,
-     }));
+       let entries = playerTests.map((t) => ({
+        gamemode: t.gamemode,
+        uuid: t.uuid || null,
+        rank: t.rank || "",
+        retired: t.retired === true,
+        points: t.points || 0,
+        id: t.id,
+        created_at: t.created_at || null,
+      });
 
-     // Include untested gamemodes
-     if (includeUntested) {
-       const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
-       for (const mode of MODE_OPTIONS) {
-         if (!testedModes.has(mode.toLowerCase())) {
-             entries.push({
-              gamemode: mode,
-              rank: "",
-              retired: false,
-              points: 0,
-              id: null,
-              created_at: null,
-              isUntested: true,
-            });
-          }
+      // Always include every gamemode so none are hidden
+      const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
+      for (const mode of MODE_OPTIONS) {
+        if (!testedModes.has(mode.toLowerCase())) {
+          entries.push({
+            gamemode: mode,
+            rank: "",
+            retired: false,
+            points: 0,
+            id: null,
+            created_at: null,
+            isUntested: true,
+          });
         }
       }
 
-     const totalPoints = entries.reduce((sum, e) => sum + safeInt(getPointsForElo(e.rank), 0), 0);
+      const totalPoints = entries.reduce((sum, e) => sum + safeInt(getPointsForElo(e.rank), 0), 0);
      const bestRank = findBestRank(entries.map((e) => e.rank));
 
       const firstUuid = playerTests.find((t) => t.uuid)?.uuid || null;
@@ -794,26 +803,8 @@ await loadTests();
                           value={displayRank}
                           onChange={(rank) => updateEntryField(index, "rank", rank)}
                           disabled={isRetired}
+                          onSave={() => handleSaveEntry(entry)}
                         />
-                        <span className="tierPointsBadge">{displayPoints} pont</span>
-
-                        <label className="retireCheckbox" title={isRetired ? "Aktív" : "Retire"}>
-                          <input
-                            type="checkbox"
-                            checked={isRetired}
-                            onChange={() => toggleRetired(index)}
-                          />
-                          <span className="checkboxLabel">{isRetired ? "↻" : "⊕"}</span>
-                        </label>
-
-                        <button
-                          className="saveEntryBtnCompact"
-                          onClick={() => handleSaveEntry(entry)}
-                          title="Mentés"
-                        >
-                          💾
-                        </button>
-                      </div>
                     </div>
                   );
                 })}
@@ -1826,6 +1817,13 @@ await loadTests();
         }
 
         /* ─── Admin Rank Picker ─── */
+        .adminModeControls {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          position: relative;
+        }
+
         .adminRankPicker {
           position: relative;
           display: inline-flex;
@@ -1861,17 +1859,22 @@ await loadTests();
           pointer-events: none;
         }
 
-        .adminRankButtonTier {
-          font-size: 13px;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
+        .adminRankButtonText {
+          display: inline-flex;
+          flex-direction: column;
+          align-items: flex-start;
+          line-height: 1.15;
         }
 
-        .adminRankButtonPoints {
+        .adminRankButtonText strong {
+          font-size: 13px;
+          text-transform: uppercase;
+        }
+
+        .adminRankButtonText span {
           font-size: 10px;
           opacity: 0.75;
           font-weight: 700;
-          padding-right: 2px;
         }
 
         .adminRankChevron {
@@ -1922,32 +1925,25 @@ await loadTests();
           color: #fff;
         }
 
-        .adminRankOption.retired {
-          opacity: 0.7;
-        }
-
-        .adminRankOptionColor {
-          width: 4px;
-          height: 16px;
-          border-radius: 2px;
-          background: var(--admin-rank-color, #888d95);
-          flex-shrink: 0;
+        .adminRankOptionMain {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          flex: 1;
         }
 
         .adminRankOptionLabel {
           text-transform: uppercase;
           letter-spacing: 0.04em;
-          flex: 1;
         }
 
         .adminRankOptionMeta {
           font-size: 10px;
           opacity: 0.65;
           font-weight: 700;
-          margin-right: 4px;
         }
 
-        .adminRankOptionRetired {
+        .adminRankOption em {
           font-style: normal;
           font-size: 9px;
           font-weight: 800;
@@ -1957,6 +1953,26 @@ await loadTests();
           border-radius: 3px;
           background: rgba(143, 124, 255, 0.18);
           color: #b8a9ff;
+        }
+
+        .adminSaveButton {
+          padding: 7px 14px;
+          border-radius: 8px;
+          border: 1.5px solid rgba(255, 255, 255, 0.18);
+          background: rgba(255, 255, 255, 0.06);
+          color: #fff;
+          cursor: pointer;
+          font-family: Montserrat, inherit;
+          font-weight: 800;
+          font-size: 12px;
+          letter-spacing: 0.04em;
+          transition: background 0.15s, transform 0.1s;
+          white-space: nowrap;
+        }
+
+        .adminSaveButton:hover {
+          background: rgba(255, 255, 255, 0.12);
+          transform: translateY(-1px);
         }
       `}</style>
     </div>
