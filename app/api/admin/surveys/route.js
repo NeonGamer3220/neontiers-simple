@@ -77,7 +77,7 @@ export async function GET(req) {
   if (action === "list") {
     const { data, error } = await supabase
       .from("surveys")
-      .select("id,name,created_at,basic_duration_seconds")
+      .select("id,name,survey_code,logic_code,grammar_code,situational_code,basic_duration_seconds,questions,created_at")
       .order("created_at", { ascending: false });
     if (error) return json({ error: error.message }, 500);
     return json({ surveys: data || [] });
@@ -168,6 +168,58 @@ export async function POST(req) {
 
     if (error) return json({ error: error.message }, 500);
     return json({ survey: data?.[0] || null }, 201);
+  }
+
+  if (action === "update") {
+    const id = Number(body.id);
+    const {
+      name,
+      survey_code,
+      logic_code,
+      grammar_code,
+      situational_code,
+      basic_duration_seconds,
+      questions,
+    } = body;
+
+    if (!Number.isFinite(id) || id <= 0 || !name || !survey_code || !logic_code || !grammar_code || !situational_code || !questions) {
+      return json({ error: "Missing fields for survey update" }, 400);
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from("surveys")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+    if (existingError) return json({ error: existingError.message }, 500);
+    if (!existing) return json({ error: "Survey not found" }, 404);
+
+    const { data: duplicate, error: duplicateError } = await supabase
+      .from("surveys")
+      .select("id")
+      .ilike("name", String(name).trim())
+      .neq("id", id)
+      .maybeSingle();
+    if (duplicateError) return json({ error: duplicateError.message }, 500);
+    if (duplicate) return json({ error: "Ilyen nevű felmérés már létezik" }, 409);
+
+    const { data, error } = await supabase
+      .from("surveys")
+      .update({
+        name: String(name).trim(),
+        survey_code: String(survey_code).trim(),
+        logic_code: String(logic_code).trim(),
+        grammar_code: String(grammar_code).trim(),
+        situational_code: String(situational_code).trim(),
+        basic_duration_seconds: Number(basic_duration_seconds) || 180,
+        questions,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select("id,name,created_at");
+
+    if (error) return json({ error: error.message }, 500);
+    return json({ survey: data?.[0] || null });
   }
 
   if (action === "delete") {

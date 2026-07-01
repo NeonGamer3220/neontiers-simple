@@ -86,6 +86,28 @@ export default function AdminSurveysPage() {
     }
   };
 
+  const resetForm = () => {
+    setSelectedSurvey(null);
+    setName("");
+    setSurveyCode("");
+    setLogicCode("");
+    setGrammarCode("");
+    setSituationalCode("");
+    setDuration(180);
+    setQuestionsText("");
+  };
+
+  const handleEditSurvey = (survey) => {
+    setSelectedSurvey(survey);
+    setName(survey.name || "");
+    setSurveyCode(survey.survey_code || "");
+    setLogicCode(survey.logic_code || "");
+    setGrammarCode(survey.grammar_code || "");
+    setSituationalCode(survey.situational_code || "");
+    setDuration(Number(survey.basic_duration_seconds) || 180);
+    setQuestionsText(JSON.stringify(survey.questions || [], null, 2));
+  };
+
   const showToast = (type, text) => {
     setToast({ type, text });
     setTimeout(() => setToast(null), 3000);
@@ -103,33 +125,34 @@ export default function AdminSurveysPage() {
       return;
     }
 
+    const payload = {
+      action: selectedSurvey ? "update" : "create",
+      name: name.trim(),
+      survey_code: surveyCode.trim(),
+      logic_code: logicCode.trim(),
+      grammar_code: grammarCode.trim(),
+      situational_code: situationalCode.trim(),
+      basic_duration_seconds: Number(duration) || 180,
+      questions,
+    };
+
+    if (selectedSurvey) {
+      payload.id = selectedSurvey.id;
+    }
+
     try {
       const res = await fetch("/api/admin/surveys", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "create",
-          name: name.trim(),
-          survey_code: surveyCode.trim(),
-          logic_code: logicCode.trim(),
-          grammar_code: grammarCode.trim(),
-          situational_code: situationalCode.trim(),
-          basic_duration_seconds: Number(duration) || 180,
-          questions,
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
-        showToast("error", data.error || "Felmérés létrehozása sikertelen");
+        showToast("error", data.error || (selectedSurvey ? "Felmérés frissítése sikertelen" : "Felmérés létrehozása sikertelen"));
         return;
       }
-      showToast("ok", "Felmérés létrehozva");
-      setName("");
-      setSurveyCode("");
-      setLogicCode("");
-      setGrammarCode("");
-      setSituationalCode("");
-      setQuestionsText("");
+      showToast("ok", selectedSurvey ? "Felmérés frissítve" : "Felmérés létrehozva");
+      resetForm();
       await loadSurveys();
     } catch (err) {
       console.error(err);
@@ -205,7 +228,12 @@ export default function AdminSurveysPage() {
             <div className="inputHint">Használhatod a gyors soros alakot vagy adhatod meg közvetlenül JSON-ként.</div>
             <div className="previewLabel">Automatikus JSON konverzió:</div>
             <pre className="jsonPreview">{parsedQuestionsPreview || "Írd be a kérdéseket a JSON előnézethez."}</pre>
-            <button className="surveyButton" onClick={handleCreateSurvey}>Felmérés mentése</button>
+            <div className="formActionRow">
+              <button className="surveyButton" onClick={handleCreateSurvey}>{selectedSurvey ? "Változtatások mentése" : "Felmérés mentése"}</button>
+              {selectedSurvey && (
+                <button className="surveyCancelBtn" onClick={resetForm} type="button">Mégse</button>
+              )}
+            </div>
           </div>
         </section>
 
@@ -219,7 +247,10 @@ export default function AdminSurveysPage() {
                   <strong>{survey.name}</strong>
                   <div className="surveyMeta">ID: {survey.id} • {survey.basic_duration_seconds}s</div>
                 </div>
-                <button className="surveyDeleteBtn" onClick={() => handleDeleteSurvey(survey.id)}>Törlés</button>
+                <div className="surveyActions">
+                  <button className="surveyEditBtn" onClick={() => handleEditSurvey(survey)}>Szerkesztés</button>
+                  <button className="surveyDeleteBtn" onClick={() => handleDeleteSurvey(survey.id)}>Törlés</button>
+                </div>
               </div>
             ))}
           </div>
@@ -238,6 +269,8 @@ export default function AdminSurveysPage() {
         .surveyForm { display:grid; gap:14px; }
         .surveyInput, .surveyTextarea { width:100%; border:1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color:#fff; padding:12px 14px; border-radius:10px; font-family:inherit; }
         .surveyButton { width:fit-content; padding:12px 20px; border:none; border-radius:10px; background:#d64747; color:#fff; font-weight:800; cursor:pointer; }
+        .surveyCancelBtn { padding:12px 20px; border:1px solid rgba(255,255,255,0.18); border-radius:10px; background:transparent; color:#fff; font-weight:700; cursor:pointer; }
+        .formActionRow { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
         .durationRow { display:flex; flex-direction:column; gap:6px; }
         .durationLabel { color: rgba(255,255,255,0.75); font-size:13px; font-weight:700; }
         .inputHint { color: rgba(148, 163, 184, 0.8); font-size:13px; margin-top:-4px; margin-bottom:8px; }
@@ -245,6 +278,8 @@ export default function AdminSurveysPage() {
         .jsonPreview { width:100%; min-height:140px; margin:0; padding:14px 16px; border-radius:12px; background: rgba(15,23,42,0.95); border:1px solid rgba(255,255,255,0.08); color:#d1d5db; font-size:13px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
         .surveyList { display:grid; gap:14px; }
         .surveyCard { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:16px 18px; background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:16px; }
+        .surveyActions { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+        .surveyEditBtn { padding:10px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:10px; background: rgba(37, 99, 235, 0.12); color:#93c5fd; cursor:pointer; }
         .surveyDeleteBtn { background: rgba(214,71,71,0.22); border:none; color:#d64747; padding:10px 16px; border-radius:10px; cursor:pointer; }
         .surveyMeta { color: rgba(255,255,255,0.55); font-size:13px; margin-top:6px; }
         .toast { position:fixed; bottom:24px; right:24px; background: rgba(0,0,0,0.8); color:#fff; padding:14px 18px; border-radius:14px; z-index:999; }
