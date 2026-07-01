@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-function AdminRankPicker({ value, onChange, disabled = false }) {
+function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
 
