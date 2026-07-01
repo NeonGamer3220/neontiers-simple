@@ -142,8 +142,7 @@ export default function AdminDashboard() {
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
   const [adminName, setAdminName] = useState("");
-  const [adminRole, setAdminRole] = useState("owner");
-  const [showStaffSection, setShowStaffSection] = useState(true);
+  const [adminRole, setAdminRole] = useState("");
   const [staffList, setStaffList] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
   const [newStaffName, setNewStaffName] = useState("");
@@ -559,7 +558,6 @@ await loadTests();
       }
 
       await loadStaff();
-      setShowStaffSection(false);
       setNewStaffName("");
       setNewStaffPassword("");
       setNewStaffRole("regulator");
@@ -677,7 +675,7 @@ await loadTests();
         </nav>
         <div className="adminUserBadge">
           <span>{adminName || "Admin"}</span>
-          <strong>{adminRole}</strong>
+          <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
         </div>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés
@@ -737,14 +735,18 @@ await loadTests();
             <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhez a szekcióhoz.</p>
 
             <div className="staffList">
-              {staffList.map((s) => (
-                <div key={s.id} className="staffItem">
-                  <div className="staffInfo">
-                    <span className="staffName">{s.admin_name}</span>
-                    <span className={`staffRole staffRole-${s.role}`}>{s.role}</span>
-                  </div>
-                  <div className="staffActions">
-                    <button
+              {staffList.map((s) => {
+                const normalizedRole = String(s.role || "").toLowerCase();
+                return (
+                  <div key={s.id} className="staffItem">
+                    <div className="staffInfo">
+                      <span className="staffName">{s.admin_name}</span>
+                      <span className={`staffRole staffRole-${normalizedRole}`}>
+                        {normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1)}
+                      </span>
+                    </div>
+                    <div className="staffActions">
+                      <button
                       className="staffBtn staffBtnEdit"
                       onClick={() => {
                         setEditingStaffId(s.id);
@@ -1699,7 +1701,7 @@ await loadTests();
         }
 
         .toastError {
-          background: rgba(196, 30, 58, 0.92);
+          background: rgba(214, 71, 71, 0.92);
         }
 
         @keyframes toastSlideIn {
@@ -1778,7 +1780,7 @@ await loadTests();
           padding: 7px 16px;
           border-radius: 8px;
           border: none;
-          background: rgba(196,30,58,0.85);
+          background: #d64747;
           color: #fff;
           font-weight: 800;
           font-size: 13px;
@@ -1788,7 +1790,7 @@ await loadTests();
         }
 
         .pdRefreshBtn:hover {
-          background: rgba(196,30,58,1);
+          background: #c93f3f;
         }
 
         .pdActionBtns {
@@ -1800,9 +1802,9 @@ await loadTests();
         .pdRemoveBtn {
           padding: 8px 18px;
           border-radius: 8px;
-          border: 1px solid rgba(196,30,58,0.5);
-          background: rgba(196,30,58,0.15);
-          color: #ff6b6b;
+          border: 1px solid rgba(214,71,71,0.7);
+          background: rgba(214,71,71,0.15);
+          color: #f3a3a3;
           font-weight: 800;
           font-size: 13px;
           cursor: pointer;
@@ -1811,8 +1813,8 @@ await loadTests();
         }
 
         .pdRemoveBtn:hover {
-          background: rgba(196,30,58,0.25);
-          border-color: rgba(196,30,58,0.8);
+          background: rgba(214,71,71,0.28);
+          border-color: rgba(214,71,71,0.95);
         }
 
         /* ─── Stat bubbles ─── */
@@ -2005,8 +2007,8 @@ await loadTests();
          }
 
          .staffBtnDelete {
-           background: rgba(196, 30, 58, 0.2);
-           color: #c41e3a;
+           background: rgba(214, 71, 71, 0.25);
+           color: #d64747;
          }
 
          .staffForm {

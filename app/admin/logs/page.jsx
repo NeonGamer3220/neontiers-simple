@@ -43,7 +43,7 @@ export default function AdminLogsPage() {
         return;
       }
       const data = await res.json();
-      if (data.role !== "owner") {
+      if (String(data.role || "").toLowerCase() !== "owner") {
         setUnauthorized(true);
         setLoading(false);
         return;

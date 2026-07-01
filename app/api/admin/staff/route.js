@@ -76,7 +76,13 @@ export async function GET(req) {
       .order("created_at", { ascending: true });
 
     if (error) return json({ error: error.message }, 500);
-    return json({ staff: data || [] });
+    const staff = Array.isArray(data)
+      ? data.map((row) => ({
+          ...row,
+          role: String(row.role || "").toLowerCase(),
+        }))
+      : [];
+    return json({ staff });
   }
 
   return json({ error: "Invalid action" }, 400);
@@ -127,12 +133,13 @@ export async function POST(req) {
       return json({ error: `Admin "${admin_name}" már létezik` }, 409);
     }
 
+    const normalizedRole = String(role || "").toLowerCase();
     const { data, error } = await supabase
       .from("admins")
       .insert({
         admin_name,
         admin_password,
-        role,
+        role: normalizedRole,
       })
       .select("id, admin_name, role, created_at")
       .single();
@@ -163,7 +170,7 @@ export async function POST(req) {
     const updateData = {};
     if (admin_name) updateData.admin_name = admin_name;
     if (admin_password) updateData.admin_password = admin_password;
-    if (role) updateData.role = role;
+    if (role) updateData.role = String(role).toLowerCase();
 
     if (Object.keys(updateData).length === 0) {
       return json({ error: "No fields to update" }, 400);

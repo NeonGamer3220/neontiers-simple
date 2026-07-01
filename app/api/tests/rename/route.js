@@ -67,16 +67,15 @@ async function checkAdminSession() {
 }
 
 function requireAdmin(authHeader) {
-  // Check Bearer token first
-  if (ADMIN_API_KEY) {
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      const token = authHeader.slice(7);
-      if (token === ADMIN_API_KEY) return null;
-      return json({ error: "Invalid API key" }, 403);
-    }
+  if (!ADMIN_API_KEY) return null;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return json({ error: "Missing API key" }, 401);
   }
-  // Fall back to session-based auth (checked via cookie)
-  return null; // Will check cookie in POST handler
+  const token = authHeader.slice(7);
+  if (token !== ADMIN_API_KEY) {
+    return json({ error: "Invalid API key" }, 403);
+  }
+  return null;
 }
 
 // POST: /api/tests/rename - Change player name on tierlist (admin only)
@@ -86,11 +85,15 @@ export async function POST(req) {
   
   // Check admin authentication (Bearer token or session cookie)
   const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
-  const adminError = requireAdmin(authHeader);
-  if (adminError) {
-    // Check if session-based auth is available
+  const authError = requireAdmin(authHeader);
+  if (authError) {
     const sessionAdmin = await checkAdminSession();
-    if (!sessionAdmin) return adminError;
+    if (!sessionAdmin) return authError;
+  } else {
+    const sessionAdmin = await checkAdminSession();
+    if (!sessionAdmin && ADMIN_API_KEY) {
+      return json({ error: "Not authenticated" }, 401);
+    }
   }
 
   let body = null;
