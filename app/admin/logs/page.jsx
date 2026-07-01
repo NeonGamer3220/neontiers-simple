@@ -3,20 +3,49 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const RANK_POINT_RANGES = [
+  { min: 0, max: 499, points: 0 },
+  { min: 500, max: 749, points: 1 },
+  { min: 750, max: 999, points: 2 },
+  { min: 1000, max: 1249, points: 3 },
+  { min: 1250, max: 1499, points: 4 },
+  { min: 1500, max: 1749, points: 6 },
+  { min: 1750, max: 1999, points: 10 },
+  { min: 2000, max: 2249, points: 16 },
+  { min: 2250, max: 2499, points: 22 },
+  { min: 2500, max: 2749, points: 28 },
+  { min: 2750, max: Infinity, points: 34 },
+];
+
+function getPointsForElo(elo) {
+  const value = Number(elo);
+  if (!Number.isFinite(value) || value < 0) return 0;
+  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
+  return range ? range.points : 0;
+}
+
 export default function AdminLogsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
   const [logType, setLogType] = useState("all"); // "all", "audit", "tests"
   const [tests, setTests] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [filterUsername, setFilterUsername] = useState("");
   const [filterGamemode, setFilterGamemode] = useState("");
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
       const res = await fetch("/api/admin/check");
       if (!res.ok) {
         router.push("/admin");
+        return;
+      }
+      const data = await res.json();
+      if (data.role !== "owner") {
+        setUnauthorized(true);
+        setLoading(false);
         return;
       }
       await loadAllLogs();
@@ -62,6 +91,55 @@ export default function AdminLogsPage() {
     return matchUsername;
   });
 
+  const showToast = (type, text) => {
+    setToast({ type, text });
+    window.setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleRestoreLog = async (log) => {
+    if (!log) return;
+    try {
+      if (log.action === "tier_save" && log.target_username && log.gamemode && log.old_rank != null) {
+        const payload = {
+          username: log.target_username,
+          gamemode: log.gamemode,
+          elo: log.old_rank,
+          points: log.old_points != null ? log.old_points : getPointsForElo(log.old_rank),
+        };
+        const res = await fetch("/api/tests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast("error", data.error || "Visszaállítás sikertelen");
+          return;
+        }
+        showToast("ok", "Tier visszaállítva");
+      } else if (log.action === "player_rename" && log.details?.old_name && log.details?.new_name) {
+        const res = await fetch("/api/tests/rename", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldName: log.details.new_name, newName: log.details.old_name }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast("error", data.error || "Név visszaállítás sikertelen");
+          return;
+        }
+        showToast("ok", "Név visszaállítva");
+      } else {
+        showToast("error", "Ez a bejegyzés nem visszaállítható");
+        return;
+      }
+      await loadAllLogs();
+    } catch (error) {
+      console.error("Restore failed", error);
+      showToast("error", "Hiba történt a visszaállítás során");
+    }
+  };
+
   if (loading) {
     return (
       <div className="logsPage">
@@ -70,17 +148,33 @@ export default function AdminLogsPage() {
     );
   }
 
+  if (unauthorized) {
+    return (
+      <div className="logsPage">
+        <header className="adminNavbar">
+          <div className="navbarLeft">
+            <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
+          </div>
+          <div className="unauthorizedNotice">
+            <h2>Hozzáférés megtagadva</h2>
+            <p>Csak Owner jogosultsággal érhető el ez az oldal.</p>
+          </div>
+        </header>
+      </div>
+    );
+  }
+
   return (
     <div className="logsPage">
       <header className="adminNavbar">
         <div className="navbarLeft">
-          <h1 className="navbarTitle">Admin Panel</h1>
+          <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
         </div>
- <nav className="navbarLinks">
-            <a href="/" className="navbarLink">Publikus</a>
-            <a href="/admin/dashboard" className="navbarLink">Játékos Kezelő</a>
-            <a href="/admin/logs" className="navbarLink active">Log</a>
-          </nav>
+        <nav className="navbarLinks">
+          <a href="/" className="navbarLink">Publikus</a>
+          <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
+          <a href="/admin/logs" className="navbarLink active">Logok</a>
+        </nav>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés
         </button>
@@ -218,54 +312,83 @@ export default function AdminLogsPage() {
                 <div className="emptySub">Nincs admin tevékenység naplózva.</div>
               </div>
             ) : (
-              filteredAudit.map((log, idx) => (
-                <div key={`${log.admin_name}-${log.created_at}-${idx}`} className="tableRow auditRow">
-                  <div className="tableCell colDate">
-                    {new Date(log.created_at).toLocaleString("hu-HU", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    })}
-                  </div>
-                  <div className="tableCell colAdmin">{log.admin_name}</div>
-                  <div className="tableCell colAction">
-                    <span className={`actionBadge ${log.action}`}>
-                      {log.action === "tier_save" && "Mentés"}
-                      {log.action === "tier_delete" && "Törlés"}
-                      {log.action === "player_remove" && "Játékos eltávolítás"}
-                      {log.action === "player_add" && "Játékos hozzáadása"}
-                      {log.action === "admin_login" && "Bejelentkezés"}
-                      {log.action === "high_score_save" && "Magas eredmény"}
-                      {log.action === "player_rename" && "Név változtatás"}
-                      {!["tier_save", "tier_delete", "player_remove", "player_add", "admin_login", "high_score_save", "player_rename"].includes(log.action) && log.action}
-                    </span>
-                  </div>
-                  <div className="tableCell colPlayer">{log.target_username || "-"}</div>
-                  <div className="tableCell colMode">{log.gamemode || "-"}</div>
-                  <div className="tableCell colDetails">
-                    {log.action === "player_rename" && log.details?.old_name && log.details?.new_name && (
-                      <div>{log.details.old_name} → {log.details.new_name}</div>
-                    )}
-                    {log.new_rank && log.old_rank && log.old_rank !== log.new_rank && log.action !== "player_rename" && (
-                      <div>{log.old_rank} → {log.new_rank}</div>
-                    )}
-                    {log.details?.fight_notes && Object.keys(log.details.fight_notes).length > 0 && (
-                      <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>
-                        {Object.entries(log.details.fight_notes).filter(([_, v]) => v?.trim()).map(([k, v]) => (
-                          <div key={k}>{k}: {v?.substring(0, 30)}{v?.length > 30 ? "..." : ""}</div>
-                        ))}
+              filteredAudit.map((log, idx) => {
+                const actionLabel =
+                  log.action === "tier_save" ? "Mentés" :
+                  log.action === "tier_delete" ? "Törlés" :
+                  log.action === "player_remove" ? "Játékos eltávolítás" :
+                  log.action === "player_add" ? "Játékos hozzáadása" :
+                  log.action === "admin_login" ? "Bejelentkezés" :
+                  log.action === "high_score_save" ? "Magas eredmény" :
+                  log.action === "player_rename" ? "Név változtatás" :
+                  log.action;
+                const canRestore = log.action === "tier_save" && log.target_username && log.gamemode && (log.old_rank !== null || log.old_rank !== undefined);
+                const canRestoreRename = log.action === "player_rename" && log.details?.old_name && log.details?.new_name;
+
+                return (
+                  <div key={`${log.admin_name}-${log.created_at}-${idx}`} className="auditCard">
+                    <div className="auditCardHeader">
+                      <div>
+                        <div className="auditCardDate">
+                          {new Date(log.created_at).toLocaleString("hu-HU", {
+                            year: "numeric",
+                            month: "2-digit",
+                            day: "2-digit",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
+                        </div>
+                        <div className="auditCardMeta">
+                          <strong>{log.admin_name}</strong> · {actionLabel}
+                        </div>
                       </div>
-                    )}
+                      {(canRestore || canRestoreRename) && (
+                        <button
+                          className="restoreBtn"
+                          onClick={() => handleRestoreLog(log)}
+                        >
+                          Visszaállítás
+                        </button>
+                      )}
+                    </div>
+                    <div className="auditCardBody">
+                      <div>
+                        <div className="auditField"><strong>Játékos:</strong> {log.target_username || "-"}</div>
+                        <div className="auditField"><strong>Mód:</strong> {log.gamemode || "-"}</div>
+                      </div>
+                      <div className="auditDetails">
+                        {log.action === "player_rename" && log.details?.old_name && log.details?.new_name && (
+                          <div>{log.details.old_name} → {log.details.new_name}</div>
+                        )}
+                        {log.old_rank !== null && log.old_rank !== undefined && log.action !== "player_rename" && (
+                          <div>{log.old_rank} → {log.new_rank}</div>
+                        )}
+                        {log.details?.fight_notes && Object.keys(log.details.fight_notes).length > 0 && (
+                          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>
+                            {Object.entries(log.details.fight_notes).filter(([_, v]) => v?.trim()).map(([k, v]) => (
+                              <div key={k}>{k}: {v?.substring(0, 30)}{v?.length > 30 ? "..." : ""}</div>
+                            ))}
+                          </div>
+                        )}
+                        {log.details && typeof log.details === "string" && (
+                          <div>{log.details}</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
       </main>
+
+      {toast && (
+        <div className={`toast ${toast.type}`}>
+          {toast.text}
+        </div>
+      )}
 
       <style jsx>{`
         .logsPage {
@@ -645,6 +768,116 @@ export default function AdminLogsPage() {
         .actionBadge.player_add {
           background: rgba(34, 197, 94, 0.2);
           color: #4ade80;
+        }
+
+        .auditCard {
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 18px;
+          padding: 18px 20px;
+          margin-bottom: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .auditCardHeader {
+          display: flex;
+          justify-content: space-between;
+          gap: 16px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+
+        .auditCardDate {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.6);
+          margin-bottom: 4px;
+        }
+
+        .auditCardMeta {
+          font-size: 14px;
+          color: #fff;
+        }
+
+        .auditCardBody {
+          display: grid;
+          gap: 10px;
+          grid-template-columns: minmax(220px, 1fr) 1fr;
+        }
+
+        .auditField {
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 14px;
+          line-height: 1.5;
+        }
+
+        .auditDetails {
+          color: rgba(255, 255, 255, 0.75);
+          font-size: 13px;
+          line-height: 1.6;
+          display: grid;
+          gap: 6px;
+        }
+
+        .restoreBtn {
+          padding: 10px 16px;
+          background: rgba(74, 222, 128, 0.12);
+          border: 1px solid rgba(74, 222, 128, 0.3);
+          border-radius: 12px;
+          color: #d4f8dc;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.2s;
+          white-space: nowrap;
+        }
+
+        .restoreBtn:hover {
+          background: rgba(74, 222, 128, 0.2);
+          border-color: rgba(74, 222, 128, 0.55);
+        }
+
+        .unauthorizedNotice {
+          padding: 50px;
+          text-align: center;
+          width: 100%;
+          color: #fff;
+        }
+
+        .unauthorizedNotice h2 {
+          margin: 0 0 10px;
+          font-size: 24px;
+          font-weight: 800;
+        }
+
+        .unauthorizedNotice p {
+          margin: 0;
+          color: rgba(255, 255, 255, 0.7);
+          font-size: 15px;
+        }
+
+        .toast {
+          position: fixed;
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: 24px;
+          padding: 14px 18px;
+          border-radius: 14px;
+          font-weight: 700;
+          z-index: 2000;
+          box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+        }
+
+        .toast.ok {
+          background: rgba(34, 197, 94, 0.18);
+          border: 1px solid rgba(74, 222, 128, 0.4);
+          color: #fff;
+        }
+
+        .toast.error {
+          background: rgba(220, 38, 38, 0.16);
+          border: 1px solid rgba(248, 113, 113, 0.35);
+          color: #fff;
         }
 
         .emptyState {

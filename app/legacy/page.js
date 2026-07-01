@@ -42,6 +42,27 @@ const RANK_POINTS = {
   1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 28, 2750: 34,
 };
 
+const RANK_POINT_RANGES = [
+  { min: 0, max: 499, points: 0 },
+  { min: 500, max: 749, points: 1 },
+  { min: 750, max: 999, points: 2 },
+  { min: 1000, max: 1249, points: 3 },
+  { min: 1250, max: 1499, points: 4 },
+  { min: 1500, max: 1749, points: 6 },
+  { min: 1750, max: 1999, points: 10 },
+  { min: 2000, max: 2249, points: 16 },
+  { min: 2250, max: 2499, points: 22 },
+  { min: 2500, max: 2749, points: 28 },
+  { min: 2750, max: Infinity, points: 34 },
+];
+
+function getPointsForElo(elo) {
+  const value = Number(elo);
+  if (!Number.isFinite(value) || value < 0) return 0;
+  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
+  return range ? range.points : 0;
+}
+
 const TIER_ICONS = {
   1: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>,
   2: <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>,
@@ -199,7 +220,7 @@ const testRes = await fetch("/api/tests");
         retired: r?.retired === true,
         points: r?.points != null
           ? safeInt(r.points, 0)
-          : safeInt(RANK_POINTS[Number(r?.elo)] || 0, 0),
+          : getPointsForElo(Number(r?.elo)),
         created_at: r?.created_at ? String(r.created_at) : "",
       }))
       .filter((r) => r.username && r.gamemode && r.rank != null)
@@ -239,9 +260,9 @@ const testRes = await fetch("/api/tests");
     const players = Array.from(byUser.entries()).map(([username, entries]) => {
       entries.sort((a, b) => {
         const rankA = tierFromRank(a.rank);
-        const tierA = rankA ? RANK_POINTS[a.rank] || 0 : 0;
+        const tierA = rankA ? getPointsForElo(a.rank) : 0;
         const rankB = tierFromRank(b.rank);
-        const tierB = rankB ? RANK_POINTS[b.rank] || 0 : 0;
+        const tierB = rankB ? getPointsForElo(b.rank) : 0;
         if (tierB !== tierA) return tierB - tierA;
         return a.gamemode.localeCompare(b.gamemode);
       });
@@ -334,7 +355,7 @@ const closePlayerDetail = () => {
           retired: r?.retired === true,
           points: r?.points != null
             ? safeInt(r.points, 0)
-            : safeInt(RANK_POINTS[Number(r?.elo)] || 0, 0),
+            : getPointsForElo(Number(r?.elo)),
           }))
         .filter((r) => r.username && r.gamemode && r.rank != null)
         .filter((r) => LEGACY_MODES.has(r.gamemode.toLowerCase().replace(/\s+/g, "")));
@@ -505,7 +526,7 @@ const closePlayerDetail = () => {
 <span className="rowTiers">
                        {p.entries.map((r) => {
                          const baseColor = rankBadgeColor(r.rank, r.retired);
-                         const pts = safeInt(RANK_POINTS[r.rank] || r.points, 0);
+                         const pts = r.points != null ? safeInt(r.points, 0) : getPointsForElo(r.rank);
                          const modeName = displayMode(r.gamemode);
                          const displayRank = r.retired ? `R${r.rank}` : String(r.rank);
                          return (
@@ -767,7 +788,7 @@ const totalPoints = selectedPlayer.total;
 <div className="detailTiers">
                     {selectedPlayer.entries.map((entry, idx) => {
                       const baseColor = rankBadgeColor(entry.rank, entry.retired);
-                      const pts = safeInt(RANK_POINTS[entry.rank] || entry.points, 0);
+                      const pts = entry.points != null ? safeInt(entry.points, 0) : getPointsForElo(entry.rank);
                       const modeName = displayMode(entry.gamemode);
                       const displayRank = entry.retired ? `R${entry.rank}` : String(entry.rank);
                       

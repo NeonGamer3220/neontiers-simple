@@ -19,8 +19,28 @@ const supabase =
 const RANK_POINTS = {
   500: 1, 750: 2, 1000: 3, 1250: 4,
   1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 28, 2750: 34,
-  Unranked: 0,
 };
+
+const RANK_POINT_RANGES = [
+  { min: 0, max: 499, points: 0 },
+  { min: 500, max: 749, points: 1 },
+  { min: 750, max: 999, points: 2 },
+  { min: 1000, max: 1249, points: 3 },
+  { min: 1250, max: 1499, points: 4 },
+  { min: 1500, max: 1749, points: 6 },
+  { min: 1750, max: 1999, points: 10 },
+  { min: 2000, max: 2249, points: 16 },
+  { min: 2250, max: 2499, points: 22 },
+  { min: 2500, max: 2749, points: 28 },
+  { min: 2750, max: Infinity, points: 34 },
+];
+
+function getPointsForElo(elo) {
+  const value = Number(elo);
+  if (!Number.isFinite(value) || value < 0) return 0;
+  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
+  return range ? range.points : 0;
+}
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data, null, 2), {
@@ -221,7 +241,7 @@ export async function POST(req) {
   const points =
     body?.points !== undefined && body?.points !== null && String(body.points).trim() !== ""
       ? Number(body.points)
-      : RANK_POINTS[rank] ?? 0;
+      : getPointsForElo(rank);
 
   // 1) Előző rekord lekérése (ez kell a botnak!)
   const { data: prev, error: prevErr } = await supabase
@@ -313,7 +333,7 @@ export async function POST(req) {
         action: "tier_save",
         target_username: username,
         gamemode,
-        old_rank: prev ? prev.rank : null,
+        old_rank: prev ? prev.elo : null,
         new_rank: rank,
         old_points: prev ? prev.points : null,
         new_points: points,

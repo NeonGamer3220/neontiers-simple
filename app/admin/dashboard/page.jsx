@@ -87,6 +87,27 @@ const RANK_POINTS = {
   0: 0,
 };
 
+const RANK_POINT_RANGES = [
+  { min: 0, max: 499, points: 0 },
+  { min: 500, max: 749, points: 1 },
+  { min: 750, max: 999, points: 2 },
+  { min: 1000, max: 1249, points: 3 },
+  { min: 1250, max: 1499, points: 4 },
+  { min: 1500, max: 1749, points: 6 },
+  { min: 1750, max: 1999, points: 10 },
+  { min: 2000, max: 2249, points: 16 },
+  { min: 2250, max: 2499, points: 22 },
+  { min: 2500, max: 2749, points: 28 },
+  { min: 2750, max: Infinity, points: 34 },
+];
+
+function getPointsForElo(elo) {
+  const value = Number(elo);
+  if (!Number.isFinite(value) || value < 0) return 0;
+  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
+  return range ? range.points : 0;
+}
+
 const MODE_ICONS = {
   "Vanilla":    "/images/vanilla.png",
   "UHC":        "/images/uhc.png",
@@ -120,6 +141,7 @@ export default function AdminDashboard() {
   const [newNameInput, setNewNameInput] = useState("");
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState("");
+  const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("owner");
   const [showStaffSection, setShowStaffSection] = useState(true);
   const [staffList, setStaffList] = useState([]);
@@ -233,7 +255,7 @@ const entries = playerTests.map((t) => ({
        }
      }
 
-     const totalPoints = entries.reduce((sum, e) => sum + safeInt(RANK_POINTS[e.elo] ?? 0, 0), 0);
+     const totalPoints = entries.reduce((sum, e) => sum + safeInt(getPointsForElo(e.elo), 0), 0);
      const bestRank = findBestRank(entries.map((e) => e.elo));
 
       const firstUuid = playerTests.find((t) => t.uuid)?.uuid || null;
@@ -274,7 +296,7 @@ const entries = playerTests.map((t) => ({
 
 const handleSaveEntry = async (entry) => {
     try {
-      const points = RANK_POINTS[entry.elo] ?? 0;
+      const points = getPointsForElo(entry.elo);
       const payload = {
         username: selectedPlayer.username,
         gamemode: entry.gamemode,
@@ -319,7 +341,7 @@ const handleSaveEntry = async (entry) => {
           ...current,
           elo,
           rank: elo,
-          points: RANK_POINTS[elo] ?? 0,
+          points: getPointsForElo(elo),
         };
       } else {
         entries[index] = { ...current, [field]: value };
@@ -643,13 +665,19 @@ await loadTests();
 
       <header className="adminNavbar">
         <div className="navbarLeft">
-          <h1 className="navbarTitle">Admin Panel</h1>
+          <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
         </div>
-<nav className="navbarLinks">
-            <a href="/" className="navbarLink">Publikus</a>
-            <a href="/admin/dashboard" className="navbarLink active">Játékos Kezelő</a>
-            <a href="/admin/logs" className="navbarLink">Log</a>
-          </nav>
+        <nav className="navbarLinks">
+          <a href="/" className="navbarLink">Publikus</a>
+          <a href="/admin/dashboard" className="navbarLink active">Játékos kezelő</a>
+          {adminRole === "owner" && (
+            <a href="/admin/logs" className="navbarLink">Logok</a>
+          )}
+        </nav>
+        <div className="adminUserBadge">
+          <span>{adminName || "Admin"}</span>
+          <strong>{adminRole}</strong>
+        </div>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés
         </button>
@@ -704,7 +732,7 @@ await loadTests();
 
       {adminRole === "owner" && (
           <section className="staffSection">
-            <h2 className="staffSectionTitle">Staff fiókok kezelése</h2>
+            <h2 className="staffSectionTitle">Staff fiókok</h2>
             <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhez a szekcióhoz.</p>
 
             <div className="staffList">
@@ -857,7 +885,7 @@ await loadTests();
                   const isRetired = entry.retired === true;
                   const isUntested = entry.isUntested;
                   const displayRank = entry.elo || 0;
-                  const displayPoints = RANK_POINTS[displayRank] ?? 0;
+                  const displayPoints = getPointsForElo(displayRank);
 
                   return (
                     <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
@@ -963,6 +991,29 @@ await loadTests();
         .navbarLink.active {
           color: #fff;
           border-bottom-color: #c41e3a;
+        }
+
+        .adminUserBadge {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 12px;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 700;
+        }
+
+        .adminUserBadge span {
+          opacity: 0.75;
+        }
+
+        .adminUserBadge strong {
+          color: #4ade80;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .adminHeader {
