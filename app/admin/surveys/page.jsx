@@ -14,46 +14,55 @@ export default function AdminSurveysPage() {
   const [grammarCode, setGrammarCode] = useState("");
   const [situationalCode, setSituationalCode] = useState("");
   const [duration, setDuration] = useState(180);
-  const [questionsText, setQuestionsText] = useState("");
+  const [alapQuestionsText, setAlapQuestionsText] = useState("");
+  const [logikaiQuestionsText, setLogikaiQuestionsText] = useState("");
+  const [nyelvtaniQuestionsText, setNyelvtaniQuestionsText] = useState("");
+  const [helyzetiQuestionsText, setHelyzetiQuestionsText] = useState("");
   const [parsedQuestionsPreview, setParsedQuestionsPreview] = useState("");
   const [toast, setToast] = useState(null);
   const [selectedSurvey, setSelectedSurvey] = useState(null);
 
-  const parseQuestionsText = (text) => {
+  const parseCategoryText = (text, stage) => {
     const trimmed = String(text || "").trim();
     if (!trimmed) return [];
 
     try {
       const parsed = JSON.parse(trimmed);
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) {
+        return parsed.map((item, index) => ({
+          stage,
+          question: String(item.question || item.text || item || "").trim(),
+          key: `${stage}-${index + 1}`,
+        })).filter((item) => item.question);
+      }
     } catch {
-      // ignore invalid JSON and try line-based parse
+      // fallback to line-based parse
     }
 
     return trimmed
       .split(/\r?\n/)
       .map((line) => line.trim())
       .filter(Boolean)
-      .map((line, index) => {
-        const match = line.match(/^([^:|]+)\s*[:|]\s*(.+)$/);
-        const stage = match ? match[1].trim().toLowerCase() : "alap";
-        const question = match ? match[2].trim() : line;
-        return {
-          stage,
-          question,
-          key: `q${index + 1}`,
-        };
-      });
+      .map((line, index) => ({
+        stage,
+        question: line,
+        key: `${stage}-${index + 1}`,
+      }));
   };
 
   useEffect(() => {
-    const preview = parseQuestionsText(questionsText);
-    if (preview.length > 0) {
-      setParsedQuestionsPreview(JSON.stringify(preview, null, 2));
+    const parsed = [
+      ...parseCategoryText(alapQuestionsText, "alap"),
+      ...parseCategoryText(logikaiQuestionsText, "logikai"),
+      ...parseCategoryText(nyelvtaniQuestionsText, "nyelvtani"),
+      ...parseCategoryText(helyzetiQuestionsText, "helyzeti"),
+    ];
+    if (parsed.length > 0) {
+      setParsedQuestionsPreview(JSON.stringify(parsed, null, 2));
     } else {
       setParsedQuestionsPreview("");
     }
-  }, [questionsText]);
+  }, [alapQuestionsText, logikaiQuestionsText, nyelvtaniQuestionsText, helyzetiQuestionsText]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -94,7 +103,10 @@ export default function AdminSurveysPage() {
     setGrammarCode("");
     setSituationalCode("");
     setDuration(180);
-    setQuestionsText("");
+    setAlapQuestionsText("");
+    setLogikaiQuestionsText("");
+    setNyelvtaniQuestionsText("");
+    setHelyzetiQuestionsText("");
   };
 
   const handleEditSurvey = (survey) => {
@@ -105,7 +117,36 @@ export default function AdminSurveysPage() {
     setGrammarCode(survey.grammar_code || "");
     setSituationalCode(survey.situational_code || "");
     setDuration(Number(survey.basic_duration_seconds) || 180);
-    setQuestionsText(JSON.stringify(survey.questions || [], null, 2));
+
+    const questions = Array.isArray(survey.questions) ? survey.questions : [];
+    setAlapQuestionsText(
+      questions
+        .filter((item) => String(item.stage || "").toLowerCase() === "alap")
+        .map((q) => String(q.question || q.text || "").trim())
+        .filter(Boolean)
+        .join("\n")
+    );
+    setLogikaiQuestionsText(
+      questions
+        .filter((item) => String(item.stage || "").toLowerCase() === "logikai")
+        .map((q) => String(q.question || q.text || "").trim())
+        .filter(Boolean)
+        .join("\n")
+    );
+    setNyelvtaniQuestionsText(
+      questions
+        .filter((item) => String(item.stage || "").toLowerCase() === "nyelvtani")
+        .map((q) => String(q.question || q.text || "").trim())
+        .filter(Boolean)
+        .join("\n")
+    );
+    setHelyzetiQuestionsText(
+      questions
+        .filter((item) => String(item.stage || "").toLowerCase() === "helyzeti")
+        .map((q) => String(q.question || q.text || "").trim())
+        .filter(Boolean)
+        .join("\n")
+    );
   };
 
   const showToast = (type, text) => {
@@ -114,14 +155,19 @@ export default function AdminSurveysPage() {
   };
 
   const handleCreateSurvey = async () => {
-    if (!name.trim() || !surveyCode.trim() || !logicCode.trim() || !grammarCode.trim() || !situationalCode.trim() || !questionsText.trim()) {
+    if (!name.trim() || !surveyCode.trim() || !logicCode.trim() || !grammarCode.trim() || !situationalCode.trim()) {
       showToast("error", "Töltsd ki az összes mezőt a felmérés létrehozásához");
       return;
     }
 
-    const questions = parseQuestionsText(questionsText);
+    const questions = [
+      ...parseCategoryText(alapQuestionsText, "alap"),
+      ...parseCategoryText(logikaiQuestionsText, "logikai"),
+      ...parseCategoryText(nyelvtaniQuestionsText, "nyelvtani"),
+      ...parseCategoryText(helyzetiQuestionsText, "helyzeti"),
+    ];
     if (questions.length === 0) {
-      showToast("error", "Adj meg legalább egy kérdést JSON-formátumban vagy soronként");
+      showToast("error", "Adj meg legalább egy kérdést valamelyik kategóriában");
       return;
     }
 
@@ -218,16 +264,51 @@ export default function AdminSurveysPage() {
               <label className="durationLabel">Alap időkeret (másodpercben)</label>
               <input type="number" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="surveyInput" min="10" />
             </div>
-            <textarea
-              value={questionsText}
-              onChange={(e) => setQuestionsText(e.target.value)}
-              placeholder='Kérdések soronként: alap: Mi a neved? vagy teljes JSON tömb'
-              className="surveyTextarea"
-              rows="8"
-            />
-            <div className="inputHint">Használhatod a gyors soros alakot vagy adhatod meg közvetlenül JSON-ként.</div>
+            <div className="categoryGrid">
+              <div className="categoryBox">
+                <label className="categoryLabel">Alap</label>
+                <textarea
+                  value={alapQuestionsText}
+                  onChange={(e) => setAlapQuestionsText(e.target.value)}
+                  placeholder="Kérdések soronként, pl. Mi a neved?"
+                  className="surveyTextarea"
+                  rows="4"
+                />
+              </div>
+              <div className="categoryBox">
+                <label className="categoryLabel">Logikai</label>
+                <textarea
+                  value={logikaiQuestionsText}
+                  onChange={(e) => setLogikaiQuestionsText(e.target.value)}
+                  placeholder="Kérdések soronként"
+                  className="surveyTextarea"
+                  rows="4"
+                />
+              </div>
+              <div className="categoryBox">
+                <label className="categoryLabel">Nyelvtani</label>
+                <textarea
+                  value={nyelvtaniQuestionsText}
+                  onChange={(e) => setNyelvtaniQuestionsText(e.target.value)}
+                  placeholder="Kérdések soronként"
+                  className="surveyTextarea"
+                  rows="4"
+                />
+              </div>
+              <div className="categoryBox">
+                <label className="categoryLabel">Helyzeti</label>
+                <textarea
+                  value={helyzetiQuestionsText}
+                  onChange={(e) => setHelyzetiQuestionsText(e.target.value)}
+                  placeholder="Kérdések soronként"
+                  className="surveyTextarea"
+                  rows="4"
+                />
+              </div>
+            </div>
+            <div className="inputHint">A mezőket soronként kitöltve automatikusan átalakulnak JSON-listává.</div>
             <div className="previewLabel">Automatikus JSON konverzió:</div>
-            <pre className="jsonPreview">{parsedQuestionsPreview || "Írd be a kérdéseket a JSON előnézethez."}</pre>
+            <pre className="jsonPreview">{parsedQuestionsPreview || "Nyomj be kérdéseket a fenti kategóriákba az előnézethez."}</pre>
             <div className="formActionRow">
               <button className="surveyButton" onClick={handleCreateSurvey}>{selectedSurvey ? "Változtatások mentése" : "Felmérés mentése"}</button>
               {selectedSurvey && (
@@ -255,6 +336,7 @@ export default function AdminSurveysPage() {
             ))}
           </div>
         </section>
+
       </main>
 
       <style jsx>{`

@@ -173,6 +173,9 @@ export default function AdminDashboard() {
       if (data.role) setAdminRole(String(data.role).toLowerCase());
       if (data.admin_name) setAdminName(String(data.admin_name));
       await loadTests();
+      if (String(data.role || "").toLowerCase() === "owner") {
+        await loadStaff();
+      }
       setLoading(false);
     };
     checkAuth();
@@ -554,13 +557,17 @@ await loadTests();
       setToast({ type: "error", text: "Add meg a staff nevét!" });
       return;
     }
+    if (!editingStaffId && !newStaffPassword) {
+      setToast({ type: "error", text: "Add meg a staff jelszavát!" });
+      return;
+    }
     try {
       const payload = {
         action: editingStaffId ? "update" : "create",
         admin_name: newStaffName.trim(),
-        admin_password: newStaffPassword,
         role: newStaffRole,
       };
+      if (newStaffPassword) payload.admin_password = newStaffPassword;
       if (editingStaffId) payload.id = editingStaffId;
 
       const res = await fetch("/api/admin/staff", {
