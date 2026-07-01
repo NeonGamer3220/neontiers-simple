@@ -63,6 +63,8 @@ function TierSelect({ value, onChange, disabled = false }) {
   );
 }
 
+const LEGACY_MODES = new Set(["vanilla", "uhc", "pot", "sword", "axe", "mace", "ogvanilla", "shieldlessuhc"]);
+
 const MODE_OPTIONS = [
   "Vanilla",
   "UHC",
@@ -154,6 +156,7 @@ export default function AdminDashboard() {
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
   const [confirmState, setConfirmState] = useState(null);
+  const [legacyModeOnly, setLegacyModeOnly] = useState(false);
 
   const showConfirm = (message) => new Promise((resolve) => {
     setConfirmState({ message, resolve });
@@ -219,25 +222,32 @@ export default function AdminDashboard() {
     return { uniquePlayers, totalTiers };
   };
 
-   const getPlayerData = (username, includeUntested = false) => {
-    const cleanName = String(username || "").trim();
-    const playerTests = tests.filter((t) => String(t?.username || "").trim().toLowerCase() === cleanName.toLowerCase());
-    if (playerTests.length === 0 && !includeUntested) return null;
+    const getPlayerData = (username, includeUntested = false) => {
+     const cleanName = String(username || "").trim();
+     const playerTests = tests.filter((t) => String(t?.username || "").trim().toLowerCase() === cleanName.toLowerCase());
+     if (playerTests.length === 0 && !includeUntested) return null;
 
-       const entries = playerTests.map((t) => ({
-        gamemode: t.gamemode,
-        uuid: t.uuid || null,
-        rank: t.rank || "",
-        retired: t.retired === true,
-        points: t.points || 0,
-        id: t.id,
-        created_at: t.created_at || null,
-      }));
+      let entries = playerTests.map((t) => ({
+       gamemode: t.gamemode,
+       uuid: t.uuid || null,
+       rank: t.rank || "",
+       retired: t.retired === true,
+       points: t.points || 0,
+       id: t.id,
+       created_at: t.created_at || null,
+     }));
+
+     if (legacyModeOnly) {
+       entries = entries.filter((e) => LEGACY_MODES.has(e.gamemode.toLowerCase().replace(/\s+/g, "")));
+     }
 
      // Include untested gamemodes
      if (includeUntested) {
        const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
-       for (const mode of MODE_OPTIONS) {
+       const modesToCheck = legacyModeOnly
+         ? MODE_OPTIONS.filter((m) => LEGACY_MODES.has(m.toLowerCase().replace(/\s+/g, "")))
+         : MODE_OPTIONS;
+       for (const mode of modesToCheck) {
          if (!testedModes.has(mode.toLowerCase())) {
              entries.push({
               gamemode: mode,
@@ -637,12 +647,18 @@ await loadTests();
              <span className="headerStatValue">{stats.uniquePlayers}</span>
              <span className="headerStatLabel">Játékos</span>
            </div>
-           <div className="headerStat">
-             <span className="headerStatValue">{stats.totalTiers}</span>
-             <span className="headerStatLabel">Tier</span>
-           </div>
-         </div>
-       </header>
+            <div className="headerStat">
+              <span className="headerStatValue">{stats.totalTiers}</span>
+              <span className="headerStatLabel">Tier</span>
+            </div>
+            <button
+              className={`toggleLegacyBtn ${legacyModeOnly ? "active" : ""}`}
+              onClick={() => setLegacyModeOnly((v) => !v)}
+            >
+              {legacyModeOnly ? "Összes mód" : "Csak Legacy"}
+            </button>
+          </div>
+        </header>
 
       <main className="adminContent">
         <div className="searchSection">
@@ -937,6 +953,32 @@ await loadTests();
           text-transform: uppercase;
           letter-spacing: 0.5px;
           font-weight: 800;
+        }
+
+        .toggleLegacyBtn {
+          align-self: flex-end;
+          padding: 8px 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.8);
+          font-weight: 800;
+          font-size: 12px;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .toggleLegacyBtn:hover {
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.35);
+        }
+
+        .toggleLegacyBtn.active {
+          background: rgba(74, 222, 128, 0.2);
+          border-color: rgba(74, 222, 128, 0.6);
+          color: #4ade80;
         }
 
         .logoutBtn {
