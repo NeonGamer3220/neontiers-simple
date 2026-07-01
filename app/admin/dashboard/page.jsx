@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-function AdminRankPicker({ value, onChange, disabled = false }) {
+function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
 
@@ -269,120 +269,6 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
               </span>
               <em>Retired</em>
             </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-    const handler = (e) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open, disabled]);
-
-  const handleSelect = (rankValue) => {
-    if (!disabled) {
-      onChange(rankValue);
-    }
-    setOpen(false);
-  };
-
-  return (
-    <div className="adminModeControls noTester" ref={pickerRef} data-admin-rank-picker="true">
-      <div className="adminRankPicker">
-        <button
-          type="button"
-          className="adminRankButton"
-          style={{ "--admin-rank-color": currentRank.color }}
-          onClick={() => !disabled && setOpen((v) => !v)}
-          aria-expanded={open && !disabled}
-          disabled={disabled}
-        >
-          <span className="adminRankButtonText">
-            <strong>{currentRank.label}</strong>
-            <span>{currentRank.points} pont</span>
-          </span>
-          <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
-        </button>
-
-        {open && !disabled && (
-          <div className="adminRankMenu">
-            {ALL_RANKS.map((tier) => (
-              <button
-                key={tier.value}
-                type="button"
-                className={`adminRankOption ${value === tier.value ? "selected" : ""}`}
-                style={{ "--admin-rank-color": tier.color }}
-                onClick={() => handleSelect(tier.value)}
-              >
-                <span className="adminRankOptionMain">
-                  <span className="adminRankOptionLabel">{tier.label}</span>
-                  <span className="adminRankOptionMeta">{tier.points} pont</span>
-                </span>
-                {tier.retired && <em>Retired</em>}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-    const handler = (e) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open, disabled]);
-
-  const handleSelect = (rankValue) => {
-    if (!disabled) {
-      onChange(rankValue);
-    }
-    setOpen(false);
-  };
-
-  return (
-    <div className="adminModeControls" ref={pickerRef} data-admin-rank-picker="true">
-      <div className="adminRankPicker">
-        <button
-          type="button"
-          className="adminRankButton"
-          style={{ "--admin-rank-color": currentColor }}
-          onClick={() => !disabled && setOpen((v) => !v)}
-          aria-expanded={open && !disabled}
-          disabled={disabled}
-        >
-          <span className="adminRankButtonText">
-            <strong>{currentRank.label}</strong>
-            <span>{currentPoints} pont</span>
-          </span>
-          <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
-        </button>
-
-        {open && !disabled && (
-          <div className="adminRankMenu">
-            {ALL_RANKS.map((tier) => (
-              <button
-                key={tier.value}
-                type="button"
-                className={`adminRankOption ${value === tier.value ? "selected" : ""}`}
-                style={{ "--admin-rank-color": tier.color }}
-                onClick={() => handleSelect(tier.value)}
-              >
-                <span className="adminRankOptionMain">
-                  <span className="adminRankOptionLabel">{tier.label}</span>
-                  <span className="adminRankOptionMeta">{tier.points} pont</span>
-                </span>
-                {tier.retired && <em>Retired</em>}
-              </button>
-            ))}
           </div>
         )}
       </div>
