@@ -103,129 +103,159 @@ export default function AdminLoginPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: linear-gradient(135deg, #c41e3a 0%, #8b1429 100%);
+          background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.14), transparent 22%),
+            radial-gradient(circle at bottom right, rgba(255, 255, 255, 0.08), transparent 18%),
+            linear-gradient(140deg, #0f172a 0%, #1f2937 45%, #0f172a 100%);
           padding: 20px;
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
 
         .adminContainer {
           width: 100%;
-          max-width: 500px;
+          max-width: 520px;
+          position: relative;
+          padding: 24px;
+        }
+
+        .glowRing {
+          position: absolute;
+          inset: 0;
+          border-radius: 32px;
+          pointer-events: none;
+          background: radial-gradient(circle at top center, rgba(196, 30, 58, 0.18), transparent 28%);
+          filter: blur(28px);
         }
 
         .adminCard {
-          background: rgba(11, 14, 20, 0.95);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 20px;
-          padding: 40px 30px;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-          backdrop-filter: blur(10px);
+          position: relative;
+          background: rgba(15, 23, 42, 0.92);
+          border: 1px solid rgba(148, 163, 184, 0.12);
+          border-radius: 28px;
+          padding: 44px 36px;
+          box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+          backdrop-filter: blur(18px);
+          overflow: hidden;
+        }
+
+        .adminCard::before {
+          content: "";
+          position: absolute;
+          top: -70px;
+          right: -100px;
+          width: 260px;
+          height: 260px;
+          background: rgba(196, 30, 58, 0.14);
+          border-radius: 50%;
+          filter: blur(24px);
+          pointer-events: none;
         }
 
         .adminTitle {
-          font-size: 32px;
-          font-weight: 700;
-          margin: 0 0 8px 0;
-          color: #fff;
+          font-size: 34px;
+          font-weight: 800;
+          margin: 0 0 10px 0;
+          color: #f8fafc;
           text-align: center;
+          letter-spacing: 0.02em;
         }
 
         .adminSubtitle {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
+          font-size: 15px;
+          color: rgba(226, 232, 240, 0.75);
           text-align: center;
           margin: 0 0 30px 0;
           text-transform: uppercase;
-          letter-spacing: 1px;
+          letter-spacing: 0.15em;
         }
 
         .adminForm {
           display: flex;
           flex-direction: column;
-          gap: 20px;
+          gap: 22px;
         }
 
         .formGroup {
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 10px;
         }
 
         .formLabel {
           font-size: 12px;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.7);
+          font-weight: 700;
+          color: rgba(148, 163, 184, 0.95);
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.09em;
         }
 
         .formInput {
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          color: #fff;
+          padding: 14px 18px;
+          background: rgba(148, 163, 184, 0.06);
+          border: 1px solid rgba(148, 163, 184, 0.16);
+          border-radius: 14px;
+          color: #f8fafc;
           font-family: inherit;
-          font-size: 14px;
-          transition: all 0.15s;
+          font-size: 15px;
+          transition: all 0.2s ease;
+          box-shadow: inset 0 1px 4px rgba(15, 23, 42, 0.35);
         }
 
         .formInput:hover {
-          border-color: rgba(255, 255, 255, 0.2);
+          border-color: rgba(255, 255, 255, 0.22);
           background: rgba(255, 255, 255, 0.08);
         }
 
         .formInput:focus {
           outline: none;
           border-color: #c41e3a;
-          background: rgba(255, 255, 255, 0.1);
-          box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15);
-          animation: focusRing 0.3s ease-out;
+          background: rgba(255, 255, 255, 0.12);
+          box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.14);
         }
 
         .formInput:disabled {
-          opacity: 0.6;
+          opacity: 0.64;
           cursor: not-allowed;
         }
 
         .formError {
           padding: 12px 14px;
-          background: rgba(196, 30, 58, 0.15);
-          border: 1px solid rgba(196, 30, 58, 0.4);
-          border-radius: 8px;
-          color: #ff6b6b;
+          background: rgba(248, 113, 113, 0.14);
+          border: 1px solid rgba(248, 113, 113, 0.28);
+          border-radius: 12px;
+          color: #fecaca;
           font-size: 13px;
-          font-weight: 600;
+          font-weight: 700;
           animation: slideInError 0.3s ease-out;
         }
 
         .formButton {
-          padding: 12px 20px;
-          background: linear-gradient(135deg, #c41e3a 0%, #8b1429 100%);
+          padding: 14px 20px;
+          background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
           border: none;
-          border-radius: 8px;
+          border-radius: 14px;
           color: #fff;
-          font-weight: 700;
-          font-size: 14px;
+          font-weight: 800;
+          font-size: 15px;
           cursor: pointer;
-          transition: all 0.2s;
-          margin-top: 10px;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+          margin-top: 4px;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.08em;
         }
 
         .formButton:hover:not(:disabled) {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(196, 30, 58, 0.3);
-        }
-
-        .formButton:active:not(:disabled) {
-          transform: translateY(0);
+          transform: translateY(-1px);
+          box-shadow: 0 18px 40px rgba(239, 68, 68, 0.22);
         }
 
         .formButton:disabled {
-          opacity: 0.7;
+          opacity: 0.75;
           cursor: not-allowed;
+        }
+
+        @keyframes slideInError {
+          from { opacity: 0; transform: translateY(-6px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes focusRing {
@@ -234,17 +264,6 @@ export default function AdminLoginPage() {
           }
           to {
             box-shadow: 0 0 0 3px rgba(196, 30, 58, 0.15);
-          }
-        }
-
-        @keyframes slideInError {
-          from {
-            opacity: 0;
-            transform: translateY(-8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
           }
         }
 
