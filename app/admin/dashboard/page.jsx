@@ -1236,9 +1236,9 @@ await loadTests();
         }
 
         .playerTiersList {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
         }
 
         .tierEntryCard {
@@ -1723,8 +1723,8 @@ await loadTests();
         /* ─── Gamemode circles ─── */
         .playerTiersList {
           display: flex;
-          flex-wrap: wrap;
-          gap: 14px;
+          flex-direction: column;
+          gap: 10px;
         }
 
         .tierEntryCard {
@@ -1736,7 +1736,8 @@ await loadTests();
           background: rgba(255,255,255,0.04);
           border: 1px solid rgba(255,255,255,0.08);
           transition: border-color 0.15s, background 0.15s;
-          min-width: 220px;
+          width: 100%;
+          box-sizing: border-box;
         }
 
         .tierEntryCard:hover {
