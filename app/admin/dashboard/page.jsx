@@ -262,15 +262,18 @@ export default function AdminDashboard() {
      const playerTests = tests.filter((t) => String(t?.username || "").trim().toLowerCase() === cleanName.toLowerCase());
      if (playerTests.length === 0 && !includeUntested) return null;
 
-       let entries = playerTests.map((t) => ({
-        gamemode: t.gamemode,
-        uuid: t.uuid || null,
-        rank: t.rank || "",
-        retired: t.retired === true,
-        points: t.points || 0,
-        id: t.id,
-        created_at: t.created_at || null,
+      const mapped = playerTests.map((t) => {
+        return {
+          gamemode: t.gamemode,
+          uuid: t.uuid || null,
+          rank: t.rank || "",
+          retired: t.retired === true,
+          points: t.points || 0,
+          id: t.id,
+          created_at: t.created_at || null,
+        };
       });
+      let entries = [...mapped];
 
       // Always include every gamemode so none are hidden
       const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
