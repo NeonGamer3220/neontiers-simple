@@ -268,11 +268,11 @@ export default function AdminLogsPage() {
                   </div>
                 </div>
                 <div className="tableCell colMode">{test.gamemode}</div>
-<div className="tableCell colRank">
-                   <span className="rankBadge" data-rank={test.elo} data-retired={test.retired ? "true" : "false"}>
-                      {test.retired ? `R${test.elo}` : test.elo}
-                   </span>
-                 </div>
+                   <div className="tableCell colRank">
+                      <span className="rankBadge" data-rank={test.rank} data-retired={test.retired ? "true" : "false"}>
+                         {test.retired ? `R${test.rank}` : test.rank}
+                      </span>
+                    </div>
                 <div className="tableCell colPoints">{test.points}</div>
               </div>
             ))
@@ -642,32 +642,48 @@ export default function AdminLogsPage() {
           letter-spacing: 0.3px;
         }
 
-.rankBadge[data-rank="2750"],
-        .rankBadge[data-rank="2500"] {
+.rankBadge[data-rank="HT1"],
+.rankBadge[data-rank="LT1"] {
           background: rgba(213, 179, 85, 0.25);
           color: #d5b355;
         }
 
-        .rankBadge[data-rank="2250"],
-        .rankBadge[data-rank="2000"] {
+        .rankBadge[data-rank="LT2"] {
           background: rgba(136, 136, 149, 0.25);
           color: #888d95;
         }
 
-        .rankBadge[data-rank="1750"],
-        .rankBadge[data-rank="1500"] {
+        .rankBadge[data-rank="HT2"] {
+          background: rgba(164, 179, 199, 0.25);
+          color: #a4b3c7;
+        }
+
+        .rankBadge[data-rank="LT3"] {
+          background: rgba(179, 104, 48, 0.25);
+          color: #b36830;
+        }
+
+        .rankBadge[data-rank="HT3"] {
           background: rgba(221, 136, 73, 0.25);
           color: #dd8849;
         }
 
-        .rankBadge[data-rank="1250"],
-        .rankBadge[data-rank="1000"] {
+        .rankBadge[data-rank="LT4"] {
+          background: rgba(81, 71, 100, 0.25);
+          color: #514764;
+        }
+
+        .rankBadge[data-rank="HT4"] {
           background: rgba(183, 170, 223, 0.25);
           color: #b7aadf;
         }
 
-        .rankBadge[data-rank="750"],
-        .rankBadge[data-rank="500"] {
+        .rankBadge[data-rank="LT5"] {
+          background: rgba(64, 56, 79, 0.25);
+          color: #40384f;
+        }
+
+        .rankBadge[data-rank="HT5"] {
           background: rgba(111, 99, 137, 0.25);
           color: #6f6389;
         }

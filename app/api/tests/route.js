@@ -52,25 +52,36 @@ function json(data, status = 200, cacheControl = "no-store") {
   });
 }
 
-function tierStringToElo(tier) {
-  const LEGACY_TIER_TO_ELO = {
-    LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
-    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
-    LT1: 2500, HT1: 2750,
-  };
-  const key = String(tier || "").trim().toUpperCase();
-  if (LEGACY_TIER_TO_ELO[key] !== undefined) return LEGACY_TIER_TO_ELO[key];
-  return null;
+const TIER_TO_ELO = {
+  LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
+  LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
+  LT1: 2500, HT1: 2750,
+};
+
+function tierToElo(tier) {
+  if (typeof tier !== "string") return null;
+  const key = tier.trim().toUpperCase();
+  if (TIER_TO_ELO[key] !== undefined) return TIER_TO_ELO[key];
+  const num = Number(key);
+  return Number.isNaN(num) ? null : num;
+}
+
+function getPointsForRank(rank) {
+  const elo = tierToElo(rank);
+  if (elo === null) return 0;
+  const value = Number(elo);
+  if (!Number.isFinite(value) || value < 0) return 0;
+  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
+  return range ? range.points : 0;
 }
 
 function normalizeTestsRow(r) {
   if (!r || typeof r !== "object") return r;
-  const raw = r.rank != null ? r.rank : null;
-  const parsed = typeof raw === "number" ? raw : Number(raw);
-  const elo = Number.isFinite(parsed) ? parsed : tierStringToElo(raw);
+  const rawRank = r.rank != null ? r.rank : null;
+  const elo = tierToElo(rawRank);
   return {
     ...r,
-    rank: raw != null ? String(raw) : null,
+    rank: rawRank != null ? String(rawRank) : null,
     elo,
   };
 }

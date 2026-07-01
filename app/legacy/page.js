@@ -57,7 +57,15 @@ const RANK_POINT_RANGES = [
 ];
 
 function getPointsForElo(elo) {
-  const value = Number(elo);
+  const TIER_TO_ELO = { LT5:500, HT5:750, LT4:1000, HT4:1250, LT3:1500, HT3:1750, LT2:2000, HT2:2250, LT1:2500, HT1:2750 };
+  let value;
+  if (typeof elo === "string") {
+    const key = elo.trim().toUpperCase();
+    if (TIER_TO_ELO[key] !== undefined) value = TIER_TO_ELO[key];
+    else value = Number(elo);
+  } else {
+    value = Number(elo);
+  }
   if (!Number.isFinite(value) || value < 0) return 0;
   const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
   return range ? range.points : 0;
@@ -85,39 +93,45 @@ const TIER_COLORS = {
   5: { accent: "#6f6389", surface: "rgba(111, 99, 137, 0.22)" },
 };
 
-// Convert ELO to tier number (1-5)
+// Convert rank (tier string or ELO number) to tier number (1-5)
 function tierFromRank(rank) {
   if (!rank) return null;
-  const elo = typeof rank === "string" ? parseInt(rank, 10) : rank;
-  if (!Number.isFinite(elo)) return null;
-  if (elo >= 2500) return 1;
-  if (elo >= 2000) return 2;
-  if (elo >= 1500) return 3;
-  if (elo >= 1000) return 4;
-  if (elo >= 500) return 5;
+  const val = String(rank).trim().toUpperCase();
+  if (val.startsWith("R")) return null;
+  const tierMap = { LT5:5, HT5:5, LT4:4, HT4:4, LT3:3, HT3:3, LT2:2, HT2:2, LT1:1, HT1:1 };
+  if (tierMap[val] !== undefined) return tierMap[val];
+  const num = Number(val);
+  if (Number.isNaN(num)) return null;
+  if (num >= 2500) return 1;
+  if (num >= 2000) return 2;
+  if (num >= 1500) return 3;
+  if (num >= 1000) return 4;
+  if (num >= 500) return 5;
   return null;
 }
 
-// Get badge color for ELO rank
+// Get badge color for rank (tier string or ELO number)
 function rankBadgeColor(rank, retired = false) {
   if (retired) return "#8f7cff";
   if (!rank) return "#888d95";
-  const elo = typeof rank === "string" ? parseInt(rank, 10) : rank;
-  if (!Number.isFinite(elo)) return "#888d95";
-  
-  // Determine LT/HT based on midpoint
-  const getTier = (e) => {
-    if (e >= 2500) return 1;
-    if (e >= 2000) return 2;
-    if (e >= 1500) return 3;
-    if (e >= 1000) return 4;
-    return 5;
-  };
-  const tier = getTier(elo);
-  const midpoints = {5: 625, 4: 1125, 3: 1625, 2: 2125, 1: 2625};
-  const isLT = elo < (midpoints[tier] || 0);
-  
-  switch (tier) {
+  const val = String(rank).trim().toUpperCase();
+  const TIER_TO_ELO = { LT5:500, HT5:750, LT4:1000, HT4:1250, LT3:1500, HT3:1750, LT2:2000, HT2:2250, LT1:2500, HT1:2750 };
+  const tierMap = { LT5:5, HT5:5, LT4:4, HT4:4, LT3:3, HT3:3, LT2:2, HT2:2, LT1:1, HT1:1 };
+  const clean = val.startsWith("R") ? val.slice(1) : val;
+  const tier = tierMap[clean];
+  const elo = tier !== undefined ? TIER_TO_ELO[clean] : Number(val);
+  const isLT = clean.startsWith("LT");
+  const isHT = clean.startsWith("HT");
+  let effectiveTier = tier;
+  if (effectiveTier === undefined && !Number.isNaN(elo)) {
+    if (elo >= 2500) effectiveTier = 1;
+    else if (elo >= 2000) effectiveTier = 2;
+    else if (elo >= 1500) effectiveTier = 3;
+    else if (elo >= 1000) effectiveTier = 4;
+    else if (elo >= 500) effectiveTier = 5;
+  }
+  if (!effectiveTier) return "#888d95";
+  switch (effectiveTier) {
     case 1: return "#d5b355";
     case 2: return isLT ? "#888d95" : "#a4b3c7";
     case 3: return isLT ? "#b36830" : "#dd8849";
@@ -216,11 +230,11 @@ const testRes = await fetch("/api/tests");
         username: String(r?.username || "").trim(),
         gamemode: String(r?.gamemode || "").trim(),
         uuid: r?.uuid || null,
-        rank: r?.elo != null ? Number(r.elo) : null,
+        rank: r?.rank || null,
         retired: r?.retired === true,
         points: r?.points != null
           ? safeInt(r.points, 0)
-          : getPointsForElo(Number(r?.elo)),
+          : getPointsForElo(r?.rank),
         created_at: r?.created_at ? String(r.created_at) : "",
       }))
       .filter((r) => r.username && r.gamemode && r.rank != null)
@@ -351,11 +365,11 @@ const closePlayerDetail = () => {
           username: String(r?.username || "").trim(),
           gamemode: String(r?.gamemode || "").trim(),
           uuid: r?.uuid || null,
-          rank: r?.elo != null ? Number(r.elo) : null,
+          rank: r?.rank || null,
           retired: r?.retired === true,
           points: r?.points != null
             ? safeInt(r.points, 0)
-            : getPointsForElo(Number(r?.elo)),
+            : getPointsForElo(r?.rank),
           }))
         .filter((r) => r.username && r.gamemode && r.rank != null)
         .filter((r) => LEGACY_MODES.has(r.gamemode.toLowerCase().replace(/\s+/g, "")));

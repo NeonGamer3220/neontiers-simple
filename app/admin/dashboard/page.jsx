@@ -214,11 +214,11 @@ export default function AdminDashboard() {
     const playerTests = tests.filter((t) => String(t?.username || "").trim().toLowerCase() === cleanName.toLowerCase());
     if (playerTests.length === 0 && !includeUntested) return null;
 
-const entries = playerTests.map((t) => ({
+      const entries = playerTests.map((t) => ({
         gamemode: t.gamemode,
         uuid: t.uuid || null,
         elo: t.elo != null ? Number(t.elo) : 0,
-        rank: t.elo != null ? Number(t.elo) : 0,
+        rank: t.rank || "",
         retired: t.retired === true,
         points: t.points || 0,
         id: t.id,
