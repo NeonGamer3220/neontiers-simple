@@ -171,7 +171,8 @@ export default function AdminDashboard() {
         return;
       }
       const data = await res.json();
-      if (data.role) setAdminRole(data.role);
+      if (data.role) setAdminRole(String(data.role).toLowerCase());
+      if (data.admin_name) setAdminName(String(data.admin_name));
       await loadTests();
       setLoading(false);
     };
