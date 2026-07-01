@@ -157,10 +157,12 @@ export default function AdminLogsPage() {
           </div>
           <nav className="navbarLinks">
             <a href="/" className="navbarLink">Publikus</a>
-            <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
-            <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
-            <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-            <a href="/admin/logs" className="navbarLink active">Logok</a>
+            {String(adminRole || "").toLowerCase() === "owner" && (<>
+              <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
+              <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
+              <a href="/admin/surveys" className="navbarLink">Felmérések</a>
+              <a href="/admin/logs" className="navbarLink active">Logok</a>
+            </>)}
           </nav>
           <div className="adminUserBadge">
             <span>{adminName || "Admin"}</span>
@@ -182,10 +184,12 @@ export default function AdminLogsPage() {
         </div>
         <nav className="navbarLinks">
           <a href="/" className="navbarLink">Publikus</a>
-          <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
-          <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
-          <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-          <a href="/admin/logs" className="navbarLink active">Logok</a>
+          {String(adminRole || "").toLowerCase() === "owner" && (<>
+            <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
+            <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
+            <a href="/admin/surveys" className="navbarLink">Felmérések</a>
+            <a href="/admin/logs" className="navbarLink active">Logok</a>
+          </>)}
         </nav>
         <button className="logoutBtn" onClick={handleLogout}>
           Kijelentkezés

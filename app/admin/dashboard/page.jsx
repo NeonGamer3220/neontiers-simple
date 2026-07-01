@@ -605,12 +605,14 @@ await loadTests();
           <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
         </div>
         <nav className="navbarLinks">
-          <a href="/" className="navbarLink">Publikus</a>
-          <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
-          <a href="/admin/dashboard" className="navbarLink active">Játékos kezelő</a>
-          <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-          <a href="/admin/logs" className="navbarLink">Logok</a>
-        </nav>
+            <a href="/" className="navbarLink">Publikus</a>
+            {String(adminRole || "").toLowerCase() === "owner" && (<>
+              <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
+              <a href="/admin/dashboard" className="navbarLink active">Játékos kezelő</a>
+              <a href="/admin/surveys" className="navbarLink">Felmérések</a>
+              <a href="/admin/logs" className="navbarLink">Logok</a>
+            </>)}
+          </nav>
         <div className="adminUserBadge">
           <span>{adminName || "Admin"}</span>
           <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>

@@ -159,11 +159,46 @@ export default function AdminStaffPage() {
           </div>
           <nav className="navbarLinks">
             <a href="/" className="navbarLink">Publikus</a>
+            {String(adminRole || "").toLowerCase() === "owner" && (<>
+              <a href="/admin/staff" className="navbarLink active">Staff fiókok</a>
+              <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
+              <a href="/admin/surveys" className="navbarLink">Felmérések</a>
+              <a href="/admin/logs" className="navbarLink active">Logok</a>
+            </>)}
+          </nav>
+          <div className="adminUserBadge">
+            <span>{adminName || "Admin"}</span>
+            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
+          </div>
+          <button className="logoutBtn" onClick={handleLogout}>Kijelentkezés</button>
+        </header>
+        <main className="adminContent">
+          <div className="emptyStateCard">
+            <h2>Hozzáférés megtagadva</h2>
+            <p>Csak Owner jogosultsággal érhető el ez az oldal.</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="adminPage">
+      {toast && <div className={`toast ${toast.type === "error" ? "toastError" : "toastOk"}`}>{toast.text}</div>}
+
+      <header className="adminNavbar">
+        <div className="navbarLeft">
+          <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
+        </div>
+        <nav className="navbarLinks">
+          <a href="/" className="navbarLink">Publikus</a>
+          {String(adminRole || "").toLowerCase() === "owner" && (<>
             <a href="/admin/staff" className="navbarLink active">Staff fiókok</a>
             <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
             <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-            <a href="/admin/logs" className="navbarLink">Logok</a>
-          </nav>
+            <a href="/admin/logs" className="navbarLink active">Logok</a>
+          </>)}
+        </nav>
           <div className="adminUserBadge">
             <span>{adminName || "Admin"}</span>
             <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
