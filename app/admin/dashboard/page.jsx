@@ -3,62 +3,119 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const TIER_RANKS = [
-  { value: "LT5", label: "LT5", color: "#40384f" },
-  { value: "HT5", label: "HT5", color: "#6f6389" },
-  { value: "LT4", label: "LT4", color: "#514764" },
-  { value: "HT4", label: "HT4", color: "#b7aadf" },
-  { value: "LT3", label: "LT3", color: "#b36830" },
-  { value: "HT3", label: "HT3", color: "#dd8849" },
-  { value: "LT2", label: "LT2", color: "#888d95" },
-  { value: "HT2", label: "HT2", color: "#a4b3c7" },
-  { value: "LT1", label: "LT1", color: "#d5b355" },
-  { value: "HT1", label: "HT1", color: "#d5b355" },
-  { value: "", label: "—", color: "#888d95" },
-];
+function AdminRankPicker({ value, onChange, disabled = false }) {
+  const [open, setOpen] = useState(false);
+  const pickerRef = React.useRef(null);
 
-function TierSelect({ value, onChange, disabled = false }) {
-  const selectedColor = TIER_RANKS.find(r => r.value === value)?.color || "#888d95";
+  const ALL_RANKS = [
+    { value: "LT5", label: "LT5", points: 1, color: "#40384f" },
+    { value: "HT5", label: "HT5", points: 2, color: "#6f6389" },
+    { value: "LT4", label: "LT4", points: 3, color: "#514764" },
+    { value: "HT4", label: "HT4", points: 4, color: "#b7aadf" },
+    { value: "LT3", label: "LT3", points: 6, color: "#b36830" },
+    { value: "HT3", label: "HT3", points: 10, color: "#dd8849" },
+    { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
+    { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
+    { value: "LT1", label: "LT1", points: 28, color: "#d5b355" },
+    { value: "HT1", label: "HT1", points: 34, color: "#d5b355" },
+    { value: "", label: "— üres —", points: 0, color: "#888d95" },
+  ];
 
-  const handleChange = (e) => {
-    onChange(e.target.value);
+  const KISKAT = ALL_RANKS.filter(r => ["LT5","HT5","LT4","HT4","LT3","HT3"].includes(r.value));
+  const NAGYAT = ALL_RANKS.filter(r => ["HT3","LT2","HT2","LT1","HT1"].includes(r.value));
+  const EMPTY = ALL_RANKS.find(r => r.value === "");
+
+  const currentRank = ALL_RANKS.find(r => r.value === value) || EMPTY;
+  const currentColor = currentRank.color;
+
+  useEffect(() => {
+    if (!open || disabled) {
+      setOpen(false);
+      return;
+    }
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, disabled]);
+
+  const handleSelect = (rankValue) => {
+    if (!disabled) onChange(rankValue);
+    setOpen(false);
   };
 
   return (
-    <div
-      className="tierSelectCompact tierSelectWithOptions"
-      style={{ position: "relative" }}
-    >
-      <select
-        className="tierInputCompact"
-        disabled={disabled}
-        value={value}
-        onChange={handleChange}
+    <div className="adminRankPicker" ref={pickerRef} data-admin-rank-picker="true">
+      <button
+        type="button"
+        className={`adminRankButton ${disabled ? "disabled" : ""}`}
         style={{
-          width: "100%",
-          minWidth: 0,
-          padding: "5px 8px",
-          fontSize: "11.5px",
-          fontWeight: 800,
-          borderRadius: "6px",
-          border: `1.5px solid ${disabled ? "rgba(255,255,255,0.1)" : selectedColor}`,
-          background: disabled ? "rgba(255,255,255,0.02)" : selectedColor + "22",
-          color: disabled ? "rgba(255,255,255,0.3)" : "#fff",
-          fontFamily: "Montserrat, inherit",
-          outline: "none",
+          "--admin-rank-color": disabled ? "#888d95" : currentColor,
+          opacity: disabled ? 0.5 : 1,
           cursor: disabled ? "not-allowed" : "pointer",
-          textAlign: "left",
-          transition: "all 0.15s",
-          letterSpacing: "0.02em",
-          appearance: "none",
         }}
+        onClick={() => !disabled && setOpen((v) => !v)}
+        aria-expanded={open && !disabled}
+        disabled={disabled}
       >
-        {TIER_RANKS.map((tier) => (
-          <option key={tier.value} value={tier.value} style={{ background: "#1a1d24", color: "#fff" }}>
-            {tier.label || "—"}
-          </option>
-        ))}
-      </select>
+        <span className="adminRankButtonText">
+          <strong>{currentRank.label}</strong>
+          <span>{currentRank.points} pont</span>
+        </span>
+        <span className="adminRankChevron">▾</span>
+      </button>
+
+      {open && !disabled && (
+        <div className="adminRankDropdown">
+          <div className="adminRankDropdownHeader">
+            <span>Rang kiválasztása</span>
+            <button
+              type="button"
+              className="adminRankDropdownClose"
+              onClick={() => setOpen(false)}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="adminRankGroup">
+            <div className="adminRankGroupLabel">Kiskat</div>
+            <div className="adminRankOptions">
+              {KISKAT.map((tier) => (
+                <button
+                  key={tier.value}
+                  type="button"
+                  className={`adminRankOption ${value === tier.value ? "active" : ""}`}
+                  style={{ "--admin-rank-color": tier.color }}
+                  onClick={() => handleSelect(tier.value)}
+                >
+                  <span className="adminRankOptionLabel">{tier.label}</span>
+                  <span className="adminRankOptionPoints">{tier.points} pont</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="adminRankGroup">
+            <div className="adminRankGroupLabel">Nagyat</div>
+            <div className="adminRankOptions">
+              {NAGYAT.map((tier) => (
+                <button
+                  key={tier.value}
+                  type="button"
+                  className={`adminRankOption ${value === tier.value ? "active" : ""}`}
+                  style={{ "--admin-rank-color": tier.color }}
+                  onClick={() => handleSelect(tier.value)}
+                >
+                  <span className="adminRankOptionLabel">{tier.label}</span>
+                  <span className="adminRankOptionPoints">{tier.points} pont</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -779,7 +836,7 @@ await loadTests();
                       </div>
 
                       <div className="tierEntryControls">
-                        <TierSelect
+                        <AdminRankPicker
                           value={displayRank}
                           onChange={(rank) => updateEntryField(index, "rank", rank)}
                           disabled={isRetired}
@@ -1838,6 +1895,172 @@ await loadTests();
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Admin Rank Picker ─── */
+        .adminRankPicker {
+          position: relative;
+          display: inline-flex;
+        }
+
+        .adminRankButton {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 5px 10px;
+          border-radius: 8px;
+          border: 1.5px solid var(--admin-rank-color, #888d95);
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 18%, transparent);
+          color: #fff;
+          cursor: pointer;
+          font-family: Montserrat, inherit;
+          font-weight: 800;
+          font-size: 12px;
+          letter-spacing: 0.04em;
+          transition: background 0.15s, transform 0.1s;
+          white-space: nowrap;
+        }
+
+        .adminRankButton:hover {
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 28%, transparent);
+          transform: translateY(-1px);
+        }
+
+        .adminRankButton.disabled,
+        .adminRankButton[disabled] {
+          opacity: 0.45;
+          cursor: not-allowed;
+          pointer-events: none;
+        }
+
+        .adminRankButtonText {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          line-height: 1.1;
+        }
+
+        .adminRankButtonText strong {
+          font-size: 13px;
+          text-transform: uppercase;
+        }
+
+        .adminRankButtonText span {
+          font-size: 10px;
+          opacity: 0.75;
+          font-weight: 700;
+        }
+
+        .adminRankChevron {
+          font-size: 11px;
+          opacity: 0.7;
+          margin-left: 2px;
+        }
+
+        .adminRankDropdown {
+          position: absolute;
+          top: calc(100% + 6px);
+          left: 0;
+          z-index: 50;
+          width: 260px;
+          background: #151922;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 12px;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+          animation: fadeIn 0.12s ease-out;
+          overflow: hidden;
+        }
+
+        .adminRankDropdownHeader {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 14px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .adminRankDropdownClose {
+          background: none;
+          border: none;
+          color: rgba(255, 255, 255, 0.6);
+          cursor: pointer;
+          font-size: 14px;
+          padding: 0;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          transition: background 0.15s;
+        }
+
+        .adminRankDropdownClose:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: #fff;
+        }
+
+        .adminRankGroup {
+          padding: 8px 10px;
+        }
+
+        .adminRankGroupLabel {
+          font-size: 10px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: rgba(255, 255, 255, 0.4);
+          padding: 4px 6px 6px;
+        }
+
+        .adminRankOptions {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .adminRankOption {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          width: 100%;
+          padding: 7px 10px;
+          background: transparent;
+          border: none;
+          border-radius: 6px;
+          color: rgba(255, 255, 255, 0.85);
+          cursor: pointer;
+          font-family: Montserrat, inherit;
+          font-size: 12px;
+          font-weight: 800;
+          transition: background 0.12s;
+          text-align: left;
+        }
+
+        .adminRankOption:hover {
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .adminRankOption.active {
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 22%, transparent);
+          color: #fff;
+        }
+
+        .adminRankOptionLabel {
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .adminRankOptionPoints {
+          font-size: 10px;
+          opacity: 0.7;
+          font-weight: 700;
         }
       `}</style>
     </div>
