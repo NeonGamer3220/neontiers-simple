@@ -410,8 +410,14 @@ await loadTests();
     try {
       const currentName = selectedPlayer.username;
 
-      // Look up current name via UUID if available, else use manual input
+      const isUuidInput = (value) => {
+        const raw = String(value || "").replace(/-/g, "").trim();
+        return /^[0-9a-fA-F]{32}$/.test(raw);
+      };
+
+      let targetNewName = null;
       let currentMojangName = null;
+
       if (selectedPlayer.uuid) {
         const res = await fetch(`/api/mojang?uuid=${selectedPlayer.uuid.replace(/-/g, "")}`);
         if (res.ok) {
@@ -420,14 +426,26 @@ await loadTests();
         }
       }
 
-      const targetNewName = currentMojangName || (newNameInput.trim() || null);
+      if (currentMojangName) {
+        targetNewName = currentMojangName;
+      } else if (newNameInput.trim()) {
+        if (isUuidInput(newNameInput)) {
+          const uuidRes = await fetch(`/api/mojang?uuid=${newNameInput.replace(/-/g, "")}`);
+          if (uuidRes.ok) {
+            const uuidData = await uuidRes.json();
+            targetNewName = uuidData.name;
+          }
+        } else {
+          targetNewName = newNameInput.trim();
+        }
+      }
 
       if (!targetNewName) {
-        setToast({ type: "error", text: "Addj meg egy érvényes játékosnevet, vagy add hozzá a UUID-t!" });
+        setToast({ type: "error", text: "Adj meg egy érvényes játékosnevet vagy UUID-t!" });
         return;
       }
 
-      if (targetNewName === currentName && !currentMojangName) {
+      if (targetNewName === currentName) {
         setToast({ type: "error", text: "Az új név megegyezik a jelenlegivel." });
         return;
       }
@@ -670,7 +688,10 @@ await loadTests();
           <a href="/" className="navbarLink">Publikus</a>
           <a href="/admin/dashboard" className="navbarLink active">Játékos kezelő</a>
           {adminRole === "owner" && (
-            <a href="/admin/logs" className="navbarLink">Logok</a>
+            <>
+              <a href="/admin/surveys" className="navbarLink">Felmérések</a>
+              <a href="/admin/logs" className="navbarLink">Logok</a>
+            </>
           )}
         </nav>
         <div className="adminUserBadge">
