@@ -23,6 +23,7 @@ export default function AdminSurveysPage() {
   const [surveyResponses, setSurveyResponses] = useState([]);
   const [responseSurvey, setResponseSurvey] = useState(null);
   const [responsesLoading, setResponsesLoading] = useState(false);
+  const [adminRole, setAdminRole] = useState("");
 
   const parseCategoryText = (text, stage) => {
     const trimmed = String(text || "").trim();
@@ -74,6 +75,7 @@ export default function AdminSurveysPage() {
         return;
       }
       const data = await res.json();
+      if (data.role) setAdminRole(String(data.role).toLowerCase());
       if (String(data.role || "").toLowerCase() !== "owner") {
         router.push("/admin/dashboard");
         return;

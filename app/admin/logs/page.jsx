@@ -41,6 +41,7 @@ export default function AdminLogsPage() {
   const [filterUsername, setFilterUsername] = useState("");
   const [filterGamemode, setFilterGamemode] = useState("");
   const [toast, setToast] = useState(null);
+  const [adminRole, setAdminRole] = useState("");
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -50,6 +51,7 @@ export default function AdminLogsPage() {
         return;
       }
       const data = await res.json();
+      if (data.role) setAdminRole(String(data.role).toLowerCase());
       if (String(data.role || "").toLowerCase() !== "owner") {
         router.push("/admin/dashboard");
         return;
