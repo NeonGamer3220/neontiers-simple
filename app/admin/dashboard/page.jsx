@@ -7,6 +7,26 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
 
+  const RANK_COLORS = {
+    "": "rgba(255, 255, 255, 0.68)",
+    LT5: "#40384f",
+    HT5: "#6f6389",
+    LT4: "#514764",
+    HT4: "#b7aadf",
+    LT3: "#b36830",
+    HT3: "#dd8849",
+    LT2: "#888d95",
+    RLT2: "#8f7cff",
+    HT2: "#a4b3c7",
+    RHT2: "#8f7cff",
+    LT1: "#d5b355",
+    RLT1: "#8f7cff",
+    HT1: "#ffcf4a",
+    RHT1: "#8f7cff",
+  };
+
+  const currentColor = RANK_COLORS[value] || "#888d95";
+
   useEffect(() => {
     if (!open || disabled) {
       setOpen(false);
@@ -34,7 +54,7 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
         <button
           type="button"
           className="adminRankButton"
-          style={{ "--admin-rank-color": value === "" ? "rgba(255, 255, 255, 0.68)" : "#888d95" }}
+          style={{ "--admin-rank-color": currentColor }}
           onClick={() => !disabled && setOpen((v) => !v)}
           aria-expanded={open && !disabled}
           disabled={disabled}
