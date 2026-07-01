@@ -89,65 +89,6 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
     </div>
   );
 }
-    const handler = (e) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open, disabled]);
-
-  const handleSelect = (rankValue) => {
-    if (!disabled) {
-      onChange(rankValue);
-    }
-    setOpen(false);
-  };
-
-  return (
-    <div className="adminRankPicker" ref={pickerRef} data-admin-rank-picker="true">
-      <button
-        type="button"
-        className="adminRankButton"
-        style={{
-          "--admin-rank-color": disabled ? "#888d95" : currentColor,
-          opacity: disabled ? 0.5 : 1,
-          cursor: disabled ? "not-allowed" : "pointer",
-        }}
-        onClick={() => !disabled && setOpen((v) => !v)}
-        aria-expanded={open && !disabled}
-        disabled={disabled}
-      >
-        <span className="adminRankButtonText">
-          <strong>{currentRank.label}</strong>
-          <span>{currentRank.points} pont</span>
-        </span>
-        <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
-      </button>
-
-      {open && !disabled && (
-        <div className="adminRankMenu">
-          {ALL_RANKS.map((tier) => (
-            <button
-              key={tier.value}
-              type="button"
-              className={`adminRankOption ${value === tier.value ? "selected" : ""}`}
-              style={{ "--admin-rank-color": tier.color }}
-              onClick={() => handleSelect(tier.value)}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">{tier.label}</span>
-                <span className="adminRankOptionMeta">{tier.points} pont</span>
-              </span>
-              {tier.retired && <em>Retired</em>}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 const MODE_OPTIONS = [
   "Vanilla",
