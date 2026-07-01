@@ -42,12 +42,12 @@ function getPointsForElo(elo) {
   return range ? range.points : 0;
 }
 
-function json(data, status = 200) {
+function json(data, status = 200, cacheControl = "no-store") {
   return new Response(JSON.stringify(data, null, 2), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
+      "cache-control": cacheControl,
     },
   });
 }
@@ -171,12 +171,12 @@ const LEGACY_TIER_TO_ELO = {
     const activePlayers = (data || []).filter(p => !p.retired);
 
     if (activePlayers.length === 0) {
-      return json({ player: null, message: "No players found for this mode and tier" });
+      return json({ player: null, message: "No players found for this mode and tier" }, 200, "public, s-maxage=30, stale-while-revalidate=30");
     }
 
     // Pick random
     const randomPlayer = activePlayers[Math.floor(Math.random() * activePlayers.length)];
-    return json({ player: randomPlayer });
+    return json({ player: randomPlayer }, 200, "public, s-maxage=30, stale-while-revalidate=30");
   }
 
   // Get all tests — supabase query limited rows from DB (avoid over-fetch).
@@ -191,7 +191,7 @@ const LEGACY_TIER_TO_ELO = {
 
   if (error) return json({ error: error.message }, 500);
 
-  return json({ tests: data || [] });
+  return json({ tests: data || [] }, 200, "public, s-maxage=30, stale-while-revalidate=30");
 }
 
 // POST: Save test result

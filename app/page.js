@@ -179,7 +179,7 @@ const [tests, setTests] = useState([]);
     async function load() {
       try {
         setLoading(true);
-const testRes = await fetch("/api/tests");
+        const testRes = await fetch("/api/tests", { cache: "force-cache" });
         if (!alive) return;
         const testJson = await testRes.json();
         setTests(Array.isArray(testJson?.tests) ? testJson.tests : []);

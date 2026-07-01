@@ -143,12 +143,7 @@ export default function AdminDashboard() {
   const [newPlayerName, setNewPlayerName] = useState("");
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
-  const [staffList, setStaffList] = useState([]);
   const [confirmState, setConfirmState] = useState(null);
-  const [newStaffName, setNewStaffName] = useState("");
-  const [newStaffPassword, setNewStaffPassword] = useState("");
-  const [newStaffRole, setNewStaffRole] = useState("regulator");
-  const [editingStaffId, setEditingStaffId] = useState(null);
 
   const showConfirm = (message) => new Promise((resolve) => {
     setConfirmState({ message, resolve });
@@ -173,19 +168,10 @@ export default function AdminDashboard() {
       if (data.role) setAdminRole(String(data.role).toLowerCase());
       if (data.admin_name) setAdminName(String(data.admin_name));
       await loadTests();
-      if (String(data.role || "").toLowerCase() === "owner") {
-        await loadStaff();
-      }
       setLoading(false);
     };
     checkAuth();
   }, [router]);
-
-  useEffect(() => {
-    if (adminRole === "owner") {
-      loadStaff();
-    }
-  }, [adminRole]);
 
   // Auto-dismiss toast after 2 s
   useEffect(() => {
@@ -541,79 +527,6 @@ await loadTests();
     } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
   };
 
-  const loadStaff = async () => {
-    try {
-      const res = await fetch("/api/admin/staff?action=list");
-      if (!res.ok) return;
-      const data = await res.json();
-      setStaffList(Array.isArray(data?.staff) ? data.staff : []);
-    } catch (err) {
-      console.error("Failed to load staff:", err);
-    }
-  };
-
-  const handleSaveStaff = async () => {
-    if (!newStaffName.trim()) {
-      setToast({ type: "error", text: "Add meg a staff nevét!" });
-      return;
-    }
-    if (!editingStaffId && !newStaffPassword) {
-      setToast({ type: "error", text: "Add meg a staff jelszavát!" });
-      return;
-    }
-    try {
-      const payload = {
-        action: editingStaffId ? "update" : "create",
-        admin_name: newStaffName.trim(),
-        role: newStaffRole,
-      };
-      if (newStaffPassword) payload.admin_password = newStaffPassword;
-      if (editingStaffId) payload.id = editingStaffId;
-
-      const res = await fetch("/api/admin/staff", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setToast({ type: "error", text: data.error || "Hiba a staff mentése során" });
-        return;
-      }
-
-      await loadStaff();
-      setNewStaffName("");
-      setNewStaffPassword("");
-      setNewStaffRole("regulator");
-      setEditingStaffId(null);
-      setToast({ type: "ok", text: editingStaffId ? "Staff frissítve!" : "Staff létrehozva!" });
-    } catch {
-      setToast({ type: "error", text: "Hálózati hiba" });
-    }
-  };
-
-  const handleDeleteStaff = async (id, name) => {
-    const ok = await showConfirm(`Biztos hogy törlöd a "${name}" staff fiókot?`);
-    if (!ok) return;
-    try {
-      const res = await fetch("/api/admin/staff", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "delete", id }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setToast({ type: "error", text: data.error || "Hiba a törlés során" });
-        return;
-      }
-      await loadStaff();
-      setToast({ type: "ok", text: "Staff törölve!" });
-    } catch {
-      setToast({ type: "error", text: "Hálózati hiba" });
-    }
-  };
-
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin");
@@ -693,13 +606,10 @@ await loadTests();
         </div>
         <nav className="navbarLinks">
           <a href="/" className="navbarLink">Publikus</a>
+          <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
           <a href="/admin/dashboard" className="navbarLink active">Játékos kezelő</a>
-          {adminRole === "owner" && (
-            <>
-              <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-              <a href="/admin/logs" className="navbarLink">Logok</a>
-            </>
-          )}
+          <a href="/admin/surveys" className="navbarLink">Felmérések</a>
+          <a href="/admin/logs" className="navbarLink">Logok</a>
         </nav>
         <div className="adminUserBadge">
           <span>{adminName || "Admin"}</span>
@@ -757,91 +667,7 @@ await loadTests();
           )}
         </div>
 
-      {adminRole === "owner" && (
-          <section className="staffSection">
-            <h2 className="staffSectionTitle">Staff fiókok</h2>
-            <p className="staffSectionSubtitle">Csak Owner férhető hozzá ehhez a szekcióhoz.</p>
 
-            <div className="staffList">
-              {staffList.map((s) => {
-                const normalizedRole = String(s.role || "").toLowerCase();
-                return (
-                  <div key={s.id} className="staffItem">
-                    <div className="staffInfo">
-                      <span className="staffName">{s.admin_name}</span>
-                      <span className={`staffRole staffRole-${normalizedRole}`}>
-                        {normalizedRole.charAt(0).toUpperCase() + normalizedRole.slice(1)}
-                      </span>
-                    </div>
-                    <div className="staffActions">
-                      <button
-                        className="staffBtn staffBtnEdit"
-                        onClick={() => {
-                          setEditingStaffId(s.id);
-                          setNewStaffName(s.admin_name);
-                          setNewStaffRole(s.role);
-                          setNewStaffPassword("");
-                        }}
-                      >
-                        Szerkesztés
-                      </button>
-                      <button
-                        className="staffBtn staffBtnDelete"
-                        onClick={() => handleDeleteStaff(s.id, s.admin_name)}
-                      >
-                        Törlés
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="staffForm">
-              <h4 className="staffFormTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h4>
-              <input
-                type="text"
-                className="modalInput"
-                placeholder="Staff név..."
-                value={newStaffName}
-                onChange={(e) => setNewStaffName(e.target.value)}
-              />
-              <input
-                type="text"
-                className="modalInput"
-                placeholder="Jelszó..."
-                value={newStaffPassword}
-                onChange={(e) => setNewStaffPassword(e.target.value)}
-              />
-              <select
-                className="modalInput"
-                value={newStaffRole}
-                onChange={(e) => setNewStaffRole(e.target.value)}
-              >
-                <option value="regulator">Regulator</option>
-                <option value="owner">Owner</option>
-              </select>
-              <div className="modalActions">
-                {editingStaffId && (
-                  <button
-                    className="modalBtn modalBtnCancel"
-                    onClick={() => {
-                      setEditingStaffId(null);
-                      setNewStaffName("");
-                      setNewStaffPassword("");
-                      setNewStaffRole("regulator");
-                    }}
-                  >
-                    Mégse
-                  </button>
-                )}
-                <button className="modalBtn modalBtnConfirm" onClick={handleSaveStaff}>
-                  {editingStaffId ? "Mentés" : "Létrehozás"}
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
 
         {selectedPlayer && (
           <div className="playerDetailsSection">
@@ -1953,118 +1779,6 @@ await loadTests();
            margin: 0;
          }
 
-         /* ─── Staff Section ─── */
-         .staffSection {
-           background: rgba(255,255,255,0.05);
-           border: 1px solid rgba(255,255,255,0.12);
-           border-radius: 18px;
-           padding: 24px;
-           display: grid;
-           gap: 20px;
-         }
-
-         .staffSectionTitle {
-           font-size: 18px;
-           font-weight: 800;
-           margin: 0;
-         }
-
-         .staffSectionSubtitle {
-           font-size: 13px;
-           color: rgba(255,255,255,0.6);
-           margin: 0 0 8px 0;
-         }
-
-         .staffList {
-           display: grid;
-           gap: 10px;
-         }
-
-         .staffItem {
-           display: flex;
-           justify-content: space-between;
-           align-items: center;
-           padding: 12px 16px;
-           background: rgba(255,255,255,0.04);
-           border: 1px solid rgba(255,255,255,0.08);
-           border-radius: 12px;
-         }
-
-         .staffInfo {
-           display: flex;
-           align-items: center;
-           gap: 12px;
-         }
-
-         .staffName {
-           font-weight: 600;
-           font-size: 15px;
-         }
-
-         .staffRole {
-           font-size: 11px;
-           font-weight: 800;
-           text-transform: uppercase;
-           padding: 4px 8px;
-           border-radius: 6px;
-           background: rgba(196, 30, 58, 0.2);
-           color: #c41e3a;
-         }
-
-         .staffRole-owner {
-           background: rgba(213, 179, 85, 0.2);
-           color: #d5b355;
-         }
-
-         .staffActions {
-           display: flex;
-           gap: 8px;
-         }
-
-         .staffBtn {
-           padding: 6px 12px;
-           font-size: 12px;
-           font-weight: 600;
-           border: none;
-           border-radius: 6px;
-           cursor: pointer;
-         }
-
-         .staffBtnEdit {
-           background: rgba(255,255,255,0.1);
-           color: #fff;
-         }
-
-         .staffBtnDelete {
-           background: rgba(214, 71, 71, 0.25);
-           color: #d64747;
-         }
-
-         .staffForm {
-           display: flex;
-           flex-direction: column;
-           gap: 12px;
-           padding-top: 16px;
-           border-top: 1px solid rgba(255,255,255,0.08);
-         }
-
-         .staffFormTitle {
-           font-size: 14px;
-           font-weight: 700;
-           margin: 0;
-         }
-
-         .staffSectionBtn {
-           background: rgba(196, 30, 58, 0.15);
-           color: #c41e3a;
-           border: 1px solid rgba(196, 30, 58, 0.3);
-           border-radius: 8px;
-           font-weight: 600;
-         }
-
-         .staffSectionBtn:hover {
-           background: rgba(196, 30, 58, 0.25);
-         }
 
          /* ─── Misc cleanups ─── */
         .playerDetailsSkin { border-radius: 50%; }
