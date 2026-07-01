@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 export default function AdminSurveysPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [unauthorized, setUnauthorized] = useState(false);
   const [surveys, setSurveys] = useState([]);
   const [name, setName] = useState("");
   const [surveyCode, setSurveyCode] = useState("");
@@ -76,8 +75,7 @@ export default function AdminSurveysPage() {
       }
       const data = await res.json();
       if (String(data.role || "").toLowerCase() !== "owner") {
-        setUnauthorized(true);
-        setLoading(false);
+        router.push("/admin/dashboard");
         return;
       }
       await loadSurveys();
@@ -252,38 +250,6 @@ export default function AdminSurveysPage() {
 
   if (loading) {
     return <div className="adminPage">Betöltés...</div>;
-  }
-
-  if (unauthorized) {
-    return (
-      <div className="adminPage">
-        <header className="adminNavbar">
-          <div className="navbarLeft">
-            <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
-          </div>
-          <nav className="navbarLinks">
-            <a href="/" className="navbarLink">Publikus</a>
-            {String(adminRole || "").toLowerCase() === "owner" && (<>
-              <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
-              <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
-              <a href="/admin/surveys" className="navbarLink active">Felmérések</a>
-              <a href="/admin/logs" className="navbarLink">Logok</a>
-            </>)}
-          </nav>
-          <div className="adminUserBadge">
-            <span>{adminName || "Admin"}</span>
-            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
-          </div>
-          <button className="logoutBtn" onClick={handleLogout}>Kijelentkezés</button>
-        </header>
-        <main className="adminContent">
-          <div className="emptyStateCard">
-            <h2>Hozzáférés megtagadva</h2>
-            <p>Csak Owner jogosultsággal használható ez az oldal.</p>
-          </div>
-        </main>
-      </div>
-    );
   }
 
   return (

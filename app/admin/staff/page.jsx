@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 export default function AdminStaffPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [unauthorized, setUnauthorized] = useState(false);
   const [staffList, setStaffList] = useState([]);
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
@@ -36,8 +35,7 @@ export default function AdminStaffPage() {
       if (data.role) setAdminRole(String(data.role).toLowerCase());
       if (data.admin_name) setAdminName(String(data.admin_name));
       if (String(data.role || "").toLowerCase() !== "owner") {
-        setUnauthorized(true);
-        setLoading(false);
+        router.push("/admin/dashboard");
         return;
       }
       await loadStaff();
@@ -150,38 +148,6 @@ export default function AdminStaffPage() {
     );
   }
 
-  if (unauthorized) {
-    return (
-      <div className="adminPage">
-        <header className="adminNavbar">
-          <div className="navbarLeft">
-            <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
-          </div>
-          <nav className="navbarLinks">
-            <a href="/" className="navbarLink">Publikus</a>
-            {String(adminRole || "").toLowerCase() === "owner" && (<>
-              <a href="/admin/staff" className="navbarLink active">Staff fiókok</a>
-              <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
-              <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-              <a href="/admin/logs" className="navbarLink active">Logok</a>
-            </>)}
-          </nav>
-          <div className="adminUserBadge">
-            <span>{adminName || "Admin"}</span>
-            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
-          </div>
-          <button className="logoutBtn" onClick={handleLogout}>Kijelentkezés</button>
-        </header>
-        <main className="adminContent">
-          <div className="emptyStateCard">
-            <h2>Hozzáférés megtagadva</h2>
-            <p>Csak Owner jogosultsággal érhető el ez az oldal.</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="adminPage">
       {toast && <div className={`toast ${toast.type === "error" ? "toastError" : "toastOk"}`}>{toast.text}</div>}
@@ -198,37 +164,6 @@ export default function AdminStaffPage() {
             <a href="/admin/surveys" className="navbarLink">Felmérések</a>
             <a href="/admin/logs" className="navbarLink active">Logok</a>
           </>)}
-        </nav>
-          <div className="adminUserBadge">
-            <span>{adminName || "Admin"}</span>
-            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
-          </div>
-          <button className="logoutBtn" onClick={handleLogout}>Kijelentkezés</button>
-        </header>
-        <main className="adminContent">
-          <div className="emptyStateCard">
-            <h2>Hozzáférés megtagadva</h2>
-            <p>Csak Owner jogosultsággal érhető el ez az oldal.</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="adminPage">
-      {toast && <div className={`toast ${toast.type === "error" ? "toastError" : "toastOk"}`}>{toast.text}</div>}
-
-      <header className="adminNavbar">
-        <div className="navbarLeft">
-          <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
-        </div>
-        <nav className="navbarLinks">
-          <a href="/" className="navbarLink">Publikus</a>
-          <a href="/admin/staff" className="navbarLink active">Staff fiókok</a>
-          <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
-          <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-          <a href="/admin/logs" className="navbarLink">Logok</a>
         </nav>
         <div className="adminUserBadge">
           <span>{adminName || "Admin"}</span>

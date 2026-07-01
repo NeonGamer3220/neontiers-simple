@@ -27,7 +27,6 @@ function getPointsForElo(elo) {
 export default function AdminLogsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [unauthorized, setUnauthorized] = useState(false);
   const [logType, setLogType] = useState("all"); // "all", "audit", "tests"
   const [tests, setTests] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -44,8 +43,7 @@ export default function AdminLogsPage() {
       }
       const data = await res.json();
       if (String(data.role || "").toLowerCase() !== "owner") {
-        setUnauthorized(true);
-        setLoading(false);
+        router.push("/admin/dashboard");
         return;
       }
       await loadAllLogs();
@@ -144,34 +142,6 @@ export default function AdminLogsPage() {
     return (
       <div className="logsPage">
         <div className="loadingState">Betöltés...</div>
-      </div>
-    );
-  }
-
-  if (unauthorized) {
-    return (
-      <div className="logsPage">
-        <header className="adminNavbar">
-          <div className="navbarLeft">
-            <h1 className="navbarTitle">NeonTiers Admin Panel</h1>
-          </div>
-          <nav className="navbarLinks">
-            <a href="/" className="navbarLink">Publikus</a>
-            {String(adminRole || "").toLowerCase() === "owner" && (<>
-              <a href="/admin/staff" className="navbarLink">Staff fiókok</a>
-              <a href="/admin/dashboard" className="navbarLink">Játékos kezelő</a>
-              <a href="/admin/surveys" className="navbarLink">Felmérések</a>
-              <a href="/admin/logs" className="navbarLink active">Logok</a>
-            </>)}
-          </nav>
-          <div className="adminUserBadge">
-            <span>{adminName || "Admin"}</span>
-            <strong>{adminRole ? adminRole.toUpperCase() : "OWNER"}</strong>
-          </div>
-          <button className="logoutBtn" onClick={handleLogout}>
-            Kijelentkezés
-          </button>
-        </header>
       </div>
     );
   }
@@ -862,25 +832,6 @@ export default function AdminLogsPage() {
         .restoreBtn:hover {
           background: rgba(74, 222, 128, 0.2);
           border-color: rgba(74, 222, 128, 0.55);
-        }
-
-        .unauthorizedNotice {
-          padding: 50px;
-          text-align: center;
-          width: 100%;
-          color: #fff;
-        }
-
-        .unauthorizedNotice h2 {
-          margin: 0 0 10px;
-          font-size: 24px;
-          font-weight: 800;
-        }
-
-        .unauthorizedNotice p {
-          margin: 0;
-          color: rgba(255, 255, 255, 0.7);
-          font-size: 15px;
         }
 
         .toast {
