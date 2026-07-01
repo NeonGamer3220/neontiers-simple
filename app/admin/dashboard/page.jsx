@@ -52,8 +52,8 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
     setOpen(false);
   };
 
-  // Only set the CSS variable — every visual treatment lives in the CSS,
-  // using color-mix() with --admin-rank-color. Matches the hutier.hu source.
+  // Matches hutier.hu source: only --admin-rank-color is set; the CSS handles
+  // all visual treatment (colored border, colored label, gray meta text).
   const buttonStyle = { "--admin-rank-color": currentColor };
 
   return (
@@ -67,7 +67,6 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
           aria-expanded={open && !disabled}
           disabled={disabled}
         >
-          <span className="adminRankButtonDot" aria-hidden="true" />
           <span className="adminRankButtonText">
             <strong>{current.label}</strong>
             <span>{current.points} pont</span>
@@ -89,7 +88,6 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
                   role="option"
                   aria-selected={isSelected}
                 >
-                  <span className="adminRankOptionDot" aria-hidden="true" />
                   <span className="adminRankOptionMain">
                     <span className="adminRankOptionLabel">{opt.label}</span>
                     <span className="adminRankOptionMeta">{opt.points} pont</span>
@@ -805,25 +803,47 @@ await loadTests();
                   const isUntested = entry.isUntested;
                   const displayRank = entry.rank || "";
                   const displayPoints = getPointsForElo(displayRank);
+                  const rankColor =
+                    (RANK_OPTIONS.find((r) => r.value === displayRank) || RANK_OPTIONS[0]).color;
+                  const rankLabel =
+                    (RANK_OPTIONS.find((r) => r.value === displayRank) || RANK_OPTIONS[0]).label;
 
                   return (
-                    <div key={`${entry.gamemode}-${entry.id}`} className={`tierEntryCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}>
-                      <div className="tierModeCircle">
-                        {MODE_ICONS[entry.gamemode] && (
-                          <img src={MODE_ICONS[entry.gamemode]} alt={entry.gamemode} className="tierModeCircleImg" />
-                        )}
-                        <span className="tierModeCircleLabel">{entry.gamemode}</span>
+                    <article
+                      key={`${entry.gamemode}-${entry.id}`}
+                      className={`adminModeCard ${isRetired ? "retired" : ""} ${isUntested ? "untested" : ""}`}
+                    >
+                      <div className="adminModeIdentity">
+                        <span
+                          className="adminModeIconWrap"
+                          style={{ "--admin-rank-color": rankColor }}
+                          aria-hidden="true"
+                        >
+                          {MODE_ICONS[entry.gamemode] && (
+                            <img
+                              src={MODE_ICONS[entry.gamemode]}
+                              alt=""
+                              width="26"
+                              height="26"
+                              className="adminModeIcon"
+                            />
+                          )}
+                        </span>
+                        <div className="adminModeCopy">
+                          <div className="adminModeName">{entry.gamemode}</div>
+                          <div className="adminModeMeta">
+                            {rankLabel} · {displayPoints} pont
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="tierEntryControls">
-                        <AdminRankPicker
-                          value={displayRank}
-                          onChange={(rank) => updateEntryField(index, "rank", rank)}
-                          disabled={isRetired}
-                          onSave={() => handleSaveEntry(entry)}
-                        />
-                      </div>
-                    </div>
+                      <AdminRankPicker
+                        value={displayRank}
+                        onChange={(rank) => updateEntryField(index, "rank", rank)}
+                        disabled={isRetired}
+                        onSave={() => handleSaveEntry(entry)}
+                      />
+                    </article>
                   );
                 })}
               </div>
@@ -1260,128 +1280,6 @@ await loadTests();
           text-align: right;
         }
 
-        .playerTiersSection {
-          display: grid;
-          gap: 14px;
-        }
-
-        .tiersSectionTitle {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 800;
-        }
-
-        .playerTiersList {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .tierEntryCard {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 14px;
-          padding: 14px 16px;
-          border-radius: 14px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          min-width: 0;
-          transition: background 0.18s ease, border-color 0.18s ease;
-        }
-
-        .tierEntryCard:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.14);
-        }
-
-        .tierEntryCard.retired {
-          opacity: 0.6;
-          border-style: dashed;
-        }
-
-        .tierEntryModeInfo {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          min-width: 0;
-        }
-
-        .tierEntryMode {
-          font-size: 13px;
-          font-weight: 800;
-        }
-
-        .tierEntryControls {
-          display: grid;
-          grid-template-columns: 78px 88px 36px 36px;
-          gap: 10px;
-          align-items: center;
-          min-width: 0;
-        }
-
-        .tierPointsBadge {
-           display: inline-flex;
-           align-items: center;
-           justify-content: center;
-           min-width: 60px;
-           padding: 4px 8px;
-           font-size: 11px;
-           font-weight: 800;
-           border-radius: 6px;
-           background: rgba(255, 255, 255, 0.06);
-           border: 1px solid rgba(255, 255, 255, 0.12);
-           color: rgba(255, 255, 255, 0.8);
-           text-align: center;
-         }
-
-        .retireCheckbox {
-          display: flex;
-          align-items: center;
-          cursor: pointer;
-          position: relative;
-          height: 30px;
-        }
-
-        .retireCheckbox input {
-          display: none;
-        }
-
-        .checkboxLabel {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 30px;
-          height: 30px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          border-radius: 6px;
-          background: rgba(255, 255, 255, 0.04);
-          transition: all 0.2s;
-          font-size: 14px;
-          user-select: none;
-        }
-
-        .retireCheckbox input:checked ~ .checkboxLabel {
-          background: rgba(196, 30, 58, 0.2);
-          border-color: rgba(196, 30, 58, 0.5);
-          color: #ff6b6b;
-        }
-
-        .saveEntryBtnCompact {
-          padding: 6px 8px;
-          border-radius: 6px;
-          border: 1px solid rgba(40, 167, 69, 0.4);
-          background: rgba(40, 167, 69, 0.15);
-          color: #fff;
-          cursor: pointer;
-          font-size: 14px;
-          transition: all 0.15s;
-          height: 30px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
         .saveEntryBtnCompact:hover:not(:disabled) {
           background: rgba(40, 167, 69, 0.3);
           border-color: rgba(40, 167, 69, 0.6);
@@ -1482,10 +1380,6 @@ await loadTests();
         .adminContent,
         .searchSection,
         .playerDetailsSection,
-        .tierEntryCard {
-          animation: none;
-        }
-
         .navbarLink {
           position: relative;
         }
@@ -1527,13 +1421,6 @@ await loadTests();
           background: rgba(196, 30, 58, 0.1);
         }
 
-        .tiersSectionHeader {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-
         .toggleUntestedBtn {
           padding: 8px 14px;
           border-radius: 8px;
@@ -1554,22 +1441,6 @@ await loadTests();
           background: rgba(79, 167, 255, 0.2);
           border-color: rgba(79, 167, 255, 0.5);
           color: #4fa7ff;
-        }
-
-        .tierEntryCard.untested {
-          opacity: 0.6;
-          background: rgba(255, 255, 255, 0.02);
-          border-style: dashed;
-        }
-
-        .tierEntryCard.untested:hover {
-          opacity: 0.8;
-        }
-
-        .tierEntryMode {
-          display: flex;
-          align-items: center;
-          gap: 6px;
         }
 
         .untestedBadge {
@@ -1757,67 +1628,6 @@ await loadTests();
         }
 
         /* ─── Gamemode circles ─── */
-        .playerTiersList {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-        }
-
-        .tierEntryCard {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          padding: 10px 16px;
-          border-radius: 14px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          transition: border-color 0.15s, background 0.15s;
-          width: 100%;
-          box-sizing: border-box;
-        }
-
-        .tierEntryCard:hover {
-          border-color: rgba(255,255,255,0.15);
-          background: rgba(255,255,255,0.06);
-        }
-
-        .tierEntryCard.retired {
-          opacity: 0.55;
-          border-style: dashed;
-        }
-
-        .tierModeCircle {
-          display: inline-flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 3px;
-          margin-right: 10px;
-        }
-
-        .tierModeCircleImg {
-          width: 46px;
-          height: 46px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.06);
-          padding: 5px;
-          object-fit: contain;
-        }
-
-        .tierModeCircleLabel {
-          font-size: 10px;
-          font-weight: 800;
-          text-align: center;
-          white-space: nowrap;
-        }
-
-        .tiersSectionHeader {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 14px;
-          flex-wrap: wrap;
-        }
-
 .tiersSubtitle {
            font-size: 12px;
            color: rgba(255,255,255,0.45);
@@ -1840,6 +1650,8 @@ await loadTests();
           align-items: center;
           gap: 10px;
           position: relative;
+          flex-wrap: wrap;
+          justify-content: flex-end;
         }
 
         .adminRankPicker {
@@ -1851,27 +1663,25 @@ await loadTests();
         .adminRankButton {
           display: inline-flex;
           align-items: center;
-          gap: 9px;
-          padding: 6px 12px 6px 9px;
-          border-radius: 9px;
-          border: 1px solid color-mix(in srgb, var(--admin-rank-color, #888d95) 55%, transparent);
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 14%, #13161f);
+          gap: 10px;
+          padding: 6px 12px;
+          border-radius: 8px;
+          border: 1.5px solid var(--admin-rank-color, #888d95);
+          background: transparent;
           color: #fff;
           cursor: pointer;
           font-family: Montserrat, inherit;
           font-weight: 800;
           font-size: 12px;
-          letter-spacing: 0.03em;
-          transition: filter 0.15s ease, transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+          letter-spacing: 0.04em;
+          transition: background 0.15s ease, filter 0.15s ease, transform 0.1s ease;
           white-space: nowrap;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         .adminRankButton:hover {
-          filter: brightness(1.15);
+          background: rgba(255, 255, 255, 0.06);
+          filter: brightness(1.1);
           transform: translateY(-1px);
-          border-color: color-mix(in srgb, var(--admin-rank-color, #888d95) 85%, transparent);
-          box-shadow: 0 4px 14px color-mix(in srgb, var(--admin-rank-color, #888d95) 35%, transparent);
         }
 
         .adminRankButton[disabled],
@@ -1879,18 +1689,6 @@ await loadTests();
           opacity: 0.42;
           cursor: not-allowed;
           pointer-events: none;
-          filter: grayscale(0.35);
-        }
-
-        .adminRankButtonDot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: var(--admin-rank-color, #888d95);
-          box-shadow:
-            0 0 0 2px rgba(0, 0, 0, 0.35),
-            0 0 8px color-mix(in srgb, var(--admin-rank-color, #888d95) 70%, transparent);
-          flex-shrink: 0;
         }
 
         .adminRankButtonText {
@@ -1905,46 +1703,43 @@ await loadTests();
           font-size: 13px;
           text-transform: uppercase;
           color: var(--admin-rank-color, #fff);
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
           letter-spacing: 0.04em;
         }
 
         .adminRankButtonText span {
           font-size: 10px;
-          opacity: 0.7;
+          opacity: 0.65;
           font-weight: 700;
           color: rgba(255, 255, 255, 0.85);
         }
 
         .adminRankChevron {
           font-size: 10px;
-          opacity: 0.6;
+          opacity: 0.55;
           margin-left: 2px;
+          color: rgba(255, 255, 255, 0.85);
           display: inline-flex;
           align-items: center;
           transition: transform 0.18s ease, opacity 0.18s ease;
         }
 
         .adminRankButton[aria-expanded="true"] .adminRankChevron {
-          transform: translateY(-1px);
           opacity: 0.85;
         }
 
         .adminRankMenu {
           position: absolute;
           top: calc(100% + 6px);
-          left: 0;
+          right: 0;
           z-index: 80;
-          min-width: 240px;
+          min-width: 220px;
           max-height: 360px;
           overflow-y: auto;
           background: #13161f;
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 10px;
-          box-shadow:
-            0 18px 45px rgba(0, 0, 0, 0.6),
-            0 0 0 1px rgba(0, 0, 0, 0.3);
-          animation: adminRankFadeIn 0.12s ease-out;
+          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+          animation: adminRankFadeIn 0.1s ease-out;
           padding: 4px;
           scrollbar-width: thin;
           scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
@@ -1964,51 +1759,26 @@ await loadTests();
           align-items: center;
           gap: 10px;
           width: 100%;
-          padding: 8px 10px;
+          padding: 9px 10px;
           background: transparent;
-          border: 1px solid transparent;
+          border: none;
           border-radius: 6px;
           color: rgba(255, 255, 255, 0.85);
           cursor: pointer;
           font-family: Montserrat, inherit;
           font-size: 12px;
           font-weight: 800;
-          transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+          transition: background 0.12s ease;
           text-align: left;
-          position: relative;
-        }
-
-        .adminRankOptionDot {
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background: var(--admin-rank-color, #888d95);
-          box-shadow:
-            0 0 0 2px rgba(0, 0, 0, 0.3),
-            0 0 6px color-mix(in srgb, var(--admin-rank-color, #888d95) 55%, transparent);
-          flex-shrink: 0;
         }
 
         .adminRankOption:hover {
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 12%, transparent);
-          border-color: color-mix(in srgb, var(--admin-rank-color, #888d95) 35%, transparent);
+          background: rgba(255, 255, 255, 0.06);
         }
 
         .adminRankOption.selected {
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 20%, transparent);
-          border-color: color-mix(in srgb, var(--admin-rank-color, #888d95) 65%, transparent);
+          background: rgba(255, 255, 255, 0.12);
           color: #fff;
-        }
-
-        .adminRankOption.selected .adminRankOptionLabel {
-          color: var(--admin-rank-color, #fff);
-          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-        }
-
-        .adminRankOption.selected .adminRankOptionDot {
-          box-shadow:
-            0 0 0 2px rgba(0, 0, 0, 0.3),
-            0 0 10px color-mix(in srgb, var(--admin-rank-color, #888d95) 90%, transparent);
         }
 
         .adminRankOptionMain {
@@ -2022,28 +1792,29 @@ await loadTests();
         .adminRankOptionLabel {
           text-transform: uppercase;
           letter-spacing: 0.05em;
+          color: var(--admin-rank-color, #fff);
         }
 
         .adminRankOptionMeta {
           font-size: 10px;
-          opacity: 0.7;
+          opacity: 0.65;
           font-weight: 700;
           margin-left: auto;
           padding-right: 4px;
+          color: rgba(255, 255, 255, 0.75);
         }
 
         .adminRankOption em {
-          margin-left: 4px;
+          margin-left: 8px;
           font-style: normal;
-          font-size: 8.5px;
+          font-size: 9px;
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          padding: 2px 7px;
-          border-radius: 999px;
-          background: rgba(143, 124, 255, 0.18);
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: rgba(143, 124, 255, 0.22);
           color: #b8a9ff;
-          border: 1px solid rgba(143, 124, 255, 0.38);
         }
 
         @keyframes adminRankFadeIn {
@@ -2057,6 +1828,7 @@ await loadTests();
           }
         }
 
+        .adminPrimaryButton,
         .adminSaveButton {
           padding: 7px 14px;
           border-radius: 8px;
@@ -2072,10 +1844,99 @@ await loadTests();
           white-space: nowrap;
         }
 
-        .adminSaveButton:hover {
+        .adminSaveButton:hover,
+        .adminPrimaryButton:hover {
           background: rgba(255, 255, 255, 0.12);
           transform: translateY(-1px);
         }
+
+        /* ─── Mode cards ─── */
+        .adminModeCard {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 12px 16px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          min-width: 0;
+          transition: background 0.15s ease, border-color 0.15s ease;
+          flex-wrap: wrap;
+        }
+
+        .adminModeCard:hover {
+          background: rgba(255, 255, 255, 0.06);
+          border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .adminModeCard.retired {
+          opacity: 0.55;
+          border-style: dashed;
+        }
+
+        .adminModeCard.untested {
+          opacity: 0.85;
+        }
+
+        .adminModeIdentity {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+        }
+
+        .adminModeIconWrap {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 42px;
+          height: 42px;
+          border-radius: 50%;
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 18%, rgba(255, 255, 255, 0.04));
+          border: 1.5px solid color-mix(in srgb, var(--admin-rank-color, #888d95) 55%, transparent);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            0 0 0 1px rgba(0, 0, 0, 0.2);
+          flex-shrink: 0;
+          transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .adminModeCard:hover .adminModeIconWrap {
+          transform: scale(1.04);
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            0 0 12px color-mix(in srgb, var(--admin-rank-color, #888d95) 45%, transparent);
+        }
+
+        .adminModeIcon {
+          width: 26px;
+          height: 26px;
+          object-fit: contain;
+          display: block;
+        }
+
+        .adminModeCopy {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+        }
+
+        .adminModeName {
+          font-size: 14px;
+          font-weight: 800;
+          color: #fff;
+          letter-spacing: 0.01em;
+        }
+
+        .adminModeMeta {
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.55);
+          letter-spacing: 0.02em;
+        }
+
       `}</style>
     </div>
   );
