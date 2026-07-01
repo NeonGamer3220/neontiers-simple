@@ -39,11 +39,15 @@ async function resolveAdminName(adminSession) {
   if (!adminSession) return null;
   if (adminSession.admin_name) return adminSession.admin_name;
   if (adminSession.adminId && supabase) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("admins")
       .select("admin_name")
       .eq("id", adminSession.adminId)
-      .single();
+      .maybeSingle();
+    if (error) {
+      console.error("resolveAdminName error:", error.message);
+      return null;
+    }
     return data?.admin_name || null;
   }
   return null;
@@ -64,7 +68,9 @@ export async function GET(req) {
   }
 
   const resolvedName = await resolveAdminName(adminSession);
-  if (!resolvedName) return json({ error: "Invalid session" }, 401);
+  if (!resolvedName) {
+    console.warn("Admin session resolved no name; continuing with session role check only.");
+  }
 
   const { searchParams } = new URL(req.url);
   const action = (searchParams.get("action") || "list").trim();
