@@ -3,46 +3,33 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+// Single source of truth for the rank list — keeps JSX clean and matches
+// the hutier.hu picker exactly (label, points, color, retired flag).
+const RANK_OPTIONS = [
+  { value: "",      label: "Unranked", points: 0,  color: "rgba(255, 255, 255, 0.68)" },
+  { value: "LT5",   label: "LT5",      points: 1,  color: "#40384f" },
+  { value: "HT5",   label: "HT5",      points: 2,  color: "#6f6389" },
+  { value: "LT4",   label: "LT4",      points: 3,  color: "#514764" },
+  { value: "HT4",   label: "HT4",      points: 4,  color: "#b7aadf" },
+  { value: "LT3",   label: "LT3",      points: 6,  color: "#b36830" },
+  { value: "HT3",   label: "HT3",      points: 10, color: "#dd8849" },
+  { value: "LT2",   label: "LT2",      points: 16, color: "#888d95" },
+  { value: "RLT2",  label: "RLT2",     points: 16, color: "#8f7cff", retired: true },
+  { value: "HT2",   label: "HT2",      points: 28, color: "#a4b3c7" },
+  { value: "RHT2",  label: "RHT2",     points: 28, color: "#8f7cff", retired: true },
+  { value: "LT1",   label: "LT1",      points: 40, color: "#d5b355" },
+  { value: "RLT1",  label: "RLT1",     points: 40, color: "#8f7cff", retired: true },
+  { value: "HT1",   label: "HT1",      points: 60, color: "#ffcf4a" },
+  { value: "RHT1",  label: "RHT1",     points: 60, color: "#8f7cff", retired: true },
+];
+
 function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
 
-  const RANK_COLORS = {
-    "": "rgba(255, 255, 255, 0.68)",
-    LT5: "#40384f",
-    HT5: "#6f6389",
-    LT4: "#514764",
-    HT4: "#b7aadf",
-    LT3: "#b36830",
-    HT3: "#dd8849",
-    LT2: "#888d95",
-    RLT2: "#8f7cff",
-    HT2: "#a4b3c7",
-    RHT2: "#8f7cff",
-    LT1: "#d5b355",
-    RLT1: "#8f7cff",
-    HT1: "#ffcf4a",
-    RHT1: "#8f7cff",
-  };
-
-  const currentColor = RANK_COLORS[value] || "#888d95";
-
-  const hexToRgba = (hex, alpha) => {
-    const clean = String(hex || "").replace("#", "");
-    if (clean.length === 4) {
-      const r = clean[0];
-      const g = clean[1];
-      const b = clean[2];
-      return `rgba(${r},${r},${g},${g},${b},${b},${alpha})`;
-    }
-    if (clean.length >= 6) {
-      const r = clean.slice(0, 2);
-      const g = clean.slice(2, 4);
-      const b = clean.slice(4, 6);
-      return `rgba(${parseInt(r, 16)},${parseInt(g, 16)},${parseInt(b, 16)},${alpha})`;
-    }
-    return `rgba(136,141,149,${alpha})`;
-  };
+  const current =
+    RANK_OPTIONS.find((r) => r.value === value) || RANK_OPTIONS[0];
+  const currentColor = current.color;
 
   useEffect(() => {
     if (!open || disabled) {
@@ -65,11 +52,9 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
     setOpen(false);
   };
 
-  const buttonStyle = {
-    "--admin-rank-color": currentColor,
-    background: hexToRgba(currentColor, 0.18),
-    borderColor: currentColor,
-  };
+  // Only set the CSS variable — every visual treatment lives in the CSS,
+  // using color-mix() with --admin-rank-color. Matches the hutier.hu source.
+  const buttonStyle = { "--admin-rank-color": currentColor };
 
   return (
     <div className="adminModeControls noTester" ref={pickerRef} data-admin-rank-picker="true">
@@ -82,216 +67,37 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
           aria-expanded={open && !disabled}
           disabled={disabled}
         >
+          <span className="adminRankButtonDot" aria-hidden="true" />
           <span className="adminRankButtonText">
-            <strong>{value === "" ? "Unranked" : value}</strong>
-            <span>
-              {value === ""
-                ? "0 pont"
-                : value === "LT5"
-                  ? "1 pont"
-                  : value === "HT5"
-                    ? "2 pont"
-                    : value === "LT4"
-                      ? "3 pont"
-                      : value === "HT4"
-                        ? "4 pont"
-                        : value === "LT3"
-                          ? "6 pont"
-                          : value === "HT3"
-                            ? "10 pont"
-                            : value === "LT2"
-                              ? "16 pont"
-                              : value === "RLT2"
-                                ? "16 pont"
-                                : value === "HT2"
-                                  ? "28 pont"
-                                  : value === "RHT2"
-                                    ? "28 pont"
-                                    : value === "LT1"
-                                      ? "40 pont"
-                                      : value === "RLT1"
-                                        ? "40 pont"
-                                        : value === "HT1"
-                                          ? "60 pont"
-                                          : value === "RHT1"
-                                            ? "60 pont"
-                                            : "0 pont"}
-            </span>
+            <strong>{current.label}</strong>
+            <span>{current.points} pont</span>
           </span>
-          <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
+          <span className="adminRankChevron">{open && !disabled ? "\u25B4" : "\u25BE"}</span>
         </button>
 
         {open && !disabled && (
-          <div className="adminRankMenu">
-            <button
-              type="button"
-              className={`adminRankOption ${value === "" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "rgba(255, 255, 255, 0.68)" }}
-              onClick={() => handleSelect("")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">Unranked</span>
-                <span className="adminRankOptionMeta">0 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "LT5" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#40384f" }}
-              onClick={() => handleSelect("LT5")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">LT5</span>
-                <span className="adminRankOptionMeta">1 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "HT5" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#6f6389" }}
-              onClick={() => handleSelect("HT5")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">HT5</span>
-                <span className="adminRankOptionMeta">2 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "LT4" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#514764" }}
-              onClick={() => handleSelect("LT4")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">LT4</span>
-                <span className="adminRankOptionMeta">3 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "HT4" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#b7aadf" }}
-              onClick={() => handleSelect("HT4")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">HT4</span>
-                <span className="adminRankOptionMeta">4 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "LT3" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#b36830" }}
-              onClick={() => handleSelect("LT3")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">LT3</span>
-                <span className="adminRankOptionMeta">6 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "HT3" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#dd8849" }}
-              onClick={() => handleSelect("HT3")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">HT3</span>
-                <span className="adminRankOptionMeta">10 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "LT2" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#888d95" }}
-              onClick={() => handleSelect("LT2")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">LT2</span>
-                <span className="adminRankOptionMeta">16 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "RLT2" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#8f7cff" }}
-              onClick={() => handleSelect("RLT2")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">RLT2</span>
-                <span className="adminRankOptionMeta">16 pont</span>
-              </span>
-              <em>Retired</em>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "HT2" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#a4b3c7" }}
-              onClick={() => handleSelect("HT2")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">HT2</span>
-                <span className="adminRankOptionMeta">28 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "RHT2" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#8f7cff" }}
-              onClick={() => handleSelect("RHT2")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">RHT2</span>
-                <span className="adminRankOptionMeta">28 pont</span>
-              </span>
-              <em>Retired</em>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "LT1" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#d5b355" }}
-              onClick={() => handleSelect("LT1")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">LT1</span>
-                <span className="adminRankOptionMeta">40 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "RLT1" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#8f7cff" }}
-              onClick={() => handleSelect("RLT1")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">RLT1</span>
-                <span className="adminRankOptionMeta">40 pont</span>
-              </span>
-              <em>Retired</em>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "HT1" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#ffcf4a" }}
-              onClick={() => handleSelect("HT1")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">HT1</span>
-                <span className="adminRankOptionMeta">60 pont</span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={`adminRankOption ${value === "RHT1" ? "selected" : ""}`}
-              style={{ "--admin-rank-color": "#8f7cff" }}
-              onClick={() => handleSelect("RHT1")}
-            >
-              <span className="adminRankOptionMain">
-                <span className="adminRankOptionLabel">RHT1</span>
-                <span className="adminRankOptionMeta">60 pont</span>
-              </span>
-              <em>Retired</em>
-            </button>
+          <div className="adminRankMenu" role="listbox">
+            {RANK_OPTIONS.map((opt) => {
+              const isSelected = opt.value === value;
+              return (
+                <button
+                  key={opt.value || "unranked"}
+                  type="button"
+                  className={`adminRankOption ${isSelected ? "selected" : ""}`}
+                  style={{ "--admin-rank-color": opt.color }}
+                  onClick={() => handleSelect(opt.value)}
+                  role="option"
+                  aria-selected={isSelected}
+                >
+                  <span className="adminRankOptionDot" aria-hidden="true" />
+                  <span className="adminRankOptionMain">
+                    <span className="adminRankOptionLabel">{opt.label}</span>
+                    <span className="adminRankOptionMeta">{opt.points} pont</span>
+                  </span>
+                  {opt.retired && <em>Retired</em>}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -302,7 +108,7 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
           className="adminPrimaryButton adminSaveButton"
           onClick={onSave}
         >
-          Mentés
+          Ment\u00E9s
         </button>
       )}
     </div>
@@ -2039,28 +1845,33 @@ await loadTests();
         .adminRankPicker {
           position: relative;
           display: inline-flex;
+          min-width: 0;
         }
 
         .adminRankButton {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          padding: 6px 12px;
-          border-radius: 8px;
-          border: 1.5px solid var(--admin-rank-color, #888d95);
+          gap: 9px;
+          padding: 6px 12px 6px 9px;
+          border-radius: 9px;
+          border: 1px solid color-mix(in srgb, var(--admin-rank-color, #888d95) 55%, transparent);
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 14%, #13161f);
           color: #fff;
           cursor: pointer;
           font-family: Montserrat, inherit;
           font-weight: 800;
           font-size: 12px;
-          letter-spacing: 0.04em;
-          transition: background 0.15s, transform 0.1s;
+          letter-spacing: 0.03em;
+          transition: filter 0.15s ease, transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease;
           white-space: nowrap;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         .adminRankButton:hover {
-          filter: brightness(1.25);
+          filter: brightness(1.15);
           transform: translateY(-1px);
+          border-color: color-mix(in srgb, var(--admin-rank-color, #888d95) 85%, transparent);
+          box-shadow: 0 4px 14px color-mix(in srgb, var(--admin-rank-color, #888d95) 35%, transparent);
         }
 
         .adminRankButton[disabled],
@@ -2068,6 +1879,18 @@ await loadTests();
           opacity: 0.42;
           cursor: not-allowed;
           pointer-events: none;
+          filter: grayscale(0.35);
+        }
+
+        .adminRankButtonDot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: var(--admin-rank-color, #888d95);
+          box-shadow:
+            0 0 0 2px rgba(0, 0, 0, 0.35),
+            0 0 8px color-mix(in srgb, var(--admin-rank-color, #888d95) 70%, transparent);
+          flex-shrink: 0;
         }
 
         .adminRankButtonText {
@@ -2075,38 +1898,65 @@ await loadTests();
           flex-direction: column;
           align-items: flex-start;
           line-height: 1.15;
+          gap: 1px;
         }
 
         .adminRankButtonText strong {
           font-size: 13px;
           text-transform: uppercase;
+          color: var(--admin-rank-color, #fff);
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+          letter-spacing: 0.04em;
         }
 
         .adminRankButtonText span {
           font-size: 10px;
-          opacity: 0.75;
+          opacity: 0.7;
           font-weight: 700;
+          color: rgba(255, 255, 255, 0.85);
         }
 
         .adminRankChevron {
           font-size: 10px;
-          opacity: 0.65;
-          margin-left: 1px;
+          opacity: 0.6;
+          margin-left: 2px;
+          display: inline-flex;
+          align-items: center;
+          transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+
+        .adminRankButton[aria-expanded="true"] .adminRankChevron {
+          transform: translateY(-1px);
+          opacity: 0.85;
         }
 
         .adminRankMenu {
           position: absolute;
           top: calc(100% + 6px);
           left: 0;
-          z-index: 50;
-          min-width: 220px;
+          z-index: 80;
+          min-width: 240px;
+          max-height: 360px;
+          overflow-y: auto;
           background: #13161f;
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 10px;
-          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
-          animation: fadeIn 0.1s ease-out;
-          overflow: hidden;
+          box-shadow:
+            0 18px 45px rgba(0, 0, 0, 0.6),
+            0 0 0 1px rgba(0, 0, 0, 0.3);
+          animation: adminRankFadeIn 0.12s ease-out;
           padding: 4px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+        }
+
+        .adminRankMenu::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .adminRankMenu::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.15);
+          border-radius: 4px;
         }
 
         .adminRankOption {
@@ -2114,166 +1964,59 @@ await loadTests();
           align-items: center;
           gap: 10px;
           width: 100%;
-          padding: 9px 10px;
+          padding: 8px 10px;
           background: transparent;
-          border: none;
+          border: 1px solid transparent;
           border-radius: 6px;
           color: rgba(255, 255, 255, 0.85);
           cursor: pointer;
           font-family: Montserrat, inherit;
           font-size: 12px;
           font-weight: 800;
-          transition: background 0.12s;
+          transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
           text-align: left;
-        }
-
-        .adminRankOption:hover {
-          background: rgba(255, 255, 255, 0.06);
-        }
-
-        .adminRankOption.selected {
-          background: rgba(255, 255, 255, 0.12);
-          color: #fff;
-        }
-
-        .adminRankOptionMain {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          flex: 1;
-        }
-
-        .adminRankOptionLabel {
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .adminRankOptionMeta {
-          font-size: 10px;
-          opacity: 0.7;
-          font-weight: 700;
-          margin-left: auto;
-          padding-right: 4px;
-        }
-
-        .adminRankOption em {
-          margin-left: 8px;
-          font-style: normal;
-          font-size: 9px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          padding: 2px 6px;
-          border-radius: 4px;
-          background: rgba(143, 124, 255, 0.22);
-          color: #b8a9ff;
-        }
-
-        .adminRankPicker {
           position: relative;
-          display: inline-flex;
         }
 
-        .adminRankButton {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          padding: 6px 12px;
-          border-radius: 8px;
-          border: 1.5px solid var(--admin-rank-color, #888d95);
-          color: #fff;
-          cursor: pointer;
-          font-family: Montserrat, inherit;
-          font-weight: 800;
-          font-size: 12px;
-          letter-spacing: 0.04em;
-          transition: filter 0.15s, transform 0.1s;
-          white-space: nowrap;
-        }
-
-        .adminRankButton:hover {
-          filter: brightness(1.25);
-          transform: translateY(-1px);
-        }
-
-        .adminRankButton[disabled],
-        .adminRankButton.disabled {
-          opacity: 0.42;
-          cursor: not-allowed;
-          pointer-events: none;
-        }
-
-        .adminRankButtonText {
-          display: inline-flex;
-          flex-direction: column;
-          align-items: flex-start;
-          line-height: 1.15;
-        }
-
-        .adminRankButtonText strong {
-          font-size: 13px;
-          text-transform: uppercase;
-        }
-
-        .adminRankButtonText span {
-          font-size: 10px;
-          opacity: 0.75;
-          font-weight: 700;
-        }
-
-        .adminRankChevron {
-          font-size: 10px;
-          opacity: 0.65;
-          margin-left: 1px;
-        }
-
-        .adminRankMenu {
-          position: absolute;
-          top: calc(100% + 6px);
-          left: 0;
-          z-index: 50;
-          min-width: 220px;
-          background: #13161f;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
-          animation: fadeIn 0.1s ease-out;
-          overflow: hidden;
-          padding: 4px;
-        }
-
-        .adminRankOption {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          width: 100%;
-          padding: 9px 10px;
-          background: transparent;
-          border: none;
-          border-radius: 6px;
-          color: rgba(255, 255, 255, 0.85);
-          cursor: pointer;
-          font-family: Montserrat, inherit;
-          font-size: 12px;
-          font-weight: 800;
-          transition: background 0.12s;
-          text-align: left;
+        .adminRankOptionDot {
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: var(--admin-rank-color, #888d95);
+          box-shadow:
+            0 0 0 2px rgba(0, 0, 0, 0.3),
+            0 0 6px color-mix(in srgb, var(--admin-rank-color, #888d95) 55%, transparent);
+          flex-shrink: 0;
         }
 
         .adminRankOption:hover {
-          background: rgba(255, 255, 255, 0.06);
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 12%, transparent);
+          border-color: color-mix(in srgb, var(--admin-rank-color, #888d95) 35%, transparent);
         }
 
         .adminRankOption.selected {
-          background: rgba(255, 255, 255, 0.12);
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 20%, transparent);
+          border-color: color-mix(in srgb, var(--admin-rank-color, #888d95) 65%, transparent);
           color: #fff;
         }
 
+        .adminRankOption.selected .adminRankOptionLabel {
+          color: var(--admin-rank-color, #fff);
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+        }
+
+        .adminRankOption.selected .adminRankOptionDot {
+          box-shadow:
+            0 0 0 2px rgba(0, 0, 0, 0.3),
+            0 0 10px color-mix(in srgb, var(--admin-rank-color, #888d95) 90%, transparent);
+        }
+
         .adminRankOptionMain {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
           flex: 1;
+          min-width: 0;
         }
 
         .adminRankOptionLabel {
@@ -2290,16 +2033,28 @@ await loadTests();
         }
 
         .adminRankOption em {
-          margin-left: 8px;
+          margin-left: 4px;
           font-style: normal;
-          font-size: 9px;
+          font-size: 8.5px;
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.08em;
-          padding: 2px 6px;
-          border-radius: 4px;
-          background: rgba(143, 124, 255, 0.22);
+          padding: 2px 7px;
+          border-radius: 999px;
+          background: rgba(143, 124, 255, 0.18);
           color: #b8a9ff;
+          border: 1px solid rgba(143, 124, 255, 0.38);
+        }
+
+        @keyframes adminRankFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
         .adminSaveButton {
