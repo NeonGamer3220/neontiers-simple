@@ -8,6 +8,7 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
   const pickerRef = React.useRef(null);
 
   const ALL_RANKS = [
+    { value: "", label: "Unranked", points: 0, color: "rgba(255, 255, 255, 0.68)" },
     { value: "LT5", label: "LT5", points: 1, color: "#40384f" },
     { value: "HT5", label: "HT5", points: 2, color: "#6f6389" },
     { value: "LT4", label: "LT4", points: 3, color: "#514764" },
@@ -15,17 +16,15 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
     { value: "LT3", label: "LT3", points: 6, color: "#b36830" },
     { value: "HT3", label: "HT3", points: 10, color: "#dd8849" },
     { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
+    { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
     { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
-    { value: "LT1", label: "LT1", points: 28, color: "#d5b355" },
-    { value: "HT1", label: "HT1", points: 34, color: "#d5b355" },
-    { value: "", label: "— üres —", points: 0, color: "#888d95" },
+    { value: "LT1", label: "LT1", points: 28, color: "#888d95" },
+    { value: "RLT1", label: "RLT1", points: 28, color: "#8f7cff", retired: true },
+    { value: "HT1", label: "HT1", points: 34, color: "#ffcf4a" },
+    { value: "RHT1", label: "RHT1", points: 34, color: "#8f7cff", retired: true },
   ];
 
-  const KISKAT = ALL_RANKS.filter(r => ["LT5","HT5","LT4","HT4","LT3","HT3"].includes(r.value));
-  const NAGYAT = ALL_RANKS.filter(r => ["HT3","LT2","HT2","LT1","HT1"].includes(r.value));
-  const EMPTY = ALL_RANKS.find(r => r.value === "");
-
-  const currentRank = ALL_RANKS.find(r => r.value === value) || EMPTY;
+  const currentRank = ALL_RANKS.find((r) => r.value === value) || ALL_RANKS[0];
   const currentColor = currentRank.color;
 
   useEffect(() => {
@@ -34,14 +33,18 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
       return;
     }
     const handler = (e) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) setOpen(false);
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open, disabled]);
 
   const handleSelect = (rankValue) => {
-    if (!disabled) onChange(rankValue);
+    if (!disabled) {
+      onChange(rankValue);
+    }
     setOpen(false);
   };
 
@@ -49,7 +52,7 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
     <div className="adminRankPicker" ref={pickerRef} data-admin-rank-picker="true">
       <button
         type="button"
-        className={`adminRankButton ${disabled ? "disabled" : ""}`}
+        className="adminRankButton"
         style={{
           "--admin-rank-color": disabled ? "#888d95" : currentColor,
           opacity: disabled ? 0.5 : 1,
@@ -63,57 +66,26 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
           <strong>{currentRank.label}</strong>
           <span>{currentRank.points} pont</span>
         </span>
-        <span className="adminRankChevron">▾</span>
+        <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
       </button>
 
       {open && !disabled && (
-        <div className="adminRankDropdown">
-          <div className="adminRankDropdownHeader">
-            <span>Rang kiválasztása</span>
+        <div className="adminRankMenu">
+          {ALL_RANKS.map((tier) => (
             <button
+              key={tier.value}
               type="button"
-              className="adminRankDropdownClose"
-              onClick={() => setOpen(false)}
+              className={`adminRankOption ${value === tier.value ? "selected" : ""}`}
+              style={{ "--admin-rank-color": tier.color }}
+              onClick={() => handleSelect(tier.value)}
             >
-              ✕
+              <span className="adminRankOptionMain">
+                <span className="adminRankOptionLabel">{tier.label}</span>
+                <span className="adminRankOptionMeta">{tier.points} pont</span>
+              </span>
+              {tier.retired && <em>Retired</em>}
             </button>
-          </div>
-
-          <div className="adminRankGroup">
-            <div className="adminRankGroupLabel">Kiskat</div>
-            <div className="adminRankOptions">
-              {KISKAT.map((tier) => (
-                <button
-                  key={tier.value}
-                  type="button"
-                  className={`adminRankOption ${value === tier.value ? "active" : ""}`}
-                  style={{ "--admin-rank-color": tier.color }}
-                  onClick={() => handleSelect(tier.value)}
-                >
-                  <span className="adminRankOptionLabel">{tier.label}</span>
-                  <span className="adminRankOptionPoints">{tier.points} pont</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="adminRankGroup">
-            <div className="adminRankGroupLabel">Nagyat</div>
-            <div className="adminRankOptions">
-              {NAGYAT.map((tier) => (
-                <button
-                  key={tier.value}
-                  type="button"
-                  className={`adminRankOption ${value === tier.value ? "active" : ""}`}
-                  style={{ "--admin-rank-color": tier.color }}
-                  onClick={() => handleSelect(tier.value)}
-                >
-                  <span className="adminRankOptionLabel">{tier.label}</span>
-                  <span className="adminRankOptionPoints">{tier.points} pont</span>
-                </button>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
       )}
     </div>
