@@ -21,6 +21,9 @@ export default function AdminSurveysPage() {
   const [parsedQuestionsPreview, setParsedQuestionsPreview] = useState("");
   const [toast, setToast] = useState(null);
   const [selectedSurvey, setSelectedSurvey] = useState(null);
+  const [surveyResponses, setSurveyResponses] = useState([]);
+  const [responseSurvey, setResponseSurvey] = useState(null);
+  const [responsesLoading, setResponsesLoading] = useState(false);
 
   const parseCategoryText = (text, stage) => {
     const trimmed = String(text || "").trim();
@@ -220,10 +223,30 @@ export default function AdminSurveysPage() {
         return;
       }
       showToast("ok", "Felmérés törölve");
+      if (responseSurvey?.id === id) {
+        setResponseSurvey(null);
+        setSurveyResponses([]);
+      }
       await loadSurveys();
     } catch (err) {
       console.error(err);
       showToast("error", "Hálózati hiba");
+    }
+  };
+
+  const loadSurveyResponses = async (surveyId) => {
+    setResponsesLoading(true);
+    try {
+      const res = await fetch(`/api/admin/surveys?action=results&id=${surveyId}`);
+      if (!res.ok) throw new Error("Failed to load responses");
+      const data = await res.json();
+      setResponseSurvey(data.survey || null);
+      setSurveyResponses(Array.isArray(data.responses) ? data.responses : []);
+    } catch (err) {
+      console.error(err);
+      showToast("error", "Válaszok betöltése sikertelen");
+    } finally {
+      setResponsesLoading(false);
     }
   };
 
@@ -330,11 +353,47 @@ export default function AdminSurveysPage() {
                 </div>
                 <div className="surveyActions">
                   <button className="surveyEditBtn" onClick={() => handleEditSurvey(survey)}>Szerkesztés</button>
+                  <button className="surveyEditBtn" onClick={() => loadSurveyResponses(survey.id)}>Kitöltések</button>
                   <button className="surveyDeleteBtn" onClick={() => handleDeleteSurvey(survey.id)}>Törlés</button>
                 </div>
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="surveyResponsesSection">
+          <h2>Kitöltések</h2>
+          {responseSurvey ? (
+            <>
+              <div className="surveyResponseHeader">
+                <strong>{responseSurvey.name}</strong> válaszai
+              </div>
+              {responsesLoading ? (
+                <div>Betöltés...</div>
+              ) : surveyResponses.length === 0 ? (
+                <div>Nincs kitöltés ehhez a felméréshez</div>
+              ) : (
+                <div className="responseList">
+                  {surveyResponses.map((response) => (
+                    <div key={response.id} className="responseCard">
+                      <div className="responseRow">
+                        <div>
+                          <strong>{response.participant_name || "Név nélküli"}</strong>
+                          <div className="surveyMeta">Állapot: {response.state || "ismeretlen"} • Szakasz: {response.current_stage || "ismeretlen"}</div>
+                        </div>
+                        <div className="responseMeta">Kitöltve: {response.completed_at ? new Date(response.completed_at).toLocaleString("hu-HU") : "Nincs"}</div>
+                      </div>
+                      <div className="answersBox">
+                        <pre>{JSON.stringify(response.answers || {}, null, 2)}</pre>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div>Válassz egy felmérést a kitöltések megtekintéséhez</div>
+          )}
         </section>
 
       </main>
@@ -364,6 +423,13 @@ export default function AdminSurveysPage() {
         .surveyEditBtn { padding:10px 16px; border:1px solid rgba(255,255,255,0.18); border-radius:10px; background: rgba(37, 99, 235, 0.12); color:#93c5fd; cursor:pointer; }
         .surveyDeleteBtn { background: rgba(214,71,71,0.22); border:none; color:#d64747; padding:10px 16px; border-radius:10px; cursor:pointer; }
         .surveyMeta { color: rgba(255,255,255,0.55); font-size:13px; margin-top:6px; }
+        .surveyResponsesSection { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 24px; }
+        .surveyResponseHeader { margin-bottom: 16px; color: #fff; }
+        .responseList { display:grid; gap:14px; }
+        .responseCard { background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:16px 18px; }
+        .responseRow { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+        .responseMeta { color: rgba(255,255,255,0.55); font-size:13px; margin-top:6px; }
+        .answersBox { margin-top:12px; background: rgba(15,23,42,0.95); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:14px 16px; color:#d1d5db; font-size:13px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
         .toast { position:fixed; bottom:24px; right:24px; background: rgba(0,0,0,0.8); color:#fff; padding:14px 18px; border-radius:14px; z-index:999; }
         .toastError { background: rgba(214,71,71,0.95); }
         .toastOk { background: rgba(52, 211, 153, 0.95); }
