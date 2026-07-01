@@ -8,30 +8,87 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
   const pickerRef = React.useRef(null);
 
   const ALL_RANKS = [
-    { value: "", label: "Unranked", points: 0, color: "rgba(255, 255, 255, 0.68)" },
-    { value: "LT5", label: "LT5", points: 1, color: "#40384f" },
+    { value: "", label: "Unranked", points: 0, color: "#888d95" },
+    { value: "LT5", label: "LT5", points: 1, color: "#6f6389" },
     { value: "HT5", label: "HT5", points: 2, color: "#6f6389" },
-    { value: "LT4", label: "LT4", points: 3, color: "#514764" },
+    { value: "LT4", label: "LT4", points: 3, color: "#b7aadf" },
     { value: "HT4", label: "HT4", points: 4, color: "#b7aadf" },
-    { value: "LT3", label: "LT3", points: 6, color: "#b36830" },
+    { value: "LT3", label: "LT3", points: 6, color: "#dd8849" },
     { value: "HT3", label: "HT3", points: 10, color: "#dd8849" },
-    { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
+    { value: "LT2", label: "LT2", points: 16, color: "#a4b3c7" },
     { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
     { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
     { value: "LT1", label: "LT1", points: 28, color: "#d5b355" },
     { value: "RLT1", label: "RLT1", points: 28, color: "#8f7cff", retired: true },
-    { value: "HT1", label: "HT1", points: 34, color: "#ffcf4a" },
+    { value: "HT1", label: "HT1", points: 34, color: "#d5b355" },
     { value: "RHT1", label: "RHT1", points: 34, color: "#8f7cff", retired: true },
   ];
 
   const currentRank = ALL_RANKS.find((r) => r.value === value) || ALL_RANKS[0];
   const currentColor = currentRank.color;
+  const currentPoints = currentRank.points;
 
   useEffect(() => {
     if (!open || disabled) {
       setOpen(false);
       return;
     }
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, disabled]);
+
+  const handleSelect = (rankValue) => {
+    if (!disabled) {
+      onChange(rankValue);
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div className="adminRankPicker" ref={pickerRef} data-admin-rank-picker="true">
+      <button
+        type="button"
+        className="adminRankButton"
+        style={{
+          "--admin-rank-color": currentColor,
+          opacity: disabled ? 0.45 : 1,
+          cursor: disabled ? "not-allowed" : "pointer",
+        }}
+        onClick={() => !disabled && setOpen((v) => !v)}
+        aria-expanded={open && !disabled}
+        disabled={disabled}
+      >
+        <span className="adminRankButtonTier">{currentRank.label}</span>
+        <span className="adminRankButtonPoints">{currentPoints} pont</span>
+        <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
+      </button>
+
+      {open && !disabled && (
+        <div className="adminRankMenu">
+          {ALL_RANKS.map((tier) => (
+            <button
+              key={tier.value}
+              type="button"
+              className={`adminRankOption ${value === tier.value ? "selected" : ""} ${tier.retired ? "retired" : ""}`}
+              style={{ "--admin-rank-color": tier.color }}
+              onClick={() => handleSelect(tier.value)}
+            >
+              <span className="adminRankOptionColor" />
+              <span className="adminRankOptionLabel">{tier.label}</span>
+              <span className="adminRankOptionMeta">{tier.points} pont</span>
+              {tier.retired && <span className="adminRankOptionRetired">Retired</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
     const handler = (e) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
         setOpen(false);
@@ -91,8 +148,6 @@ function AdminRankPicker({ value, onChange, disabled = false }) {
     </div>
   );
 }
-
-const LEGACY_MODES = new Set(["vanilla", "uhc", "pot", "sword", "axe", "mace", "ogvanilla", "shieldlessuhc"]);
 
 const MODE_OPTIONS = [
   "Vanilla",
@@ -185,7 +240,6 @@ export default function AdminDashboard() {
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
   const [confirmState, setConfirmState] = useState(null);
-  const [legacyModeOnly, setLegacyModeOnly] = useState(false);
 
   const showConfirm = (message) => new Promise((resolve) => {
     setConfirmState({ message, resolve });
@@ -266,17 +320,10 @@ export default function AdminDashboard() {
        created_at: t.created_at || null,
      }));
 
-     if (legacyModeOnly) {
-       entries = entries.filter((e) => LEGACY_MODES.has(e.gamemode.toLowerCase().replace(/\s+/g, "")));
-     }
-
      // Include untested gamemodes
      if (includeUntested) {
        const testedModes = new Set(entries.map((e) => e.gamemode.toLowerCase()));
-       const modesToCheck = legacyModeOnly
-         ? MODE_OPTIONS.filter((m) => LEGACY_MODES.has(m.toLowerCase().replace(/\s+/g, "")))
-         : MODE_OPTIONS;
-       for (const mode of modesToCheck) {
+       for (const mode of MODE_OPTIONS) {
          if (!testedModes.has(mode.toLowerCase())) {
              entries.push({
               gamemode: mode,
@@ -680,12 +727,6 @@ await loadTests();
               <span className="headerStatValue">{stats.totalTiers}</span>
               <span className="headerStatLabel">Tier</span>
             </div>
-            <button
-              className={`toggleLegacyBtn ${legacyModeOnly ? "active" : ""}`}
-              onClick={() => setLegacyModeOnly((v) => !v)}
-            >
-              {legacyModeOnly ? "Összes mód" : "Csak Legacy"}
-            </button>
           </div>
         </header>
 
@@ -982,32 +1023,6 @@ await loadTests();
           text-transform: uppercase;
           letter-spacing: 0.5px;
           font-weight: 800;
-        }
-
-        .toggleLegacyBtn {
-          align-self: flex-end;
-          padding: 8px 14px;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          background: rgba(255, 255, 255, 0.06);
-          color: rgba(255, 255, 255, 0.8);
-          font-weight: 800;
-          font-size: 12px;
-          cursor: pointer;
-          transition: all 0.2s;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .toggleLegacyBtn:hover {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: rgba(255, 255, 255, 0.35);
-        }
-
-        .toggleLegacyBtn.active {
-          background: rgba(74, 222, 128, 0.2);
-          border-color: rgba(74, 222, 128, 0.6);
-          color: #4ade80;
         }
 
         .logoutBtn {
@@ -1878,11 +1893,11 @@ await loadTests();
         .adminRankButton {
           display: inline-flex;
           align-items: center;
-          gap: 8px;
-          padding: 5px 10px;
+          gap: 10px;
+          padding: 6px 12px;
           border-radius: 8px;
           border: 1.5px solid var(--admin-rank-color, #888d95);
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 18%, transparent);
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 14%, transparent);
           color: #fff;
           cursor: pointer;
           font-family: Montserrat, inherit;
@@ -1894,39 +1909,34 @@ await loadTests();
         }
 
         .adminRankButton:hover {
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 28%, transparent);
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 24%, transparent);
           transform: translateY(-1px);
         }
 
-        .adminRankButton.disabled,
-        .adminRankButton[disabled] {
-          opacity: 0.45;
+        .adminRankButton[disabled],
+        .adminRankButton.disabled {
+          opacity: 0.42;
           cursor: not-allowed;
           pointer-events: none;
         }
 
-        .adminRankButtonText {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          line-height: 1.1;
-        }
-
-        .adminRankButtonText strong {
+        .adminRankButtonTier {
           font-size: 13px;
           text-transform: uppercase;
+          letter-spacing: 0.04em;
         }
 
-        .adminRankButtonText span {
+        .adminRankButtonPoints {
           font-size: 10px;
           opacity: 0.75;
           font-weight: 700;
+          padding-right: 2px;
         }
 
         .adminRankChevron {
-          font-size: 11px;
-          opacity: 0.7;
-          margin-left: 2px;
+          font-size: 10px;
+          opacity: 0.65;
+          margin-left: 1px;
         }
 
         .adminRankMenu {
@@ -1935,25 +1945,24 @@ await loadTests();
           left: 0;
           z-index: 50;
           min-width: 220px;
-          background: #151922;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 12px;
-          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-          animation: fadeIn 0.12s ease-out;
+          background: #13161f;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 10px;
+          box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+          animation: fadeIn 0.1s ease-out;
           overflow: hidden;
-          padding: 6px;
+          padding: 4px;
         }
 
         .adminRankOption {
           display: flex;
           align-items: center;
-          justify-content: space-between;
-          gap: 8px;
+          gap: 10px;
           width: 100%;
-          padding: 8px 10px;
+          padding: 9px 10px;
           background: transparent;
           border: none;
-          border-radius: 8px;
+          border-radius: 6px;
           color: rgba(255, 255, 255, 0.85);
           cursor: pointer;
           font-family: Montserrat, inherit;
@@ -1968,37 +1977,45 @@ await loadTests();
         }
 
         .adminRankOption.selected {
-          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 22%, transparent);
+          background: color-mix(in srgb, var(--admin-rank-color, #888d95) 18%, transparent);
           color: #fff;
         }
 
-        .adminRankOptionMain {
-          display: flex;
-          align-items: center;
-          gap: 10px;
+        .adminRankOption.retired {
+          opacity: 0.7;
+        }
+
+        .adminRankOptionColor {
+          width: 4px;
+          height: 16px;
+          border-radius: 2px;
+          background: var(--admin-rank-color, #888d95);
+          flex-shrink: 0;
         }
 
         .adminRankOptionLabel {
           text-transform: uppercase;
           letter-spacing: 0.04em;
+          flex: 1;
         }
 
         .adminRankOptionMeta {
           font-size: 10px;
-          opacity: 0.7;
+          opacity: 0.65;
           font-weight: 700;
+          margin-right: 4px;
         }
 
-        .adminRankOption em {
+        .adminRankOptionRetired {
           font-style: normal;
           font-size: 9px;
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.06em;
-          padding: 2px 6px;
-          border-radius: 4px;
-          background: rgba(143, 124, 255, 0.2);
-          color: #8f7cff;
+          padding: 2px 5px;
+          border-radius: 3px;
+          background: rgba(143, 124, 255, 0.18);
+          color: #b8a9ff;
         }
       `}</style>
     </div>
