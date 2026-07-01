@@ -400,18 +400,26 @@ export default function AdminLogsPage() {
         }
 
         .adminNavbar {
+          position: sticky;
+          top: 0;
+          z-index: 20;
           display: flex;
+          flex-wrap: wrap;
           justify-content: space-between;
           align-items: center;
-          padding: 16px 20px;
-          background: rgba(11, 14, 20, 0.8);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          gap: 18px;
+          padding: 16px 24px;
+          background: rgba(11, 14, 20, 0.94);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(14px);
           max-width: 1480px;
           margin: 0 auto;
-          gap: 20px;
         }
 
         .navbarLeft {
+          display: flex;
+          align-items: center;
+          gap: 14px;
           flex: 0 0 auto;
         }
 
@@ -419,54 +427,57 @@ export default function AdminLogsPage() {
           font-size: 18px;
           font-weight: 800;
           margin: 0;
+          letter-spacing: 0.02em;
         }
 
         .navbarLinks {
-          flex: 1;
           display: flex;
-          gap: 0;
-          list-style: none;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+          flex: 1;
+          min-width: 240px;
           margin: 0;
           padding: 0;
+          list-style: none;
         }
 
         .navbarLink {
-          padding: 10px 20px;
-          color: rgba(255, 255, 255, 0.65);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 16px;
+          color: rgba(255, 255, 255, 0.72);
           text-decoration: none;
           font-weight: 800;
           font-size: 13px;
-          transition: all 0.2s;
-          border-bottom: 2px solid transparent;
-          cursor: pointer;
-          background: none;
-          border: none;
+          border-radius: 999px;
+          transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.04em;
         }
 
-        .navbarLink:hover {
-          color: #fff;
-        }
-
+        .navbarLink:hover,
         .navbarLink.active {
           color: #fff;
-          border-bottom-color: #c41e3a;
+          background: rgba(255, 255, 255, 0.08);
+          transform: translateY(-1px);
         }
 
         .logoutBtn {
           padding: 10px 20px;
-          background: rgba(196, 30, 58, 0.8);
+          background: rgba(196, 30, 58, 0.85);
           border: 1px solid rgba(196, 30, 58, 0.5);
-          border-radius: 6px;
+          border-radius: 10px;
           color: #fff;
           font-weight: 800;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: background 0.18s ease, transform 0.18s ease;
         }
 
         .logoutBtn:hover {
           background: rgba(196, 30, 58, 1);
+          transform: translateY(-1px);
         }
 
         .logsHeader {

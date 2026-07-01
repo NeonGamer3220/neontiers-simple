@@ -400,11 +400,61 @@ export default function AdminSurveysPage() {
 
       <style jsx>{`
         .adminPage { min-height: 100vh; background: #0b0e14; color: #fff; }
-        .adminNavbar { display:flex; align-items:center; gap:20px; padding:18px 24px; background: rgba(11,14,20,0.85); border-bottom:1px solid rgba(255,255,255,0.08); }
-        .navbarTitle { margin:0; font-size:18px; font-weight:800; }
-        .navbarLinks { display:flex; gap:14px; }
-        .navbarLink { color: rgba(255,255,255,0.75); text-decoration:none; font-weight:700; }
-        .navbarLink.active, .navbarLink:hover { color: #fff; }
+        .adminNavbar {
+          position: sticky;
+          top: 0;
+          z-index: 20;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          align-items: center;
+          gap: 18px;
+          padding: 16px 24px;
+          background: rgba(11, 14, 20, 0.94);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(14px);
+        }
+
+        .navbarTitle {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+        }
+
+        .navbarLinks {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+          flex: 1;
+          min-width: 240px;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .navbarLink {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 16px;
+          color: rgba(255, 255, 255, 0.72);
+          text-decoration: none;
+          font-weight: 700;
+          font-size: 13px;
+          border-radius: 999px;
+          transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .navbarLink:hover,
+        .navbarLink.active {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.08);
+          transform: translateY(-1px);
+        }
         .adminContent { max-width: 1180px; margin: 24px auto; padding: 0 24px; display:grid; gap:32px; }
         .surveySection, .surveyListSection { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; padding: 24px; }
         .surveyForm { display:grid; gap:14px; }

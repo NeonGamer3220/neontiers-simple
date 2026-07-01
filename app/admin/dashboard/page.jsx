@@ -971,18 +971,26 @@ await loadTests();
         }
 
         .adminNavbar {
+          position: sticky;
+          top: 0;
+          z-index: 20;
           display: flex;
+          flex-wrap: wrap;
           justify-content: space-between;
           align-items: center;
-          padding: 16px 20px;
-          background: rgba(11, 14, 20, 0.8);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          gap: 18px;
+          padding: 16px 24px;
+          background: rgba(11, 14, 20, 0.94);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          backdrop-filter: blur(14px);
           max-width: 1480px;
           margin: 0 auto;
-          gap: 20px;
         }
 
         .navbarLeft {
+          display: flex;
+          align-items: center;
+          gap: 14px;
           flex: 0 0 auto;
         }
 
@@ -990,39 +998,41 @@ await loadTests();
           font-size: 18px;
           font-weight: 800;
           margin: 0;
+          letter-spacing: 0.02em;
         }
 
         .navbarLinks {
-          flex: 1;
           display: flex;
-          gap: 0;
-          list-style: none;
+          flex-wrap: wrap;
+          gap: 10px;
+          justify-content: center;
+          flex: 1;
+          min-width: 240px;
           margin: 0;
           padding: 0;
+          list-style: none;
         }
 
         .navbarLink {
-          padding: 10px 20px;
-          color: rgba(255, 255, 255, 0.65);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 16px;
+          color: rgba(255, 255, 255, 0.72);
           text-decoration: none;
           font-weight: 800;
           font-size: 13px;
-          transition: all 0.2s;
-          border-bottom: 2px solid transparent;
-          cursor: pointer;
-          background: none;
-          border: none;
+          border-radius: 999px;
+          transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.04em;
         }
 
-        .navbarLink:hover {
-          color: #fff;
-        }
-
+        .navbarLink:hover,
         .navbarLink.active {
           color: #fff;
-          border-bottom-color: #c41e3a;
+          background: rgba(255, 255, 255, 0.08);
+          transform: translateY(-1px);
         }
 
         .adminUserBadge {
@@ -1030,9 +1040,9 @@ await loadTests();
           align-items: center;
           gap: 8px;
           padding: 10px 16px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(255, 255, 255, 0.06);
           border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 12px;
+          border-radius: 14px;
           color: #fff;
           font-size: 13px;
           font-weight: 700;
@@ -1123,8 +1133,7 @@ await loadTests();
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 16px;
           padding: 24px;
-          display: flex;
-          flex-direction: column;
+          display: grid;
           gap: 16px;
         }
 
@@ -1160,22 +1169,28 @@ await loadTests();
 
         .searchResults {
           display: grid;
-          gap: 8px;
-          max-height: 300px;
+          gap: 6px;
+          max-height: 260px;
           overflow-y: auto;
+          padding: 4px 0;
         }
 
         .searchResultItem {
           text-align: left;
           padding: 12px 14px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 12px;
           color: #fff;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: background 0.15s ease, transform 0.15s ease;
           font-family: inherit;
           font-size: 14px;
+        }
+
+        .searchResultItem:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: translateX(2px);
         }
 
         .searchResultItem:hover {
@@ -1388,37 +1403,38 @@ await loadTests();
 
         .playerTiersList {
           display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
           gap: 14px;
         }
 
         .tierEntryCard {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 10px;
-          padding: 10px 12px;
-          display: grid;
-          gap: 0;
-          transition: background 0.15s, transform 0.12s;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 14px;
+          padding: 14px 16px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          min-width: 0;
+          transition: background 0.18s ease, border-color 0.18s ease;
         }
 
-        .tierEntryCard:hover { transform: translateY(-3px); background: rgba(255,255,255,0.06); }
+        .tierEntryCard:hover {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.14);
+        }
 
         .tierEntryCard.retired {
           opacity: 0.6;
-          background: rgba(255, 255, 255, 0.02);
-        }
-
-        .tierEntryCompact {
-          display: grid;
-          grid-template-columns: 120px 1fr;
-          gap: 12px;
-          align-items: center;
+          border-style: dashed;
         }
 
         .tierEntryModeInfo {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 6px;
+          min-width: 0;
         }
 
         .tierEntryMode {
@@ -1426,12 +1442,13 @@ await loadTests();
           font-weight: 800;
         }
 
-.tierEntryControls {
-           display: grid;
-           grid-template-columns: 80px 70px 36px 36px;
-           gap: 8px;
-           align-items: center;
-         }
+        .tierEntryControls {
+          display: grid;
+          grid-template-columns: 78px 88px 36px 36px;
+          gap: 10px;
+          align-items: center;
+          min-width: 0;
+        }
 
         .tierPointsBadge {
            display: inline-flex;
@@ -1590,28 +1607,13 @@ await loadTests();
           50% { opacity: 0.8; }
         }
 
-        .adminNavbar {
-          animation: slideInLeft 0.3s ease-out;
-        }
-
-        .adminHeader {
-          animation: slideInLeft 0.4s ease-out;
-        }
-
-        .adminContent {
-          animation: fadeIn 0.4s ease-out;
-        }
-
-        .searchSection {
-          animation: fadeIn 0.5s ease-out;
-        }
-
-        .playerDetailsSection {
-          animation: fadeIn 0.3s ease-out;
-        }
-
+        .adminNavbar,
+        .adminHeader,
+        .adminContent,
+        .searchSection,
+        .playerDetailsSection,
         .tierEntryCard {
-          animation: fadeIn 0.3s ease-out;
+          animation: none;
         }
 
         .navbarLink {
@@ -1953,13 +1955,12 @@ await loadTests();
 
          /* ─── Staff Section ─── */
          .staffSection {
-           background: rgba(255,255,255,0.04);
-           border: 1px solid rgba(255,255,255,0.1);
-           border-radius: 16px;
+           background: rgba(255,255,255,0.05);
+           border: 1px solid rgba(255,255,255,0.12);
+           border-radius: 18px;
            padding: 24px;
-           display: flex;
-           flex-direction: column;
-           gap: 16px;
+           display: grid;
+           gap: 20px;
          }
 
          .staffSectionTitle {
@@ -1975,8 +1976,7 @@ await loadTests();
          }
 
          .staffList {
-           display: flex;
-           flex-direction: column;
+           display: grid;
            gap: 10px;
          }
 
