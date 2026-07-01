@@ -4,27 +4,24 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const TIER_RANKS = [
-  { value: 500, color: "#6f6389" },
-  { value: 750, color: "#6f6389" },
-  { value: 1000, color: "#514764" },
-  { value: 1250, color: "#b7aadf" },
-  { value: 1500, color: "#dd8849" },
-  { value: 1750, color: "#dd8849" },
-  { value: 2000, color: "#888d95" },
-  { value: 2250, color: "#a4b3c7" },
-  { value: 2500, color: "#a4b3c7" },
-  { value: 2750, color: "#d5b355" },
-  { value: 0, color: "#888d95" },
+  { value: "LT5", label: "LT5", color: "#40384f" },
+  { value: "HT5", label: "HT5", color: "#6f6389" },
+  { value: "LT4", label: "LT4", color: "#514764" },
+  { value: "HT4", label: "HT4", color: "#b7aadf" },
+  { value: "LT3", label: "LT3", color: "#b36830" },
+  { value: "HT3", label: "HT3", color: "#dd8849" },
+  { value: "LT2", label: "LT2", color: "#888d95" },
+  { value: "HT2", label: "HT2", color: "#a4b3c7" },
+  { value: "LT1", label: "LT1", color: "#d5b355" },
+  { value: "HT1", label: "HT1", color: "#d5b355" },
+  { value: "", label: "—", color: "#888d95" },
 ];
 
 function TierSelect({ value, onChange, disabled = false }) {
   const selectedColor = TIER_RANKS.find(r => r.value === value)?.color || "#888d95";
 
-  const handleInputChange = (e) => {
-    const val = Number(e.target.value);
-    if (Number.isFinite(val) && val >= 0) {
-      onChange(val);
-    }
+  const handleChange = (e) => {
+    onChange(e.target.value);
   };
 
   return (
@@ -32,13 +29,11 @@ function TierSelect({ value, onChange, disabled = false }) {
       className="tierSelectCompact tierSelectWithOptions"
       style={{ position: "relative" }}
     >
-      <input
-        type="number"
+      <select
         className="tierInputCompact"
         disabled={disabled}
         value={value}
-        onChange={handleInputChange}
-        min="0"
+        onChange={handleChange}
         style={{
           width: "100%",
           minWidth: 0,
@@ -51,12 +46,19 @@ function TierSelect({ value, onChange, disabled = false }) {
           color: disabled ? "rgba(255,255,255,0.3)" : "#fff",
           fontFamily: "Montserrat, inherit",
           outline: "none",
-          cursor: disabled ? "not-allowed" : "text",
+          cursor: disabled ? "not-allowed" : "pointer",
           textAlign: "left",
           transition: "all 0.15s",
           letterSpacing: "0.02em",
+          appearance: "none",
         }}
-      />
+      >
+        {TIER_RANKS.map((tier) => (
+          <option key={tier.value} value={tier.value} style={{ background: "#1a1d24", color: "#fff" }}>
+            {tier.label || "—"}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
@@ -102,7 +104,15 @@ const RANK_POINT_RANGES = [
 ];
 
 function getPointsForElo(elo) {
-  const value = Number(elo);
+  const TIER_TO_ELO = { LT5:500, HT5:750, LT4:1000, HT4:1250, LT3:1500, HT3:1750, LT2:2000, HT2:2250, LT1:2500, HT1:2750 };
+  let value;
+  if (typeof elo === "string") {
+    const key = elo.trim().toUpperCase();
+    if (TIER_TO_ELO[key] !== undefined) value = TIER_TO_ELO[key];
+    else value = Number(elo);
+  } else {
+    value = Number(elo);
+  }
   if (!Number.isFinite(value) || value < 0) return 0;
   const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
   return range ? range.points : 0;
@@ -196,11 +206,11 @@ export default function AdminDashboard() {
   };
 
   const findBestRank = (ranks) => {
-    const rankOrder = [500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 0];
+    const rankOrder = ["HT1","LT1","HT2","LT2","HT3","LT3","HT4","LT4","HT5","LT5",""];
     for (const r of rankOrder) {
       if (ranks.includes(r)) return r;
     }
-    return ranks[0] || 0;
+    return ranks[0] || "";
   };
 
   const getStats = () => {
@@ -214,10 +224,9 @@ export default function AdminDashboard() {
     const playerTests = tests.filter((t) => String(t?.username || "").trim().toLowerCase() === cleanName.toLowerCase());
     if (playerTests.length === 0 && !includeUntested) return null;
 
-      const entries = playerTests.map((t) => ({
+       const entries = playerTests.map((t) => ({
         gamemode: t.gamemode,
         uuid: t.uuid || null,
-        elo: t.elo != null ? Number(t.elo) : 0,
         rank: t.rank || "",
         retired: t.retired === true,
         points: t.points || 0,
@@ -232,20 +241,19 @@ export default function AdminDashboard() {
          if (!testedModes.has(mode.toLowerCase())) {
              entries.push({
               gamemode: mode,
-              elo: 0,
-              rank: 0,
+              rank: "",
               retired: false,
               points: 0,
               id: null,
               created_at: null,
               isUntested: true,
             });
-         }
-       }
-     }
+          }
+        }
+      }
 
-     const totalPoints = entries.reduce((sum, e) => sum + safeInt(getPointsForElo(e.elo), 0), 0);
-     const bestRank = findBestRank(entries.map((e) => e.elo));
+     const totalPoints = entries.reduce((sum, e) => sum + safeInt(getPointsForElo(e.rank), 0), 0);
+     const bestRank = findBestRank(entries.map((e) => e.rank));
 
       const firstUuid = playerTests.find((t) => t.uuid)?.uuid || null;
 
@@ -285,11 +293,11 @@ export default function AdminDashboard() {
 
 const handleSaveEntry = async (entry) => {
     try {
-      const points = getPointsForElo(entry.elo);
+      const points = getPointsForElo(entry.rank);
       const payload = {
         username: selectedPlayer.username,
         gamemode: entry.gamemode,
-        earned_elo: entry.elo,
+        rank: entry.rank,
         points,
         retired: entry.retired === true,
       };
@@ -324,13 +332,11 @@ const handleSaveEntry = async (entry) => {
       if (!prev) return prev;
       const entries = [...prev.entries];
       const current = entries[index];
-      if (field === "elo") {
-        const elo = value;
+      if (field === "rank") {
         entries[index] = {
           ...current,
-          elo,
-          rank: elo,
-          points: getPointsForElo(elo),
+          rank: value,
+          points: getPointsForElo(value),
         };
       } else {
         entries[index] = { ...current, [field]: value };
@@ -487,7 +493,7 @@ await loadTests();
               username,
               uuid,
               gamemode: mode,
-              elo: 500,
+              rank: "LT5",
               points: 1,
               retired: false,
             }),
@@ -501,14 +507,14 @@ await loadTests();
         body: JSON.stringify({
           action: "player_add",
           target_username: username,
-          details: { modes: MODE_OPTIONS.length, elo: 500, uuid },
+          details: { modes: MODE_OPTIONS.length, rank: "LT5", uuid },
         }),
       });
 
       await loadTests();
       setShowAddPlayerModal(false);
       setNewPlayerName("");
-      setToast({ type: "ok", text: `${username} hozzáadva minden gamemode-hoz 500 ELO-val.` });
+      setToast({ type: "ok", text: `${username} hozzáadva minden gamemode-hoz LT5 rankkel.` });
     } catch (err) {
       setToast({ type: "error", text: err.message || "Hiba a játékos létrehozása során" });
     }
@@ -744,7 +750,7 @@ await loadTests();
                 {selectedPlayer.entries.map((entry, index) => {
                   const isRetired = entry.retired === true;
                   const isUntested = entry.isUntested;
-                  const displayRank = entry.elo || 0;
+                  const displayRank = entry.rank || "";
                   const displayPoints = getPointsForElo(displayRank);
 
                   return (
@@ -759,7 +765,7 @@ await loadTests();
                       <div className="tierEntryControls">
                         <TierSelect
                           value={displayRank}
-                          onChange={(elo) => updateEntryField(index, "elo", elo)}
+                          onChange={(rank) => updateEntryField(index, "rank", rank)}
                           disabled={isRetired}
                         />
                         <span className="tierPointsBadge">{displayPoints} pont</span>

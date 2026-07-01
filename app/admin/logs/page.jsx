@@ -18,7 +18,15 @@ const RANK_POINT_RANGES = [
 ];
 
 function getPointsForElo(elo) {
-  const value = Number(elo);
+  const TIER_TO_ELO = { LT5:500, HT5:750, LT4:1000, HT4:1250, LT3:1500, HT3:1750, LT2:2000, HT2:2250, LT1:2500, HT1:2750 };
+  let value;
+  if (typeof elo === "string") {
+    const key = elo.trim().toUpperCase();
+    if (TIER_TO_ELO[key] !== undefined) value = TIER_TO_ELO[key];
+    else value = Number(elo);
+  } else {
+    value = Number(elo);
+  }
   if (!Number.isFinite(value) || value < 0) return 0;
   const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
   return range ? range.points : 0;
@@ -101,7 +109,7 @@ export default function AdminLogsPage() {
         const payload = {
           username: log.target_username,
           gamemode: log.gamemode,
-          elo: log.old_rank,
+          rank: log.old_rank,
           points: log.old_points != null ? log.old_points : getPointsForElo(log.old_rank),
         };
         const res = await fetch("/api/tests", {
