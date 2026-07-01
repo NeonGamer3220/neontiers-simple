@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
+function AdminRankPicker({ value, onChange, disabled = false }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
 
@@ -17,22 +17,78 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
     { value: "HT3", label: "HT3", points: 10, color: "#dd8849" },
     { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
     { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
-    { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
-    { value: "LT1", label: "LT1", points: 28, color: "#888d95" },
-    { value: "RLT1", label: "RLT1", points: 28, color: "#8f7cff", retired: true },
-    { value: "HT1", label: "HT1", points: 34, color: "#d5b355" },
-    { value: "RHT1", label: "RHT1", points: 34, color: "#8f7cff", retired: true },
+    { value: "HT2", label: "HT2", points: 28, color: "#a4b3c7" },
+    { value: "RHT2", label: "RHT2", points: 28, color: "#8f7cff", retired: true },
+    { value: "LT1", label: "LT1", points: 40, color: "#d5b355" },
+    { value: "RLT1", label: "RLT1", points: 40, color: "#8f7cff", retired: true },
+    { value: "HT1", label: "HT1", points: 60, color: "#ffcf4a" },
+    { value: "RHT1", label: "RHT1", points: 60, color: "#8f7cff", retired: true },
   ];
 
   const currentRank = ALL_RANKS.find((r) => r.value === value) || ALL_RANKS[0];
-  const currentColor = currentRank.color;
-  const currentPoints = currentRank.points;
 
   useEffect(() => {
     if (!open || disabled) {
       setOpen(false);
       return;
     }
+    const handler = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, disabled]);
+
+  const handleSelect = (rankValue) => {
+    if (!disabled) {
+      onChange(rankValue);
+    }
+    setOpen(false);
+  };
+
+  return (
+    <div className="adminModeControls noTester" ref={pickerRef} data-admin-rank-picker="true">
+      <div className="adminRankPicker">
+        <button
+          type="button"
+          className="adminRankButton"
+          style={{ "--admin-rank-color": currentRank.color }}
+          onClick={() => !disabled && setOpen((v) => !v)}
+          aria-expanded={open && !disabled}
+          disabled={disabled}
+        >
+          <span className="adminRankButtonText">
+            <strong>{currentRank.label}</strong>
+            <span>{currentRank.points} pont</span>
+          </span>
+          <span className="adminRankChevron">{open && !disabled ? "▴" : "▾"}</span>
+        </button>
+
+        {open && !disabled && (
+          <div className="adminRankMenu">
+            {ALL_RANKS.map((tier) => (
+              <button
+                key={tier.value}
+                type="button"
+                className={`adminRankOption ${value === tier.value ? "selected" : ""}`}
+                style={{ "--admin-rank-color": tier.color }}
+                onClick={() => handleSelect(tier.value)}
+              >
+                <span className="adminRankOptionMain">
+                  <span className="adminRankOptionLabel">{tier.label}</span>
+                  <span className="adminRankOptionMeta">{tier.points} pont</span>
+                </span>
+                {tier.retired && <em>Retired</em>}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
     const handler = (e) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
         setOpen(false);
@@ -1929,32 +1985,35 @@ await loadTests();
         }
 
         .adminRankOptionMain {
-          display: inline-flex;
+          display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
           flex: 1;
         }
 
         .adminRankOptionLabel {
           text-transform: uppercase;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.05em;
         }
 
         .adminRankOptionMeta {
           font-size: 10px;
-          opacity: 0.65;
+          opacity: 0.7;
           font-weight: 700;
+          margin-left: auto;
+          padding-right: 4px;
         }
 
         .adminRankOption em {
+          margin-left: 8px;
           font-style: normal;
           font-size: 9px;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.06em;
-          padding: 2px 5px;
-          border-radius: 3px;
-          background: rgba(143, 124, 255, 0.18);
+          letter-spacing: 0.08em;
+          padding: 2px 6px;
+          border-radius: 4px;
+          background: rgba(143, 124, 255, 0.22);
           color: #b8a9ff;
         }
 
