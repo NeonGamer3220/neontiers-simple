@@ -993,6 +993,7 @@ await loadTests();
                           disabled={isRetired}
                           onSave={() => handleSaveEntry(entry)}
                         />
+                      </div>
                     </div>
                   );
                 })}
