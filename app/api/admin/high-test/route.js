@@ -44,8 +44,34 @@ const CHANNEL_IDS = {
 
 // Gamemode -> Discord custom emoji. Fill in your real emoji ids/names here;
 // anything left blank falls back to a generic controller emoji.
+// Gamemode -> Discord custom emoji. Fill in your real emoji ids/names here;
+// anything left blank falls back to a generic controller emoji.
 const GAMEMODE_EMOJIS = {
-  Cart: "<:cart:1433825435568836679>",
+  Vanilla: "<:vanilla:1489191023308574730>",
+  UHC: "<:uhc:1489191005902209134>",
+  Pot: "<:pot:1489190923333013597>",
+  NethPot: "<:nethpot:1489190890550464543>",
+  SMP: "<:smp:1489190957306871938>",
+  Sword: "<:sword:1489190989150163034>",
+  Axe: "<:axe:1489190775085338817>",
+  Mace: "<:mace:1489190873777438791>",
+  Cart: "<:cart:1489190821390581860>",
+  Creeper: "<:creeper:1489190838763393104>",
+  DiaSMP: "<:diasmp:1489190856903757884>",
+  OGVanilla: "<:ogvanilla:1489190908477046804>",
+  ShieldlessUHC: "<:shieldlessuhc:1489190941872095292>",
+  SpearMace: "<:spearmace:1489190973400416359>",
+  SpearElytra: "<:spearelytra:1489190973400416359>",
+  "Stick Fight": "<:stickfight:1502574877536948334>",
+  Trident: "<:trident:1505194733629210664>",
+
+  Boxing: "<:Boxing:1520465463358783639>",
+  Combo: "<:Combo:1520465407474008147>",
+  Bridge: "<:Bridge:1520465430957916331>",
+  "No Debuff": "<:NoDebuff:1520465050974814319>",
+  OP: "<:OP:1520465323680075937>",
+  Soup: "<:Soup:1520465218096857280>",
+  "Fireball Fight": "<:FireballFight:1520465183884181636>",
 };
 const DEFAULT_MODE_EMOJI = "🎮";
 
@@ -109,17 +135,18 @@ export async function POST(req) {
   const resultText = success ? "Sikeres" : "Sikertelen";
   const modeEmoji = GAMEMODE_EMOJIS[gamemode] || DEFAULT_MODE_EMOJI;
 
-  const headerLine = `<@${discordId}> (\`${minecraftName}\`) - **${resultText} volt a ${testedTier} teszten** ${modeEmoji} **${gamemode}**`;
+  const headerLine = `<@${discordId}> (\`${minecraftName}\`) - **${resultText} volt a ${testedTier} teszten**`;
+const modeLine = `${modeEmoji} **${gamemode}**`;
 
-  const fightBlocks = TIER_ORDER.filter((t) => filledFights.includes(t)).map((t) => {
-    const text = String(fights[t]).trim();
-    return `**__${t} Fightok:__**\n${text
-      .split("\n")
-      .map((line) => `> ${line.trim()}`)
-      .join("\n")}`;
-  });
+const fightBlocks = TIER_ORDER.filter((t) => filledFights.includes(t)).map((t) => {
+  const text = String(fights[t]).trim();
+  return `**__${t} Fightok:__**\n${text
+    .split("\n")
+    .map((line) => `> ${line.trim()}`)
+    .join("\n")}`;
+});
 
-  const message = [headerLine, "", ...fightBlocks].join("\n\n");
+const message = [headerLine, modeLine, ...fightBlocks].join("\n\n");
 
   const { error: insertError } = await supabase.from("discord_notifications").insert({
     username: minecraftName,
