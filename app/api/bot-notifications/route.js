@@ -60,6 +60,10 @@ const MODE_ICONS = {
 
 // GET: Bot lekérheti a feldolgozatlan értesítéseket
 export async function GET(req) {
+  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+  const authError = requireBotAuth(authHeader);
+  if (authError) return authError;
+
   if (!supabase) return json({ error: "Supabase not configured" }, 500);
 
   const { searchParams } = new URL(req.url);
@@ -90,7 +94,7 @@ export async function POST(req) {
     return json({ error: "Invalid JSON body" }, 400);
   }
 
-  const { ids } = body; // Array of notification IDs to mark as processed
+  const { ids } = body;
 
   if (!Array.isArray(ids) || ids.length === 0) {
     return json({ error: "ids array is required" }, 400);
