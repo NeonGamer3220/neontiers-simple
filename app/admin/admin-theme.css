@@ -1,0 +1,74 @@
+/* ============================================================
+   NeonTiers Admin — Shared premium theme
+   Imported by every /admin page. Plain global CSS (not styled-jsx),
+   so there is zero scoping risk — it always applies.
+   ============================================================ */
+
+.admin-panel {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+}
+
+/* ---- Force Montserrat ExtraBold everywhere in the admin panel ---- */
+.admin-panel,
+.admin-panel * {
+  font-weight: 800 !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.admin-panel h1,
+.admin-panel h2,
+.admin-panel h3,
+.admin-panel h4 {
+  font-weight: 900 !important;
+  letter-spacing: -0.01em;
+}
+
+/* ---- Ambient premium background glow (fixed, behind everything) ---- */
+.admin-panel::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(680px circle at 12% -8%, rgba(143, 124, 255, 0.16), transparent 60%),
+    radial-gradient(560px circle at 112% 8%, rgba(214, 71, 71, 0.12), transparent 60%),
+    radial-gradient(760px circle at 50% 130%, rgba(143, 124, 255, 0.1), transparent 60%);
+}
+
+/* ---- Custom dark scrollbars ---- */
+.admin-panel ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.admin-panel ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-panel ::-webkit-scrollbar-thumb {
+  background: rgba(143, 124, 255, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.admin-panel ::-webkit-scrollbar-thumb:hover {
+  background: rgba(143, 124, 255, 0.55);
+  background-clip: padding-box;
+}
+
+/* ---- Generic focus ring polish for inputs/selects/buttons ---- */
+.admin-panel input:focus-visible,
+.admin-panel select:focus-visible,
+.admin-panel textarea:focus-visible,
+.admin-panel button:focus-visible {
+  outline: 2px solid rgba(143, 124, 255, 0.6);
+  outline-offset: 2px;
+}
+
+/* ---- Selection color to match brand ---- */
+.admin-panel ::selection {
+  background: rgba(143, 124, 255, 0.35);
+  color: #fff;
+}
