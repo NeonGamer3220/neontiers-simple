@@ -30,16 +30,20 @@ export async function GET(req) {
   }
 
   const allowCredentials = credentials.map((c) => ({
-    id: c.credential_id,
-    type: "public-key",
-    transports: c.transports ? c.transports.split(",") : undefined,
-  }));
+  id: c.credential_id,
+  type: "public-key",
+  transports: c.transports ? c.transports.split(",") : undefined,
+}));
 
-  const options = await generateAuthenticationOptions({
-    rpID,
-    allowCredentials,
-    userVerification: "preferred",
-  });
+console.log("DEBUG allowCredentials before:", JSON.stringify(allowCredentials));
+
+const options = await generateAuthenticationOptions({
+  rpID,
+  allowCredentials,
+  userVerification: "preferred",
+});
+
+console.log("DEBUG options.allowCredentials after:", JSON.stringify(options.allowCredentials));
 
   cookieStore.set(CHALLENGE_COOKIE, options.challenge, {
     httpOnly: true,
