@@ -25,7 +25,15 @@ export default function PasskeyVerifyPage() {
       try {
         authResp = await startAuthentication(options);
       } catch (e) {
-        setError("A passkey ellenőrzés megszakadt vagy nem sikerült ezen az eszközön");
+        // Log the real WebAuthn error so mismatches (wrong rpID/origin, no
+        // matching credential on this device, user cancelled, etc.) are
+        // diagnosable instead of only showing a generic message.
+        console.error("WebAuthn authentication error:", e?.name, e?.message, e);
+        const friendly =
+          e?.name === "NotAllowedError"
+            ? "A passkey ellenőrzés megszakadt, vagy ez az eszköz/böngésző nem rendelkezik a regisztrált passkey-vel. Próbáld ugyanazzal az eszközzel és ugyanazon a domainen, ahol a passkey-t regisztráltad."
+            : "A passkey ellenőrzés megszakadt vagy nem sikerült ezen az eszközön";
+        setError(friendly);
         setStatus("error");
         return;
       }
