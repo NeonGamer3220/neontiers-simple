@@ -30,3 +30,19 @@ body {
 
 * { box-sizing: border-box; }
 img { display: block; max-width: 100%; }
+
+/* Reset heading defaults immediately (before any component-scoped CSS
+   attaches). Without this, "NeonTiers" (an <h1>) briefly renders at the
+   browser's huge default heading size on first paint / refresh, since the
+   styled-jsx rules that shrink it only apply once the component's scoped
+   styles are attached. */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* Avoid layout jump while the page font loads. */
+html {
+  font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
