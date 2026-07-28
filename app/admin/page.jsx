@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { startRegistration, startAuthentication } from "@simplewebauthn/browser";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,6 +17,8 @@ export default function AdminLoginPage() {
   const [passkeyStep, setPasskeyStep] = useState(null);
   const [passkeyStatus, setPasskeyStatus] = useState("idle"); // idle | working | error
   const [passkeyError, setPasskeyError] = useState("");
+  const [passkeyValue, setPasskeyValue] = useState("");
+  const [passkeyConfirm, setPasskeyConfirm] = useState("");
 
   useEffect(() => {
     // Check if already fully logged in, or mid-way through the passkey step.
@@ -73,37 +74,30 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handlePasskeySetup = async () => {
-    setPasskeyStatus("working");
+  const handlePasskeySetup = async (e) => {
+    e.preventDefault();
     setPasskeyError("");
+
+    if (passkeyValue.length < 6) {
+      setPasskeyError("A passkey legalább 6 karakter legyen");
+      return;
+    }
+    if (passkeyValue !== passkeyConfirm) {
+      setPasskeyError("A két passkey nem egyezik");
+      return;
+    }
+
+    setPasskeyStatus("working");
     try {
-      const optionsRes = await fetch("/api/admin/passkey/register-options");
-      const options = await optionsRes.json();
-      if (!optionsRes.ok) {
-        setPasskeyError(options.error || "Nem sikerült elindítani a passkey beállítást");
-        setPasskeyStatus("error");
-        return;
-      }
-
-      let attResp;
-      try {
-        attResp = await startRegistration(options);
-      } catch (e) {
-        setPasskeyError("A passkey létrehozása megszakadt vagy nem sikerült ezen az eszközön");
-        setPasskeyStatus("error");
-        return;
-      }
-
-      const verifyRes = await fetch("/api/admin/passkey/register-verify", {
+      const res = await fetch("/api/admin/passkey/setup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(attResp),
+        body: JSON.stringify({ passkey: passkeyValue }),
       });
-      const verifyData = await verifyRes.json();
+      const data = await res.json();
 
-      if (!verifyRes.ok || !verifyData.verified) {
-        const detail = verifyData.debug ? ` (${verifyData.debug})` : "";
-        setPasskeyError((verifyData.error || "A passkey mentése nem sikerült") + detail);
+      if (!res.ok || !data.success) {
+        setPasskeyError(data.error || "A passkey mentése nem sikerült");
         setPasskeyStatus("error");
         return;
       }
@@ -115,42 +109,28 @@ export default function AdminLoginPage() {
     }
   };
 
-  const handlePasskeyVerify = async () => {
-    setPasskeyStatus("working");
+  const handlePasskeyVerify = async (e) => {
+    e.preventDefault();
     setPasskeyError("");
+
+    if (!passkeyValue) {
+      setPasskeyError("Add meg a passkey-t");
+      return;
+    }
+
+    setPasskeyStatus("working");
     try {
-      const optionsRes = await fetch("/api/admin/passkey/login-options");
-      const options = await optionsRes.json();
-      if (!optionsRes.ok) {
-        setPasskeyError(options.error || "Nem sikerült elindítani a passkey ellenőrzést");
-        setPasskeyStatus("error");
-        return;
-      }
-
-      let authResp;
-      try {
-        authResp = await startAuthentication(options);
-      } catch (e) {
-        console.error("WebAuthn authentication error:", e?.name, e?.message, e);
-        const friendly =
-          e?.name === "NotAllowedError"
-            ? "A passkey ellenőrzés megszakadt, vagy ez az eszköz/böngésző nem rendelkezik a regisztrált passkey-vel. Próbáld ugyanazzal az eszközzel és ugyanazon a domainen, ahol a passkey-t regisztráltad."
-            : "A passkey ellenőrzés megszakadt vagy nem sikerült ezen az eszközön";
-        setPasskeyError(friendly);
-        setPasskeyStatus("error");
-        return;
-      }
-
-      const verifyRes = await fetch("/api/admin/passkey/login-verify", {
+      const res = await fetch("/api/admin/passkey/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(authResp),
+        body: JSON.stringify({ passkey: passkeyValue }),
       });
-      const verifyData = await verifyRes.json();
+      const data = await res.json();
 
-      if (!verifyRes.ok || !verifyData.verified) {
-        setPasskeyError(verifyData.error || "A passkey ellenőrzés nem sikerült");
+      if (!res.ok || !data.verified) {
+        setPasskeyError(data.error || "A passkey ellenőrzés nem sikerült");
         setPasskeyStatus("error");
+        setPasskeyValue("");
         return;
       }
 
@@ -230,44 +210,78 @@ export default function AdminLoginPage() {
         <div className="pkOverlay">
           <div className="pkModal">
             {passkeyStep === "setup" ? (
-              <>
+              <form onSubmit={handlePasskeySetup}>
                 <h2 className="pkTitle">Állíts be egy passkey-t</h2>
                 <p className="pkSubtitle">
                   Az admin fiókod biztonsága érdekében minden 24 órában szükség lesz egy passkey-re a
-                  bejelentkezéshez a jelszó mellett. Állítsd be most az eszközödön (ujjlenyomat,
-                  arcfelismerés, biztonsági kulcs, vagy a Google jelszókezelő).
+                  bejelentkezéshez a jelszó mellett. Ez egy általad választott titkos kód (min. 6
+                  karakter) — nem a böngésződ/eszközöd tárolja, hanem ide, ehhez a fiókhoz mentjük el.
                 </p>
+
+                <div className="pkFormGroup">
+                  <label htmlFor="pkNew" className="pkLabel">Új passkey</label>
+                  <input
+                    id="pkNew"
+                    type="password"
+                    className="pkInput"
+                    placeholder="Legalább 6 karakter..."
+                    value={passkeyValue}
+                    onChange={(e) => setPasskeyValue(e.target.value)}
+                    disabled={passkeyStatus === "working"}
+                    autoComplete="new-password"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="pkFormGroup">
+                  <label htmlFor="pkConfirm" className="pkLabel">Passkey megerősítése</label>
+                  <input
+                    id="pkConfirm"
+                    type="password"
+                    className="pkInput"
+                    placeholder="Add meg újra..."
+                    value={passkeyConfirm}
+                    onChange={(e) => setPasskeyConfirm(e.target.value)}
+                    disabled={passkeyStatus === "working"}
+                    autoComplete="new-password"
+                  />
+                </div>
+
                 {passkeyError && <div className="pkError">{passkeyError}</div>}
-                <button
-                  type="button"
-                  className="pkButton"
-                  onClick={handlePasskeySetup}
-                  disabled={passkeyStatus === "working"}
-                >
+
+                <button type="submit" className="pkButton" disabled={passkeyStatus === "working"}>
                   {passkeyStatus === "working" ? "Folyamatban..." : "Passkey beállítása"}
                 </button>
-                <p className="pkHint">
-                  A böngésződ meg fogja kérdezni, hogyan szeretnéd tárolni a passkey-t (pl. telefon,
-                  jelszókezelő, biztonsági kulcs).
-                </p>
-              </>
+                <p className="pkHint">Jegyezd meg ezt a kódot — a következő bejelentkezéskor szükséged lesz rá.</p>
+              </form>
             ) : (
-              <>
+              <form onSubmit={handlePasskeyVerify}>
                 <h2 className="pkTitle">Erősítsd meg a passkey-eddel</h2>
                 <p className="pkSubtitle">
-                  A jelszavad rendben volt. Az utolsó lépésként igazold magad a regisztrált
-                  passkey-vel a belépéshez.
+                  A jelszavad rendben volt. Az utolsó lépésként add meg a passkey-edet a belépéshez.
                 </p>
+
+                <div className="pkFormGroup">
+                  <label htmlFor="pkVerify" className="pkLabel">Passkey</label>
+                  <input
+                    id="pkVerify"
+                    type="password"
+                    className="pkInput"
+                    placeholder="Passkey-ed..."
+                    value={passkeyValue}
+                    onChange={(e) => setPasskeyValue(e.target.value)}
+                    disabled={passkeyStatus === "working"}
+                    autoComplete="current-password"
+                    autoFocus
+                  />
+                </div>
+
                 {passkeyError && <div className="pkError">{passkeyError}</div>}
-                <button
-                  type="button"
-                  className="pkButton"
-                  onClick={handlePasskeyVerify}
-                  disabled={passkeyStatus === "working"}
-                >
+
+                <button type="submit" className="pkButton" disabled={passkeyStatus === "working"}>
                   {passkeyStatus === "working" ? "Folyamatban..." : "Belépés passkey-vel"}
                 </button>
-              </>
+              </form>
             )}
           </div>
         </div>
@@ -470,6 +484,49 @@ export default function AdminLoginPage() {
           color: rgba(226, 232, 240, 0.75);
           text-align: center;
           margin: 0 0 26px;
+        }
+
+        .pkFormGroup {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 18px;
+        }
+
+        .pkLabel {
+          font-size: 12px;
+          font-weight: 800;
+          color: rgba(148, 163, 184, 0.95);
+          text-transform: uppercase;
+          letter-spacing: 0.09em;
+        }
+
+        .pkInput {
+          padding: 13px 16px;
+          background: rgba(148, 163, 184, 0.06);
+          border: 1px solid rgba(148, 163, 184, 0.16);
+          border-radius: 12px;
+          color: #f8fafc;
+          font-family: inherit;
+          font-size: 15px;
+          transition: all 0.2s ease;
+        }
+
+        .pkInput:hover {
+          border-color: rgba(255, 255, 255, 0.22);
+          background: rgba(255, 255, 255, 0.08);
+        }
+
+        .pkInput:focus {
+          outline: none;
+          border-color: #8f7cff;
+          background: rgba(255, 255, 255, 0.12);
+          box-shadow: 0 0 0 3px rgba(143, 124, 255, 0.14);
+        }
+
+        .pkInput:disabled {
+          opacity: 0.64;
+          cursor: not-allowed;
         }
 
         .pkError {
