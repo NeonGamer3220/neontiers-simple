@@ -36,18 +36,6 @@ function normalizeRankToTier(value) {
   if (value === "" || value === null || value === undefined) return "";
   const strVal = String(value).trim().toUpperCase();
   if (RANK_BY_VALUE[strVal]) return strVal;
-  const num = Number(strVal);
-  if (Number.isNaN(num)) return "";
-  if (num >= 2750) return "HT1";
-  if (num >= 2500) return "LT1";
-  if (num >= 2250) return "HT2";
-  if (num >= 2000) return "LT2";
-  if (num >= 1750) return "HT3";
-  if (num >= 1500) return "LT3";
-  if (num >= 1250) return "HT4";
-  if (num >= 1000) return "LT4";
-  if (num >= 750) return "HT5";
-  if (num >= 500) return "LT5";
   return "";
 }
 
@@ -379,39 +367,15 @@ const MODE_OPTIONS = [
   "Trident",
 ];
 
-const RANK_POINTS = {
-  500: 1, 750: 2, 1000: 3, 1250: 4,
-  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 40, 2750: 60,
-  0: 0,
+const TIER_TO_POINTS = {
+  LT5: 1, HT5: 2, LT4: 3, HT4: 4,
+  LT3: 6, HT3: 10, LT2: 16, HT2: 22,
+  LT1: 40, HT1: 60,
 };
 
-const RANK_POINT_RANGES = [
-  { min: 0, max: 499, points: 0 },
-  { min: 500, max: 749, points: 1 },
-  { min: 750, max: 999, points: 2 },
-  { min: 1000, max: 1249, points: 3 },
-  { min: 1250, max: 1499, points: 4 },
-  { min: 1500, max: 1749, points: 6 },
-  { min: 1750, max: 1999, points: 10 },
-  { min: 2000, max: 2249, points: 16 },
-  { min: 2250, max: 2499, points: 22 },
-  { min: 2500, max: 2749, points: 40 },
-  { min: 2750, max: Infinity, points: 60 },
-];
-
 function getPointsForRating(rating) {
-  const TIER_TO_RATING = { LT5:500, HT5:750, LT4:1000, HT4:1250, LT3:1500, HT3:1750, LT2:2000, HT2:2250, LT1:2500, HT1:2750 };
-  let value;
-  if (typeof rating === "string") {
-    const key = rating.trim().toUpperCase();
-    if (TIER_TO_RATING[key] !== undefined) value = TIER_TO_RATING[key];
-    else value = Number(rating);
-  } else {
-    value = Number(rating);
-  }
-  if (!Number.isFinite(value) || value < 0) return 0;
-  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
-  return range ? range.points : 0;
+  if (typeof rating !== "string") return 0;
+  return TIER_TO_POINTS[rating.trim().toUpperCase()] || 0;
 }
 
 const MODE_ICONS = {

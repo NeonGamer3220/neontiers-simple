@@ -15,32 +15,12 @@ const supabase =
       })
     : null;
 
-// Internal rating -> displayed points mapping
-const RANK_POINTS = {
-  500: 1, 750: 2, 1000: 3, 1250: 4,
-  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 40, 2750: 60,
+// Tier -> points mapping (no ELO/rating intermediate — rank is a tier string).
+const TIER_TO_POINTS = {
+  LT5: 1, HT5: 2, LT4: 3, HT4: 4,
+  LT3: 6, HT3: 10, LT2: 16, HT2: 22,
+  LT1: 40, HT1: 60,
 };
-
-const RANK_POINT_RANGES = [
-  { min: 0, max: 499, points: 0 },
-  { min: 500, max: 749, points: 1 },
-  { min: 750, max: 999, points: 2 },
-  { min: 1000, max: 1249, points: 3 },
-  { min: 1250, max: 1499, points: 4 },
-  { min: 1500, max: 1749, points: 6 },
-  { min: 1750, max: 1999, points: 10 },
-  { min: 2000, max: 2249, points: 16 },
-  { min: 2250, max: 2499, points: 22 },
-  { min: 2500, max: 2749, points: 40 },
-  { min: 2750, max: Infinity, points: 60 },
-];
-
-function getPointsForRating(rating) {
-  const value = Number(rating);
-  if (!Number.isFinite(value) || value < 0) return 0;
-  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
-  return range ? range.points : 0;
-}
 
 function json(data, status = 200, cacheControl = "no-store") {
   return new Response(JSON.stringify(data, null, 2), {
@@ -52,27 +32,9 @@ function json(data, status = 200, cacheControl = "no-store") {
   });
 }
 
-const TIER_TO_RATING = {
-  LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
-  LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
-  LT1: 2500, HT1: 2750,
-};
-
-function tierToRating(tier) {
-  if (typeof tier !== "string") return null;
-  const key = tier.trim().toUpperCase();
-  if (TIER_TO_RATING[key] !== undefined) return TIER_TO_RATING[key];
-  const num = Number(key);
-  return Number.isNaN(num) ? null : num;
-}
-
 function getPointsForRank(rank) {
-  const rating = tierToRating(rank);
-  if (rating === null) return 0;
-  const value = Number(rating);
-  if (!Number.isFinite(value) || value < 0) return 0;
-  const range = RANK_POINT_RANGES.find((item) => value >= item.min && value <= item.max);
-  return range ? range.points : 0;
+  if (typeof rank !== "string") return 0;
+  return TIER_TO_POINTS[rank.trim().toUpperCase()] || 0;
 }
 
 function normalizeTestsRow(r) {
@@ -113,18 +75,17 @@ function normMode(s) {
   return String(s || "").trim();
 }
 
+const KNOWN_TIERS_SET = new Set([
+  "LT5", "HT5", "LT4", "HT4", "LT3", "HT3", "LT2", "HT2", "LT1", "HT1",
+]);
+
 function normRank(s) {
   if (s === null || s === undefined || String(s).trim() === "") return null;
-  const r = String(s || "").trim().toUpperCase();
-  if (r === "UNRANKED") return 0;
-  const num = Number(r);
-  if (!Number.isNaN(num)) return num;
-  const LEGACY_TIER_TO_RATING = {
-    LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
-    LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
-    LT1: 2500, HT1: 2750,
-  };
-  if (LEGACY_TIER_TO_RATING[r] !== undefined) return LEGACY_TIER_TO_RATING[r];
+  const r = String(s).trim().toUpperCase();
+  if (r === "UNRANKED") return null;
+  // Only accept known tier strings — rank is stored (and always was meant to
+  // be stored) as a tier string like "HT3", never a raw ELO number.
+  if (KNOWN_TIERS_SET.has(r)) return r;
   return null;
 }
 
@@ -140,12 +101,6 @@ function requireSupabase() {
   }
   return null;
 }
-
-const LEGACY_TIER_TO_RATING = {
-  LT5: 500, HT5: 750, LT4: 1000, HT4: 1250,
-  LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250,
-  LT1: 2500, HT1: 2750,
-};
 
 // GET:
 // - /api/tests                 -> lista (DB-ből)
@@ -186,12 +141,12 @@ export async function GET(req) {
   const tier = (searchParams.get("tier") || "").trim();
 
   if (mode && tier) {
-    const ratingTier = LEGACY_TIER_TO_RATING[tier.toUpperCase()] ?? Number(tier);
+    const tierKey = tier.trim().toUpperCase();
     const { data, error } = await supabase
       .from("tests")
       .select("id,username,gamemode,rank,points,created_at,retired")
       .ilike("gamemode", mode)
-      .eq("rank", String(ratingTier))
+      .eq("rank", tierKey)
       .limit(100);
 
     if (error) return json({ error: error.message }, 500);
@@ -267,12 +222,12 @@ export async function POST(req) {
   const points =
     body?.points !== undefined && body?.points !== null && String(body.points).trim() !== ""
       ? Number(body.points)
-      : getPointsForRating(rank);
+      : getPointsForRank(rank);
 
   const row = {
     username,
     gamemode,
-    rank: String(rank),
+    rank,
     points,
     retired: retiredRaw,
     created_at: new Date().toISOString(),
