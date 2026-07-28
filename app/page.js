@@ -53,7 +53,7 @@ function displayMode(mode) {
 // ELO to points mapping (same tier values preserved for sorting)
 const RANK_POINTS = {
   500: 1, 750: 2, 1000: 3, 1250: 4,
-  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 28, 2750: 34,
+  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 40, 2750: 60,
 };
 
 const RANK_POINT_RANGES = [
@@ -66,8 +66,8 @@ const RANK_POINT_RANGES = [
   { min: 1750, max: 1999, points: 10 },
   { min: 2000, max: 2249, points: 16 },
   { min: 2250, max: 2499, points: 22 },
-  { min: 2500, max: 2749, points: 28 },
-  { min: 2750, max: Infinity, points: 34 },
+  { min: 2500, max: 2749, points: 40 },
+  { min: 2750, max: Infinity, points: 60 },
 ];
 
 function getPointsForElo(elo) {

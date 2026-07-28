@@ -14,11 +14,11 @@ const RANKS = [
   { value: "LT3", label: "LT3", points: 6, color: "#b36830" },
   { value: "HT3", label: "HT3", points: 10, color: "#dd8849" },
   { value: "LT2", label: "LT2", points: 16, color: "#888d95" },
-  { value: "HT2", label: "HT2", points: 28, color: "#a4b3c7" },
+  { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
   { value: "LT1", label: "LT1", points: 40, color: "#d5b355" },
   { value: "HT1", label: "HT1", points: 60, color: "#ffcf4a" },
   { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
-  { value: "RHT2", label: "RHT2", points: 28, color: "#8f7cff", retired: true },
+  { value: "RHT2", label: "RHT2", points: 22, color: "#8f7cff", retired: true },
   { value: "RLT1", label: "RLT1", points: 40, color: "#8f7cff", retired: true },
   { value: "RHT1", label: "RHT1", points: 60, color: "#8f7cff", retired: true },
 ];
@@ -381,7 +381,7 @@ const MODE_OPTIONS = [
 
 const RANK_POINTS = {
   500: 1, 750: 2, 1000: 3, 1250: 4,
-  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 28, 2750: 34,
+  1500: 6, 1750: 10, 2000: 16, 2250: 22, 2500: 40, 2750: 60,
   0: 0,
 };
 
@@ -395,8 +395,8 @@ const RANK_POINT_RANGES = [
   { min: 1750, max: 1999, points: 10 },
   { min: 2000, max: 2249, points: 16 },
   { min: 2250, max: 2499, points: 22 },
-  { min: 2500, max: 2749, points: 28 },
-  { min: 2750, max: Infinity, points: 34 },
+  { min: 2500, max: 2749, points: 40 },
+  { min: 2750, max: Infinity, points: 60 },
 ];
 
 function getPointsForRating(rating) {
