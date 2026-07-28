@@ -34,6 +34,79 @@ function getPointsForElo(elo) {
   return range ? range.points : 0;
 }
 
+const KNOWN_TIERS = ["LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1"];
+
+// The database stores rank as a raw ELO number (e.g. 1750). This converts
+// either that or a legacy tier string into a clean tier label ("HT3") so the
+// logs never show bare numbers or fail to color-code by tier.
+function eloToTierLabel(value) {
+  if (value === null || value === undefined || value === "") return "";
+  const strVal = String(value).trim().toUpperCase();
+  if (KNOWN_TIERS.includes(strVal)) return strVal;
+  const num = Number(strVal);
+  if (Number.isNaN(num)) return strVal;
+  if (num >= 2750) return "HT1";
+  if (num >= 2500) return "LT1";
+  if (num >= 2250) return "HT2";
+  if (num >= 2000) return "LT2";
+  if (num >= 1750) return "HT3";
+  if (num >= 1500) return "LT3";
+  if (num >= 1250) return "HT4";
+  if (num >= 1000) return "LT4";
+  if (num >= 750) return "HT5";
+  if (num >= 500) return "LT5";
+  return strVal;
+}
+
+// Friendly, human-readable labels for every audit action this site writes.
+// Anything not listed here still gets a readable fallback instead of a raw
+// snake_case slug like "admin_login_password_step".
+const ACTION_LABELS = {
+  tier_save: "Mentés",
+  tier_delete: "Törlés",
+  player_remove: "Játékos eltávolítás",
+  player_add: "Játékos hozzáadása",
+  admin_login: "Bejelentkezés",
+  high_score_save: "Magas eredmény",
+  player_rename: "Név változtatás",
+  admin_login_password_step: "Bejelentkezés (jelszó lépés)",
+  passkey_registered: "Passkey beállítva",
+  admin_login_passkey_step: "Bejelentkezés (passkey lépés)",
+  admin_passkey_failed: "Sikertelen passkey próbálkozás",
+};
+
+function actionLabelFor(action) {
+  if (ACTION_LABELS[action]) return ACTION_LABELS[action];
+  // Fallback: turn any unmapped snake_case action into readable words
+  // instead of showing the raw slug.
+  return String(action || "")
+    .split("_")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+// Renders a short, human-readable summary line for an audit log's `details`
+// object. Never dumps raw JSON — anything not explicitly understood is
+// simply omitted rather than shown as a technical blob.
+function detailsSummaryFor(log) {
+  const d = log.details;
+  if (!d) return null;
+
+  if (log.action === "admin_login_password_step") {
+    return d.hasPasskey ? "Van már beállított passkey" : "Még nincs beállítva passkey";
+  }
+  if (log.action === "high_score_save" || log.action === "admin_login_bot_notif") {
+    const parts = [];
+    if (d.category) parts.push(d.category === "legacy" ? "Legacy" : "Modern");
+    if (d.rank) parts.push(`Tesztelt tier: ${eloToTierLabel(d.rank)}`);
+    if (typeof d.modes === "number") parts.push(`${d.modes} mód`);
+    return parts.length > 0 ? parts.join(" · ") : null;
+  }
+  if (typeof d === "string") return d;
+  return null;
+}
+
 export default function AdminLogsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -267,8 +340,8 @@ export default function AdminLogsPage() {
                 </div>
                 <div className="tableCell colMode">{test.gamemode}</div>
                    <div className="tableCell colRank">
-                      <span className="rankBadge" data-rank={test.rank} data-retired={test.retired ? "true" : "false"}>
-                         {test.retired ? `R${test.rank}` : test.rank}
+                      <span className="rankBadge" data-rank={eloToTierLabel(test.rank)} data-retired={test.retired ? "true" : "false"}>
+                         {test.retired ? `R${eloToTierLabel(test.rank)}` : eloToTierLabel(test.rank)}
                       </span>
                     </div>
                 <div className="tableCell colPoints">{test.points}</div>
@@ -297,15 +370,8 @@ export default function AdminLogsPage() {
               </div>
             ) : (
               filteredAudit.map((log, idx) => {
-                const actionLabel =
-                  log.action === "tier_save" ? "Mentés" :
-                  log.action === "tier_delete" ? "Törlés" :
-                  log.action === "player_remove" ? "Játékos eltávolítás" :
-                  log.action === "player_add" ? "Játékos hozzáadása" :
-                  log.action === "admin_login" ? "Bejelentkezés" :
-                  log.action === "high_score_save" ? "Magas eredmény" :
-                  log.action === "player_rename" ? "Név változtatás" :
-                  log.action;
+                const actionLabel = actionLabelFor(log.action);
+                const detailsSummary = detailsSummaryFor(log);
                 const canRestore = log.action === "tier_save" && log.target_username && log.gamemode && (log.old_rank !== null || log.old_rank !== undefined);
                 const canRestoreRename = log.action === "player_rename" && log.details?.old_name && log.details?.new_name;
 
@@ -346,10 +412,10 @@ export default function AdminLogsPage() {
                           <div>{log.details.old_name} → {log.details.new_name}</div>
                         )}
                         {log.old_rank !== null && log.old_rank !== undefined && log.action !== "player_rename" && (
-                          <div>{log.old_rank} → {log.new_rank}</div>
+                          <div>{eloToTierLabel(log.old_rank)} → {eloToTierLabel(log.new_rank)}</div>
                         )}
                         {log.details?.fight_notes && Object.keys(log.details.fight_notes).length > 0 && (
-                          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", marginTop: "4px" }}>
+                          <div className="auditFightNotes">
                             {Object.entries(log.details.fight_notes).filter(([_, v]) => v?.trim()).map(([k, v]) => (
                               <div key={k}>{k}: {v?.substring(0, 30)}{v?.length > 30 ? "..." : ""}</div>
                             ))}
@@ -357,6 +423,9 @@ export default function AdminLogsPage() {
                         )}
                         {log.details && typeof log.details === "string" && (
                           <div>{log.details}</div>
+                        )}
+                        {detailsSummary && (
+                          <div className="auditDetailsSummary">{detailsSummary}</div>
                         )}
                       </div>
                     </div>
@@ -829,6 +898,17 @@ export default function AdminLogsPage() {
           line-height: 1.6;
           display: grid;
           gap: 6px;
+        }
+
+        .auditFightNotes {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.5);
+          margin-top: 4px;
+        }
+
+        .auditDetailsSummary {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.55);
         }
 
         .restoreBtn {
