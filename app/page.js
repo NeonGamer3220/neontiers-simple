@@ -537,6 +537,11 @@ const closePlayerDetail = () => {
                       <span className="playerName">{p.username}</span>
                       <span className="playerPoints">{p.total} pont</span>
                     </span>
+                    <span className="rowChevron" aria-hidden="true">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M9 6l6 6-6 6" />
+                      </svg>
+                    </span>
 <span className="rowTiers">
                        {p.entries.map((r) => {
                          const baseColor = rankBadgeColor(r.rank, r.retired);
@@ -1333,6 +1338,14 @@ const totalPoints = selectedPlayer.total;
           line-height: 1.15;
         }
 
+        .rowChevron {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          color: rgba(255, 255, 255, 0.3);
+          flex-shrink: 0;
+        }
+
         .rowTiers {
           display: flex;
           flex-wrap: nowrap;
@@ -1522,10 +1535,25 @@ const totalPoints = selectedPlayer.total;
              padding: 2px 2px 8px;
              overflow-x: auto;
              background: transparent;
+             -webkit-overflow-scrolling: touch;
            }
 
           .modeBoard::-webkit-scrollbar { display: none; }
           .modeBoard { scrollbar-width: none; }
+
+          @media (max-width: 900px) {
+            .modeBoard {
+              grid-template-columns: repeat(5, 82vw);
+              justify-content: flex-start;
+              scroll-snap-type: x mandatory;
+              gap: 10px;
+            }
+            .modeTierColumn {
+              scroll-snap-align: start;
+              min-width: 82vw;
+              max-width: 82vw;
+            }
+          }
 
 .modeTierColumn {
             min-width: 220px;
@@ -2019,7 +2047,7 @@ const totalPoints = selectedPlayer.total;
           .tabBtn { min-width: 76px; padding: 9px 8px 8px; }
           .tabLabel { font-size: 8px; }
           .playerRow {
-            grid-template-columns: 48px 48px 1fr;
+            grid-template-columns: 48px 48px 1fr auto;
             gap: 10px;
             padding: 12px;
           }
@@ -2030,19 +2058,21 @@ const totalPoints = selectedPlayer.total;
           .tierBadge { width: 38px; min-width: 38px; }
           .tierIcon { width: 36px; height: 36px; padding: 6px; }
           .tierLabel { font-size: 11px; }
-          .modeTierColumn { min-width: 100px; }
+          /* Tiers are hidden in the collapsed row on mobile — tapping the
+             row opens the player modal, which already lists every tier. */
+          .rowTiers { display: none; }
+          .rowChevron { display: flex; }
         }
 
         @media (max-width: 480px) {
           .playerRow {
-            grid-template-columns: 40px 40px 1fr;
+            grid-template-columns: 40px 40px 1fr auto;
             gap: 8px;
             padding: 10px;
           }
           .rowNum { font-size: 14px; }
           .playerSkin { width: 40px; height: 40px; }
           .playerName { font-size: 16px; }
-          .rowTiers { gap: 6px; min-height: auto; }
           .tierBadge { width: 34px; min-width: 34px; }
           .tierIcon { width: 32px; height: 32px; }
           .tierLabel { font-size: 10px; }
