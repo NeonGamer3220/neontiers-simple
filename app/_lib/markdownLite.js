@@ -33,6 +33,23 @@ function renderInline(text, keyPrefix) {
   return parts;
 }
 
+function isTableRow(line) {
+  return line.startsWith("|") && line.endsWith("|") && line.length > 1;
+}
+
+function isTableDivider(line) {
+  if (!isTableRow(line)) return false;
+  const cells = line.slice(1, -1).split("|");
+  return cells.every((c) => /^\s*:?-{2,}:?\s*$/.test(c));
+}
+
+function parseTableRow(line) {
+  return line
+    .slice(1, -1)
+    .split("|")
+    .map((c) => c.trim());
+}
+
 export function renderMarkdownLite(text) {
   const lines = text.split("\n");
   const blocks = [];
@@ -51,42 +68,78 @@ export function renderMarkdownLite(text) {
     }
   };
 
-  lines.forEach((rawLine, i) => {
-    const line = rawLine.trim();
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
 
     if (line === "") {
       flushList();
-      return;
+      continue;
+    }
+
+    // Table: a row line immediately followed by a divider line ( |---|---| )
+    if (isTableRow(line) && lines[i + 1] && isTableDivider(lines[i + 1].trim())) {
+      flushList();
+      const header = parseTableRow(line);
+      const bodyRows = [];
+      let j = i + 2;
+      while (j < lines.length && isTableRow(lines[j].trim())) {
+        bodyRows.push(parseTableRow(lines[j].trim()));
+        j++;
+      }
+      blocks.push(
+        <div className="mdTableWrap" key={`table-${i}`}>
+          <table className="mdTable">
+            <thead>
+              <tr>
+                {header.map((h, hi) => (
+                  <th key={hi}>{renderInline(h, `th-${i}-${hi}`)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {bodyRows.map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cell, ci) => (
+                    <td key={ci}>{renderInline(cell, `td-${i}-${ri}-${ci}`)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+      i = j - 1;
+      continue;
     }
 
     if (line.startsWith("### ")) {
       flushList();
       blocks.push(<h3 className="mdH3" key={i}>{renderInline(line.slice(4), `h3-${i}`)}</h3>);
-      return;
+      continue;
     }
     if (line.startsWith("## ")) {
       flushList();
       blocks.push(<h2 className="mdH2" key={i}>{renderInline(line.slice(3), `h2-${i}`)}</h2>);
-      return;
+      continue;
     }
     if (line.startsWith("# ")) {
       flushList();
       blocks.push(<h1 className="mdH1" key={i}>{renderInline(line.slice(2), `h1-${i}`)}</h1>);
-      return;
+      continue;
     }
     if (line.startsWith("• ") || line.startsWith("- ")) {
       listBuffer.push(line.slice(2));
-      return;
+      continue;
     }
     if (/^\*(.+)\*$/.test(line) && !line.startsWith("**")) {
       flushList();
       blocks.push(<p className="mdItalic" key={i}>{line.slice(1, -1)}</p>);
-      return;
+      continue;
     }
 
     flushList();
     blocks.push(<p className="mdP" key={i}>{renderInline(line, `p-${i}`)}</p>);
-  });
+  }
 
   flushList();
   return blocks;

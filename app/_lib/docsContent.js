@@ -4,17 +4,19 @@ export const MODERN_RULES = `
 • **Engedélyezett:** Low fire, Consumable Optimizer, shield status mod, és minden olyan mod ami nem ad előnyt / nem automatizálja a játékmenetet.
 • **Tiltott:** Mouse tweaks, Dura pack, Tweakaroo, Walksy/Marlow's Crystal Optimizer, Fire Client, Hack kliensek, pinget befolyásoló modok, Multi Keybinds, Health indicator, más kitett/plusz dolgok CPVP-ben.
 ## ⚖️ 2. Tierlist Bannok & Büntetések
-• **Csalás / Tiltott mod:** 1 hónap (+ tier wipe ha van)
-• **Account sharing:** 3 hónap mindkét félnek (tier wipe csak annál, akinél játszottak)
-• **Alt tesztelés:** 1 hónap (alt törölve, eredeti ban)
-• **Boostolás / Megegyezés:** 1 hónap (+ tier wipe)
-• **SS megtagadása:** 1 hónap
-• **Handcam megtagadása:** 2 hónap (+ tier wipe)
-• **Eredmény / videó hamisítás:** 2 hónap
-• **Staff megtévesztése:** 1 hónap
-• **Toxicitás / zaklatás:** 14 nap
-• **Sandbagging:** 1 hónap
-• **Megvesztegetés / Összejátszás:** Örök ban azonnal (mindkét félnek)
+| Szabályszegés | Büntetés |
+|---|---|
+| Csalás / Tiltott mod | 1 hónap (+ tier wipe ha van) |
+| Account sharing | 3 hónap mindkét félnek (tier wipe csak annál, akinél játszottak) |
+| Alt tesztelés | 1 hónap (alt törölve, eredeti ban) |
+| Boostolás / Megegyezés | 1 hónap (+ tier wipe) |
+| SS megtagadása | 1 hónap |
+| Handcam megtagadása | 2 hónap (+ tier wipe) |
+| Eredmény / videó hamisítás | 2 hónap |
+| Staff megtévesztése | 1 hónap |
+| Toxicitás / zaklatás | 14 nap |
+| Sandbagging | 1 hónap |
+| Megvesztegetés / Összejátszás | **Örök ban azonnal** (mindkét félnek) |
 ## ⚔️ 3. Teszt Közbeni Szabályzat
 • Nincs időhúzás / menekülés.
 • Mendelés / bújás / textúraváltás max 2 perc, utána a kör az ellenfélé (clip kell).
@@ -30,10 +32,12 @@ export const MODERN_RULES = `
 • **Névváltás:** 1. Discordon: \`/unlink\` majd \`/link\`
   2. A kapott kódot 10 percen belül beírni a \`chaosffa.kinetic.host\` szerveren a \`/link [kód]\` paranccsal.
 ## 📊 5. Gamemód Követelmények (LT3 alatt)
-• **Vanilla / SMP / Cart:** FT4, LT3 alatt: FT3
-• **DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident:** FT4, LT3 alatt: FT2
-• **Sword / Uhc / Pot / Creeper / ShieldlessUHC:** FT10, LT3 alatt: FT6
-• **Axe:** FT20, LT3 alatt: FT10
+| Gamemód | LT3 felett | LT3 alatt |
+|---|---|---|
+| Vanilla / SMP / Cart | FT4 | FT3 |
+| DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident | FT4 | FT2 |
+| Sword / Uhc / Pot / Creeper / ShieldlessUHC | FT10 | FT6 |
+| Axe | FT20 | FT10 |
 ## 🟣 6. UnRetire & Retired Rendszer
 • **UnRetire:** Indulás a retire tierből. 75% winrate kell az azonos tierű ellen, ha nem sikerül, lefelé haladva HT3-ig. Ha ott sem, maradhat a retire vagy megy sima eval tesztre.
 • **Retired feltételek:** Min. LT2 rang. 2 defenset kell szerezni saját tieredbeli vagy feljebb pályázó játékos legyőzésével (75% winrate). Az elmúlt 2 hónapban nem lehetett magasabb tier próbálkozásod.
@@ -44,23 +48,39 @@ export const MODERN_RULES = `
 
 ## 🏆 Eredmény Alapú Tier Besorolások
 *(Ha a tesztered nagyobb tier, mint az LT3, a teszterek eltérhetnek ezektől).*
-### • Vanilla / DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident:
-- **Vanilla 3-0, 3-1:** LT5, HT5, LT4 | **3-2:** HT4, LT3
-- **DiaSMP / OGV / NethPot / Mace 2-0:** LT5, HT5, LT4 | **2-1:** LT4, HT4, LT3 | **3-2:** HT4, LT3
-- **SMP / Cart 2-0:** LT5, HT5, LT4 | **3-1:** HT5, LT4 | **3-2:** HT4, LT3
-- *(Ha nyersz eval pass: LT3)*
-### • Sword / Uhc / Pot / ShieldlessUHC / Creeper:
-- **6-0:** LT5, HT5
-- **6-1, 6-2:** HT5, LT4
-- **6-3, 6-4:** HT4, LT3
-- **6-5:** LT3
-- *(Ha nyersz eval pass: LT3)*
-### • Axe:
-- **10-0, 10-1, 10-2, 10-3:** LT5, HT5
-- **10-4, 10-5, 10-6:** LT4, HT4
-- **10-7, 10-8:** LT4, HT4, LT3
-- **10-9, 9-10:** LT3
-- *(Ha nyersz eval pass: LT3)*
+### • Vanilla / DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident
+| Gamemód | Eredmény | Kapott tier |
+|---|---|---|
+| Vanilla | 3-0, 3-1 | LT5, HT5, LT4 |
+| Vanilla | 3-2 | HT4, LT3 |
+| DiaSMP / OGV / NethPot / Mace | 2-0 | LT5, HT5, LT4 |
+| DiaSMP / OGV / NethPot / Mace | 2-1 | LT4, HT4, LT3 |
+| DiaSMP / OGV / NethPot / Mace | 3-2 | HT4, LT3 |
+| SMP / Cart | 2-0 | LT5, HT5, LT4 |
+| SMP / Cart | 3-1 | HT5, LT4 |
+| SMP / Cart | 3-2 | HT4, LT3 |
+
+*(Ha nyersz eval pass: LT3)*
+
+### • Sword / Uhc / Pot / ShieldlessUHC / Creeper
+| Eredmény | Kapott tier |
+|---|---|
+| 6-0 | LT5, HT5 |
+| 6-1, 6-2 | HT5, LT4 |
+| 6-3, 6-4 | HT4, LT3 |
+| 6-5 | LT3 |
+
+*(Ha nyersz eval pass: LT3)*
+
+### • Axe
+| Eredmény | Kapott tier |
+|---|---|
+| 10-0, 10-1, 10-2, 10-3 | LT5, HT5 |
+| 10-4, 10-5, 10-6 | LT4, HT4 |
+| 10-7, 10-8 | LT4, HT4, LT3 |
+| 10-9, 9-10 | LT3 |
+
+*(Ha nyersz eval pass: LT3)*
 `.trim();
 
 export const LEGACY_RULES = `
@@ -98,9 +118,11 @@ Minden olyan mod vagy eszköz, amely befolyásolja a játékmenetet vagy tisztes
 • **Névváltás:** 1. Discordon: \`/unlink\` majd \`/link\`
   2. A kapott kódot 10 percen belül beírni a \`chaosffa.kinetic.host\` szerveren a \`/link [kód]\` paranccsal.
 ## 📊 5. Gamemód Követelmények (LT3 alatt)
-• **Combo / Boxing:** FT4, LT3 alatt: FT2
-• **Fireball Fight / Soup / OP / No Debuff:** FT4, LT3 alatt: FT2 ha nyersz teszter ellen kört akkor FT3
-• **Bridge:** FT10, LT3 alatt: FT5
+| Gamemód | LT3 felett | LT3 alatt |
+|---|---|---|
+| Combo / Boxing | FT4 | FT2 |
+| Fireball Fight / Soup / OP / No Debuff | FT4 | FT2 (ha nyersz teszter ellen kört, akkor FT3) |
+| Bridge | FT10 | FT5 |
 ## 🟣 6. UnRetire & Retired Rendszer
 • **UnRetire:** Indulás a retire tierből. 75% winrate kell az azonos tierű ellen, ha nem sikerül, lefelé haladva HT3-ig. Ha ott sem, maradhat a retire vagy megy sima eval tesztre.
 • **Retired feltételek:** Min. LT2 rang. 2 defenset kell szerezni saját tieredbeli vagy feljebb pályázó játékos legyőzésével (75% winrate). Az elmúlt 2 hónapban nem lehetett magasabb tier próbálkozásod.
@@ -112,20 +134,31 @@ Minden olyan mod vagy eszköz, amely befolyásolja a játékmenetet vagy tisztes
 ## 🏆 Eredmény Alapú Tier Besorolások
 *(Ha a teszter nagyobb tier, mint az LT3, a teszterek eltérhetnek ezektől).*
 ### • Combo / Boxing
-- **2-0** LT5, HT5, LT4
-- **2-1** LT4, HT4, LT3
-- *(Ha nyersz eval pass: LT3)*
+| Eredmény | Kapott tier |
+|---|---|
+| 2-0 | LT5, HT5, LT4 |
+| 2-1 | LT4, HT4, LT3 |
+
+*(Ha nyersz eval pass: LT3)*
+
 ### • Fireball Fight / Soup / OP / No Debuff
-- **2-0:** LT5, HT5
-- **3-1** LT4, HT4
-- **3-2** HT4, LT3
-- *(Ha nyersz eval pass: LT3)*
-### • Bridge:
-- **5-0:** LT5, HT5
-- **5-1, 5-2:** HT5, LT4
-- **5-3** HT4, LT3
-- **5-4** HT4, LT3
-- *(Ha nyersz eval pass: LT3)*
+| Eredmény | Kapott tier |
+|---|---|
+| 2-0 | LT5, HT5 |
+| 3-1 | LT4, HT4 |
+| 3-2 | HT4, LT3 |
+
+*(Ha nyersz eval pass: LT3)*
+
+### • Bridge
+| Eredmény | Kapott tier |
+|---|---|
+| 5-0 | LT5, HT5 |
+| 5-1, 5-2 | HT5, LT4 |
+| 5-3 | HT4, LT3 |
+| 5-4 | HT4, LT3 |
+
+*(Ha nyersz eval pass: LT3)*
 `.trim();
 
 export const PRIVACY_POLICY = `

@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import DocsModal from "./_components/DocsModal";
 
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
@@ -159,7 +158,6 @@ const [tests, setTests] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showPlayerDetail, setShowPlayerDetail] = useState(false);
   const [singleModeFilter, setSingleModeFilter] = useState(null);
-  const [docsOpen, setDocsOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -391,12 +389,12 @@ const closePlayerDetail = () => {
              </a>
            </li>
            <li>
-              <button type="button" className="navLink navLinkBtn" onClick={() => setDocsOpen(true)}>
+              <a className="navLink" href="/docs">
                 <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
                   <path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6Zm7 1.5L18.5 9H13V3.5ZM7 12h10v1.5H7V12Zm0 4h10v1.5H7V16Zm0-8h4v1.5H7V8Z"/>
                 </svg>
                 <span className="navLinkText">Dokumentumok</span>
-              </button>
+              </a>
             </li>
 <li>
               <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
@@ -2153,7 +2151,6 @@ const totalPoints = selectedPlayer.total;
            display: none !important;
          }
        `}</style>
-      <DocsModal open={docsOpen} onClose={() => setDocsOpen(false)} />
     </div>
   );
 }
