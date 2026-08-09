@@ -2,9 +2,11 @@ import "./globals.css";
 import { Montserrat } from "next/font/google";
 
 const montserrat = Montserrat({
-  weight: "800",
+  weight: ["800"],
+  style: ["normal"],
   subsets: ["latin", "latin-ext"],
   display: "swap",
+  variable: "--font-montserrat",
 });
 
 export const metadata = {
@@ -36,7 +38,11 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="hu" className={montserrat.className}>
+    <html
+      lang="hu"
+      className={`${montserrat.className} ${montserrat.variable}`}
+      style={{ fontWeight: 800 }}
+    >
       <body suppressHydrationWarning>{children}</body>
     </html>
   );
