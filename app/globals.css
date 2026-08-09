@@ -34,6 +34,18 @@ body {
 * { box-sizing: border-box; }
 img { display: block; max-width: 100%; }
 
+/* Force Montserrat ExtraBold everywhere, no exceptions. next/font only loads
+   the 800 weight (see app/layout.jsx), so any component-level font-family or
+   font-weight override elsewhere in the codebase would otherwise cause the
+   browser to synthesize a fake weight/fallback font instead of using the
+   real ExtraBold face. `inherit` (not a hardcoded name) so it always matches
+   whatever next/font generates on <html>, rather than guessing its internal
+   class name. */
+*, *::before, *::after {
+  font-family: inherit !important;
+  font-weight: 800 !important;
+}
+
 /* Reset heading defaults immediately (before any component-scoped CSS
    attaches). Without this, "NeonTiers" (an <h1>) briefly renders at the
    browser's huge default heading size on first paint / refresh, since the
@@ -42,7 +54,6 @@ img { display: block; max-width: 100%; }
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
   font-size: inherit;
-  font-weight: inherit;
 }
 
 /* Avoid layout jump while the page font loads. */

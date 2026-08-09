@@ -1176,6 +1176,13 @@ const totalPoints = selectedPlayer.total;
            padding-left: 6px;
          }
 
+          @media (max-width: 900px) {
+            .tabRow {
+              justify-content: flex-start;
+              padding-left: 2px;
+            }
+          }
+
           .tabBtn {
             display: flex;
             flex-direction: column;
@@ -1481,6 +1488,11 @@ const totalPoints = selectedPlayer.total;
         @keyframes modalSlideIn {
           from { opacity: 0; transform: scale(0.95) translateY(20px); }
           to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes modalSlideUp {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
         .tierBoardHeader {
@@ -1796,6 +1808,37 @@ const totalPoints = selectedPlayer.total;
            }
          }
 
+         @media (max-width: 640px) {
+           .playerDetailBackdrop {
+             padding: 0;
+             align-items: flex-end;
+           }
+           .playerDetailCard {
+             flex-direction: column;
+             width: 100%;
+             max-width: 100vw;
+             max-height: 88vh;
+             border-radius: 24px 24px 0 0;
+             animation: modalSlideUp 0.25s ease;
+           }
+           .detailLeft {
+             width: 100%;
+             padding: 26px 20px 14px;
+             border-right: none;
+             border-bottom: 1px solid rgba(255,255,255,0.08);
+             background: rgba(255,255,255,0.02);
+           }
+           .detailAvatarFrame { width: 84px; height: 84px; }
+           .detailRight {
+             padding: 16px 20px 26px;
+             max-height: 62vh;
+           }
+           .detailUsername { font-size: 20px; text-align: center; }
+           .detailPosition { text-align: center; }
+           .detailStats { justify-content: center; }
+           .detailTiers { justify-content: center; }
+         }
+
          .detailUsername {
            font-size: 24px;
            font-weight: 700;
@@ -2024,17 +2067,21 @@ const totalPoints = selectedPlayer.total;
 
         @media (max-width: 900px) {
           .navInner {
-            grid-template-columns: auto auto 1fr;
-            gap: 8px;
-            padding: 10px 12px;
-            min-height: 60px;
+            grid-template-columns: 1fr;
+            grid-template-areas:
+              "logo"
+              "search"
+              "links";
+            gap: 10px;
+            padding: 14px 16px;
+            min-height: 0;
           }
-          .navLogo { font-size: 16px; }
-          .navLinks { gap: 2px; }
-          .navLink { padding: 8px 9px; gap: 0; }
+          .navLogo { grid-area: logo; font-size: 18px; justify-self: start; }
+          .searchWrap { grid-area: search; justify-self: stretch; width: 100%; }
+          .navLinks { grid-area: links; justify-self: stretch; width: 100%; justify-content: space-between; }
+          .navLink { padding: 8px 9px; gap: 0; flex: 1; justify-content: center; }
           .navLinkText { display: none; }
           .navLinkIcon { width: 19px; height: 19px; }
-          .searchWrap { min-width: 0; }
           .searchInput { width: 100%; min-width: 0; }
           .searchKbd { display: none; }
         }
