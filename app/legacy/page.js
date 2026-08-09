@@ -382,7 +382,7 @@ const closePlayerDetail = () => {
                 <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
                   <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
                 </svg>
-                Főoldal
+                <span className="navLinkText">Főoldal</span>
               </a>
             </li>
             <li>
@@ -390,7 +390,7 @@ const closePlayerDetail = () => {
                 <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
                   <path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6Zm7 1.5L18.5 9H13V3.5ZM7 12h10v1.5H7V12Zm0 4h10v1.5H7V16Zm0-8h4v1.5H7V8Z"/>
                 </svg>
-                Dokumentumok
+                <span className="navLinkText">Dokumentumok</span>
               </button>
             </li>
             <li>
@@ -398,7 +398,7 @@ const closePlayerDetail = () => {
                 <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
                   <path d="M11.14 3.38a1.7 1.7 0 0 1 1.72 0l6 3.42A1.72 1.72 0 0 1 19.72 8v8a1.72 1.72 0 0 1-.86 1.48l-6 3.42a1.7 1.7 0 0 1-1.72 0l-6-3.42A1.72 1.72 0 0 1 4.28 16V8c0-.62.33-1.2.86-1.49l6-3.13Zm.86 2.03L7.16 8.17 12 10.93l4.84-2.76L12 5.41Zm-5.72 4.2V15L11 17.67v-5.52L6.28 9.6Zm7.72 8.06 4.72-2.68V9.6L13 12.15v5.52Z"/>
                 </svg>
-                Mod
+                <span className="navLinkText">Mod</span>
               </a>
             </li>
             <li>
@@ -406,7 +406,7 @@ const closePlayerDetail = () => {
                 <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
                 </svg>
-                Legacy
+                <span className="navLinkText">Legacy</span>
               </a>
             </li>
             </ul>
@@ -2015,6 +2015,23 @@ const totalPoints = selectedPlayer.total;
             .tabLabel { font-size: 9px; letter-spacing: 0.02em; }
             .mainCard { border-radius: 22px; padding: 16px 14px 18px; }
           }
+
+        @media (max-width: 900px) {
+          .navInner {
+            grid-template-columns: auto auto 1fr;
+            gap: 8px;
+            padding: 10px 12px;
+            min-height: 60px;
+          }
+          .navLogo { font-size: 16px; }
+          .navLinks { gap: 2px; }
+          .navLink { padding: 8px 9px; gap: 0; }
+          .navLinkText { display: none; }
+          .navLinkIcon { width: 19px; height: 19px; }
+          .searchWrap { min-width: 0; }
+          .searchInput { width: 100%; min-width: 0; }
+          .searchKbd { display: none; }
+        }
 
         @media (max-width: 760px) {
           .navbar, .mainWrap, .pageFooter {
