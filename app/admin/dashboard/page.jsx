@@ -17,13 +17,26 @@ const RANKS = [
   { value: "HT2", label: "HT2", points: 22, color: "#a4b3c7" },
   { value: "LT1", label: "LT1", points: 40, color: "#d5b355" },
   { value: "HT1", label: "HT1", points: 60, color: "#ffcf4a" },
-  { value: "RLT2", label: "RLT2", points: 16, color: "#8f7cff", retired: true },
-  { value: "RHT2", label: "RHT2", points: 22, color: "#8f7cff", retired: true },
-  { value: "RLT1", label: "RLT1", points: 40, color: "#8f7cff", retired: true },
-  { value: "RHT1", label: "RHT1", points: 60, color: "#8f7cff", retired: true },
+  // "Retired" options: these don't introduce new tier codes — a retired
+  // player still keeps a real tier (LT2/HT2/LT1/HT1), just flagged as
+  // retired. `value` is the *actual* tier saved to the DB; the "R" label
+  // is only a display convention (see rankBadgeColor/eloRankLabel on the
+  // public pages, which already prefix "R" whenever retired === true).
+  { value: "LT2", label: "RLT2", points: 16, color: "#8f7cff", retiredOption: true },
+  { value: "HT2", label: "RHT2", points: 22, color: "#8f7cff", retiredOption: true },
+  { value: "LT1", label: "RLT1", points: 40, color: "#8f7cff", retiredOption: true },
+  { value: "HT1", label: "RHT1", points: 60, color: "#8f7cff", retiredOption: true },
 ];
 
-const RANK_BY_VALUE = RANKS.reduce((acc, r) => {
+// Active (non-retired) tier lookup — used for normalizing a saved rank and
+// for showing the picker's current selection when the entry isn't retired.
+const RANK_BY_VALUE = RANKS.filter((r) => !r.retiredOption).reduce((acc, r) => {
+  acc[r.value] = r;
+  return acc;
+}, {});
+
+// Same tier codes, but the "retired" flavour (for when entry.retired is true).
+const RETIRED_RANK_BY_VALUE = RANKS.filter((r) => r.retiredOption).reduce((acc, r) => {
   acc[r.value] = r;
   return acc;
 }, {});
@@ -39,13 +52,15 @@ function normalizeRankToTier(value) {
   return "";
 }
 
-function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
+function AdminRankPicker({ value, retired = false, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
 
-  const current = RANK_BY_VALUE[normalizeRankToTier(value)] || RANK_BY_VALUE[""];
-  const activeRanks = RANKS.filter((r) => !r.retired);
-  const retiredRanks = RANKS.filter((r) => r.retired);
+  const tierKey = normalizeRankToTier(value);
+  const current =
+    (retired ? RETIRED_RANK_BY_VALUE[tierKey] : RANK_BY_VALUE[tierKey]) || RANK_BY_VALUE[""];
+  const activeRanks = RANKS.filter((r) => !r.retiredOption);
+  const retiredRanks = RANKS.filter((r) => r.retiredOption);
 
   useEffect(() => {
     if (!open || disabled) {
@@ -61,30 +76,33 @@ function AdminRankPicker({ value, onChange, disabled = false, onSave }) {
     return () => document.removeEventListener("mousedown", handler);
   }, [open, disabled]);
 
-  const handleSelect = (rankValue) => {
+  const handleSelect = (rankValue, isRetiredOption) => {
     if (!disabled) {
-      onChange(rankValue);
+      onChange(rankValue, isRetiredOption);
     }
     setOpen(false);
   };
 
-  const renderOption = (r) => (
-    <button
-      type="button"
-      key={r.value || "unranked"}
-      className={`adminRankOption ${value === r.value ? "selected" : ""}`}
-      style={{ "--admin-rank-color": r.color }}
-      onClick={() => handleSelect(r.value)}
-    >
-      <span className="adminRankOptionDot" />
-      <span className="adminRankOptionMain">
-        <span className="adminRankOptionLabel">{r.label}</span>
-        <span className="adminRankOptionMeta">{r.points} pont</span>
-      </span>
-      {value === r.value && <span className="adminRankOptionCheck">✓</span>}
-      {r.retired && <span className="adminRankOptionRetired">Visszavonult</span>}
-    </button>
-  );
+  const renderOption = (r) => {
+    const isSelected = value === r.value && retired === !!r.retiredOption;
+    return (
+      <button
+        type="button"
+        key={(r.retiredOption ? "retired-" : "active-") + (r.value || "unranked")}
+        className={`adminRankOption ${isSelected ? "selected" : ""}`}
+        style={{ "--admin-rank-color": r.color }}
+        onClick={() => handleSelect(r.value, !!r.retiredOption)}
+      >
+        <span className="adminRankOptionDot" />
+        <span className="adminRankOptionMain">
+          <span className="adminRankOptionLabel">{r.label}</span>
+          <span className="adminRankOptionMeta">{r.points} pont</span>
+        </span>
+        {isSelected && <span className="adminRankOptionCheck">✓</span>}
+        {r.retiredOption && <span className="adminRankOptionRetired">Visszavonult</span>}
+      </button>
+    );
+  };
 
   return (
     <div
@@ -628,13 +646,21 @@ const handleSaveEntry = async (entry) => {
     });
   };
 
-const toggleRetired = (index) => {
+  // Selecting a rank in the picker also carries whether it was picked from
+  // the "Visszavonult tierek" group, so rank + retired are always updated
+  // together (a retired pick keeps a real tier code, e.g. "LT2", and flags
+  // the entry as retired in one step).
+  const updateEntryRank = (index, rankValue, isRetired) => {
     setSelectedPlayer((prev) => {
       if (!prev) return prev;
       const entries = [...prev.entries];
-      const entry = { ...entries[index] };
-      entry.retired = !entry.retired;
-      entries[index] = entry;
+      const current = entries[index];
+      entries[index] = {
+        ...current,
+        rank: rankValue,
+        retired: !!isRetired,
+        points: getPointsForRating(rankValue),
+      };
       return { ...prev, entries };
     });
   };
@@ -1030,8 +1056,8 @@ const freshTests = await loadTests();
                       <div className="tierEntryControls">
                         <AdminRankPicker
                           value={displayRank}
-                          onChange={(rank) => updateEntryField(index, "rank", rank)}
-                          disabled={isRetired}
+                          retired={isRetired}
+                          onChange={(rank, retired) => updateEntryRank(index, rank, retired)}
                           onSave={() => handleSaveEntry(entry)}
                         />
                       </div>
