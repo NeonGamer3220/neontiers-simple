@@ -80,9 +80,9 @@ function tierAbove(tier) {
   return TIER_ORDER[i + 1];
 }
 
-function presetComments(testedTier) {
-  const below = tierBelow(testedTier);
-  const above = tierAbove(testedTier);
+function presetComments(tier) {
+  const below = tierBelow(tier);
+  const above = tierAbove(tier);
   return [
     {
       key: "lost25",
@@ -92,22 +92,23 @@ function presetComments(testedTier) {
     {
       key: "won75",
       short: "Megnyerte a körök 75%-át",
-      text: `megnyerte a körök 75%-át, új tierje: ${testedTier}`,
+      text: `megnyerte a körök 75%-át, új tierje: ${tier}`,
     },
     {
       key: "twoRounds",
-      short: `Nincs ${testedTier}, elég 2 kör`,
-      text: `nincs ${testedTier} ezért ${above} ellen elég 2 kört nyernie.`,
+      short: `Nincs ${tier}, elég 2 kör`,
+      text: `nincs ${tier} ezért ${above} ellen elég 2 kört nyernie.`,
     },
   ];
 }
 
 let rowIdSeq = 1;
-function makeRow(category, gamemode) {
+function makeRow(category, gamemode, tier) {
   const won = true;
   const opts = scoreOptionsFor(category, gamemode, won);
   return {
     id: rowIdSeq++,
+    tier,
     won,
     score: opts[0] || "",
     opponent: "",
@@ -292,8 +293,8 @@ export default function HighTestManagerPage() {
   };
 
   // ─── Fight rows ───
-  const addFightRow = () => {
-    setFights((prev) => [...prev, makeRow(category, gamemode)]);
+  const addFightRow = (tier) => {
+    setFights((prev) => [...prev, makeRow(category, gamemode, tier || testedTier)]);
   };
 
   const removeFightRow = (id) => {
@@ -340,29 +341,42 @@ export default function HighTestManagerPage() {
   const canAddRow = !!gamemode;
 
   const overallWon = fights.length > 0 ? fights[fights.length - 1].won : true;
-  const newTier = overallWon ? testedTier : tierBelow(testedTier);
 
   const rowsValid =
     fights.length > 0 &&
-    fights.every((f) => f.score && f.opponent.trim().length > 0);
+    fights.every((f) => f.tier && f.score && f.opponent.trim().length > 0);
 
   const canSave = !!selectedPlayer && !!testedTier && !!gamemode && rowsValid && !saving;
+
+  // Fights grouped by their own tier, in TIER_ORDER — this is what both the
+  // preview and the saved payload are built from ("1 sor = 1 fight", de a
+  // fightok tier szerint vannak kategorizálva, ahogy a Fightok szekcióban is).
+  const fightsByTier = useMemo(() => {
+    const map = {};
+    for (const t of TIER_ORDER) map[t] = [];
+    for (const f of fights) {
+      if (map[f.tier]) map[f.tier].push(f);
+    }
+    return map;
+  }, [fights]);
 
   const previewMessage = useMemo(() => {
     if (!selectedPlayer) return "";
     const resultText = overallWon ? "Sikeres" : "Sikertelen";
-    const header = `<@${selectedPlayer.discordId || "..."}> (\`${selectedPlayer.minecraftName}\`) - **${resultText} volt a ${testedTier || "?"} teszten** → \`${newTier}\``;
+    const header = `<@${selectedPlayer.discordId || "..."}> (\`${selectedPlayer.minecraftName}\`) - **${resultText} volt a ${testedTier || "?"} teszten**`;
     const modeLine = gamemode ? `🎮 **${gamemode}**` : "";
-    const fightLines = fights
-      .filter((f) => f.score && f.opponent.trim())
-      .map((f) => {
-        const verb = f.won ? "nyert" : "vesztett";
-        const comment = f.comment.trim() ? ` (${f.comment.trim()})` : "";
-        return `> ${verb} ${f.score} ${f.opponent.trim()}${comment}`;
-      });
-    const fightBlock = fightLines.length ? `**__Fightok:__**\n${fightLines.join("\n")}` : "";
-    return [header, modeLine, fightBlock].filter(Boolean).join("\n\n");
-  }, [selectedPlayer, overallWon, testedTier, newTier, gamemode, fights]);
+    const fightBlocks = TIER_ORDER.filter((t) => fightsByTier[t].some((f) => f.score && f.opponent.trim())).map((t) => {
+      const lines = fightsByTier[t]
+        .filter((f) => f.score && f.opponent.trim())
+        .map((f) => {
+          const verb = f.won ? "nyert" : "vesztett";
+          const comment = f.comment.trim() ? ` (${f.comment.trim()})` : "";
+          return `> ${verb} ${f.score} ${f.opponent.trim()}${comment}`;
+        });
+      return `**__${t} Fightok:__**\n${lines.join("\n")}`;
+    });
+    return [header, modeLine, ...fightBlocks].filter(Boolean).join("\n\n");
+  }, [selectedPlayer, overallWon, testedTier, gamemode, fightsByTier]);
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -377,6 +391,7 @@ export default function HighTestManagerPage() {
           gamemode,
           player: selectedPlayer,
           fights: fights.map((f) => ({
+            tier: f.tier,
             won: f.won,
             score: f.score,
             opponent: f.opponent.trim(),
@@ -417,7 +432,7 @@ export default function HighTestManagerPage() {
         <header className="htPageHeader">
           <div>
             <h1>Magas Eredmény Kezelő</h1>
-            <p>Rögzítsd egy HT3+ teszt fightjait, és automatikusan kiküldjük a megfelelő Discord csatornára.</p>
+            <p>Rögzítsd egy HT3+ teszt fightjait tier szerint kategorizálva, és automatikusan kiküldjük a megfelelő Discord csatornára.</p>
           </div>
         </header>
 
@@ -494,7 +509,7 @@ export default function HighTestManagerPage() {
         <section className="htCard">
           <div className="htCardTitleRow">
             <h2 className="htCardTitle">Teszt adatai</h2>
-            <p className="htCardHint">Válaszd ki a tesztelt tiert és a gamemode-ot, majd add hozzá a fightokat.</p>
+            <p className="htCardHint">A "Tesztelt tier" a fejlécben szereplő tier — a fightokat lent, tier szerint csoportosítva add hozzá.</p>
           </div>
 
           <div className="htTopGrid">
@@ -517,47 +532,55 @@ export default function HighTestManagerPage() {
                 placeholder="Válassz gamemode-ot..."
               />
             </div>
-
-            <div className="htField">
-              <label className="htLabel">Várható új tier</label>
-              <div className="htComputedTier">
-                <span className={`htComputedTierBadge ${overallWon ? "ok" : "bad"}`}>{newTier || "—"}</span>
-                <span className="htComputedTierNote">
-                  {overallWon ? "Nyerés → megtartja / megkapja a tesztelt tiert" : "Vesztés → eggyel lentebbi tier"}
-                </span>
-              </div>
-            </div>
           </div>
         </section>
 
         <section className="htCard">
           <div className="htCardTitleRow">
             <h2 className="htCardTitle">Fightok</h2>
-            <p className="htCardHint">Minden sor egy fight. Legalább egyet adj hozzá a mentéshez.</p>
+            <p className="htCardHint">Minden sor egy fight — válaszd ki, melyik tierhez tartozik. Legalább egyet adj hozzá a mentéshez.</p>
           </div>
 
           {!gamemode && <div className="htWarning">Előbb válassz gamemode-ot, utána tudsz fightokat hozzáadni.</div>}
 
-          <div className="htFightRows">
-            {fights.map((f, idx) => (
-              <FightRow
-                key={f.id}
-                index={idx}
-                fight={f}
-                category={category}
-                gamemode={gamemode}
-                testedTier={testedTier}
-                selectedPlayer={selectedPlayer}
-                knownPlayers={knownPlayers}
-                onChange={(patch) => updateFight(f.id, patch)}
-                onRemove={() => removeFightRow(f.id)}
-              />
-            ))}
-          </div>
+          {gamemode && (
+            <div className="htTierGroups">
+              {TIER_ORDER.map((tier) => (
+                <div className="htTierGroup" key={tier}>
+                  <div className="htTierGroupHead">
+                    <span className="htTierGroupBadge">{tier}</span>
+                    <span className="htTierGroupTitle">{tier} Fightok</span>
+                    <button type="button" className="htTierGroupAdd" onClick={() => addFightRow(tier)}>
+                      + Fight
+                    </button>
+                  </div>
 
-          <button type="button" className="htAddRowBtn" disabled={!canAddRow} onClick={addFightRow}>
-            + Fight hozzáadása
-          </button>
+                  {fightsByTier[tier].length === 0 ? (
+                    <p className="htTierGroupEmpty">Még nincs fight ehhez a tierhez.</p>
+                  ) : (
+                    <div className="htFightRows">
+                      {fightsByTier[tier].map((f) => {
+                        const globalIdx = fights.indexOf(f);
+                        return (
+                          <FightRow
+                            key={f.id}
+                            index={globalIdx}
+                            fight={f}
+                            category={category}
+                            gamemode={gamemode}
+                            selectedPlayer={selectedPlayer}
+                            knownPlayers={knownPlayers}
+                            onChange={(patch) => updateFight(f.id, patch)}
+                            onRemove={() => removeFightRow(f.id)}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="htCard htPreviewCard">
@@ -618,7 +641,7 @@ export default function HighTestManagerPage() {
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
         .htContent {
-          max-width: 1080px;
+          max-width: 1120px;
           margin: 0 auto;
           padding: 32px 24px 80px;
           display: grid;
@@ -781,7 +804,7 @@ export default function HighTestManagerPage() {
         }
         .htTopGrid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, 1fr);
           gap: 16px;
         }
         .htField {
@@ -820,37 +843,56 @@ export default function HighTestManagerPage() {
           font-size: 13px;
           font-weight: 700;
         }
-        .htComputedTier {
+
+        /* ─── Tier groups ─── */
+        .htTierGroups {
+          display: grid;
+          gap: 16px;
+        }
+        .htTierGroup {
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.02);
+          padding: 14px 16px 16px;
+        }
+        .htTierGroupHead {
           display: flex;
           align-items: center;
           gap: 10px;
-          padding: 10px 14px;
-          border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          background: rgba(255, 255, 255, 0.03);
-          min-height: 46px;
+          margin-bottom: 10px;
         }
-        .htComputedTierBadge {
-          flex: 0 0 auto;
-          font-size: 13px;
+        .htTierGroupBadge {
+          font-size: 11.5px;
           font-weight: 900;
           padding: 4px 10px;
           border-radius: 8px;
+          background: rgba(143, 124, 255, 0.18);
+          border: 1px solid rgba(143, 124, 255, 0.4);
+          color: #d7d0ff;
         }
-        .htComputedTierBadge.ok {
-          background: rgba(52, 211, 153, 0.2);
-          color: #b8f5dd;
-          border: 1px solid rgba(52, 211, 153, 0.4);
+        .htTierGroupTitle {
+          flex: 1;
+          font-size: 13px;
+          font-weight: 800;
+          color: rgba(255, 255, 255, 0.85);
         }
-        .htComputedTierBadge.bad {
-          background: rgba(214, 71, 71, 0.22);
-          color: #ffc9c9;
-          border: 1px solid rgba(214, 71, 71, 0.4);
+        .htTierGroupAdd {
+          padding: 6px 12px;
+          border-radius: 9px;
+          border: 1px dashed rgba(143, 124, 255, 0.45);
+          background: rgba(143, 124, 255, 0.08);
+          color: #d7d0ff;
+          font-weight: 800;
+          font-size: 11.5px;
+          cursor: pointer;
         }
-        .htComputedTierNote {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.5);
-          line-height: 1.35;
+        .htTierGroupAdd:hover {
+          background: rgba(143, 124, 255, 0.16);
+        }
+        .htTierGroupEmpty {
+          margin: 4px 0 2px;
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.35);
         }
 
         /* ─── Custom dropdown ─── */
@@ -959,16 +1001,16 @@ export default function HighTestManagerPage() {
         /* ─── Fight rows ─── */
         .htFightRows {
           display: grid;
-          gap: 12px;
+          gap: 10px;
         }
         .htFightRow {
           position: relative;
           display: grid;
-          grid-template-columns: 34px 116px 128px 88px minmax(140px, 1fr) minmax(160px, 1.4fr) 32px;
+          grid-template-columns: 30px 116px 128px 88px minmax(140px, 1fr) minmax(160px, 1.4fr) 32px;
           grid-template-areas: "idx result player score opponent comment remove";
           gap: 10px;
           align-items: start;
-          padding: 14px;
+          padding: 12px;
           border-radius: 14px;
           border: 1px solid rgba(255, 255, 255, 0.08);
           background: rgba(255, 255, 255, 0.025);
@@ -1069,24 +1111,6 @@ export default function HighTestManagerPage() {
         }
         .htFightRowRemove:hover {
           background: rgba(214, 71, 71, 0.22);
-        }
-        .htAddRowBtn {
-          margin-top: 14px;
-          padding: 11px 18px;
-          border-radius: 12px;
-          border: 1px dashed rgba(143, 124, 255, 0.45);
-          background: rgba(143, 124, 255, 0.08);
-          color: #d7d0ff;
-          font-weight: 800;
-          font-size: 13px;
-          cursor: pointer;
-        }
-        .htAddRowBtn:hover:not(:disabled) {
-          background: rgba(143, 124, 255, 0.16);
-        }
-        .htAddRowBtn:disabled {
-          opacity: 0.4;
-          cursor: not-allowed;
         }
 
         .htDiscordBubble {
@@ -1229,7 +1253,7 @@ export default function HighTestManagerPage() {
   );
 }
 
-function FightRow({ index, fight, category, gamemode, testedTier, selectedPlayer, knownPlayers, onChange, onRemove }) {
+function FightRow({ index, fight, category, gamemode, selectedPlayer, knownPlayers, onChange, onRemove }) {
   const scoreOpts = scoreOptionsFor(category, gamemode, fight.won).map((s) => ({ value: s, label: s }));
   const opponentRef = useRef(null);
 
@@ -1250,7 +1274,7 @@ function FightRow({ index, fight, category, gamemode, testedTier, selectedPlayer
     return knownPlayers.filter((n) => n.toLowerCase().includes(q)).slice(0, 8);
   }, [fight.opponentQuery, knownPlayers]);
 
-  const presets = presetComments(testedTier);
+  const presets = presetComments(fight.tier);
 
   return (
     <div className="htFightRow">

@@ -77,12 +77,6 @@ const DEFAULT_MODE_EMOJI = "🎮";
 const TIER_ORDER = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
 const TIER_TO_ELO = { LT3: 1500, HT3: 1750, LT2: 2000, HT2: 2250, LT1: 2500, HT1: 2750 };
 
-function tierBelow(tier) {
-  const i = TIER_ORDER.indexOf(tier);
-  if (i <= 0) return tier;
-  return TIER_ORDER[i - 1];
-}
-
 // FT (first-to) counts per gamemode — mirrors the client-side score-option
 // generator so a tampered/forged score can't be saved.
 const FT_MODERN = {
@@ -157,35 +151,43 @@ export async function POST(req) {
 
   const cleanFights = [];
   for (const f of fights) {
+    const tier = String(f?.tier || "").toUpperCase();
     const won = f?.won === true;
     const score = String(f?.score || "").trim();
     const opponent = String(f?.opponent || "").trim();
     const comment = String(f?.comment || "").trim();
 
+    if (!TIER_ORDER.includes(tier)) {
+      return json({ error: "Minden fighthoz érvényes tiert kell választani" }, 400);
+    }
     if (!opponent) {
       return json({ error: "Minden fighthoz meg kell adni az ellenfelet" }, 400);
     }
     if (!isValidScore(category, gamemode, won, score)) {
       return json({ error: `Érvénytelen eredmény (${score || "?"}) ehhez a gamemode-hoz` }, 400);
     }
-    cleanFights.push({ won, score, opponent, comment });
+    cleanFights.push({ tier, won, score, opponent, comment });
   }
 
   const overallWon = cleanFights[cleanFights.length - 1].won;
-  const newTier = overallWon ? testedTier : tierBelow(testedTier);
   const resultText = overallWon ? "Sikeres" : "Sikertelen";
   const modeEmoji = GAMEMODE_EMOJIS[gamemode] || DEFAULT_MODE_EMOJI;
 
-  const headerLine = `<@${discordId}> (\`${minecraftName}\`) - **${resultText} volt a ${testedTier} teszten** → \`${newTier}\``;
+  const headerLine = `<@${discordId}> (\`${minecraftName}\`) - **${resultText} volt a ${testedTier} teszten**`;
   const modeLine = `${modeEmoji} **${gamemode}**`;
-  const fightLines = cleanFights.map((f) => {
-    const verb = f.won ? "nyert" : "vesztett";
-    const commentPart = f.comment ? ` (${f.comment})` : "";
-    return `> ${verb} ${f.score} ${f.opponent}${commentPart}`;
-  });
-  const fightBlock = `**__Fightok:__**\n${fightLines.join("\n")}`;
 
-  const message = [headerLine, modeLine, fightBlock].join("\n\n");
+  const fightBlocks = TIER_ORDER.filter((t) => cleanFights.some((f) => f.tier === t)).map((t) => {
+    const lines = cleanFights
+      .filter((f) => f.tier === t)
+      .map((f) => {
+        const verb = f.won ? "nyert" : "vesztett";
+        const commentPart = f.comment ? ` (${f.comment})` : "";
+        return `> ${verb} ${f.score} ${f.opponent}${commentPart}`;
+      });
+    return `**__${t} Fightok:__**\n${lines.join("\n")}`;
+  });
+
+  const message = [headerLine, modeLine, ...fightBlocks].join("\n\n");
 
   const { error: insertError } = await supabase.from("discord_notifications").insert({
     username: minecraftName,
@@ -196,7 +198,6 @@ export async function POST(req) {
     channel_id: CHANNEL_IDS[category],
     category,
     tested_tier: testedTier,
-    new_tier: newTier,
     player_discord_id: discordId,
     message,
     processed: false,
@@ -212,8 +213,8 @@ export async function POST(req) {
       action: "high_score_save",
       target_username: minecraftName,
       gamemode,
-      old_rank: testedTier,
-      new_rank: newTier,
+      old_rank: null,
+      new_rank: testedTier,
       old_points: null,
       new_points: null,
       details: { category, success: overallWon, discordId, fights: cleanFights },
