@@ -426,8 +426,6 @@ export default function AdminDashboard() {
   const [toast, setToast] = useState(null);
   const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
   const [newNameInput, setNewNameInput] = useState("");
-  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
-  const [newPlayerName, setNewPlayerName] = useState("");
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
   const [confirmState, setConfirmState] = useState(null);
@@ -775,59 +773,6 @@ const freshTests = await loadTests();
     } catch { setToast({ type: "error", text: "Hálózati hiba" }); }
   };
 
-  // ── Remove player (from main site, keep DB) ──
-  // ── Add player with a default rating (500) in every gamemode ──
-  const handleAddPlayer = async () => {
-    if (!newPlayerName.trim()) {
-      setToast({ type: "error", text: "Add meg a játékos nevét!" });
-      return;
-    }
-    const username = newPlayerName.trim();
-    let uuid = null;
-    try {
-      const mojangRes = await fetch(`/api/mojang?username=${encodeURIComponent(username)}`);
-      if (mojangRes.ok) {
-        const mojangData = await mojangRes.json();
-        uuid = mojangData.id || null;
-      }
-    } catch { /* ignore Mojang errors, add without UUID */ }
-
-    try {
-      await Promise.all(
-        MODE_OPTIONS.map((mode) =>
-          fetch("/api/tests", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              username,
-              uuid,
-              gamemode: mode,
-              rank: "LT5",
-              points: 1,
-              retired: false,
-            }),
-          })
-        )
-      );
-
-      await fetch("/api/audit-log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "player_add",
-          target_username: username,
-          details: { modes: MODE_OPTIONS.length, rank: "LT5", uuid },
-        }),
-      });
-
-      await loadTests();
-      setShowAddPlayerModal(false);
-      setNewPlayerName("");
-      setToast({ type: "ok", text: `${username} hozzáadva minden gamemode-hoz LT5 rankkel.` });
-    } catch (err) {
-      setToast({ type: "error", text: err.message || "Hiba a játékos létrehozása során" });
-    }
-  };
 
   const handleRemovePlayer = async () => {
     const ok1 = await showConfirm(`Biztos hogy eltávolítod "${selectedPlayer.username}" játékosadatát a weboldalról?`);
@@ -866,35 +811,6 @@ const freshTests = await loadTests();
           className={`toast ${toast.type === "error" ? "toastError" : "toastOk"}`}
         >
           {toast.text}
-        </div>
-      )}
-
-      {showAddPlayerModal && (
-        <div className="modalOverlay" onClick={() => setShowAddPlayerModal(false)}>
-          <div className="modalContent" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modalTitle">Új játékos hozzáadása</h3>
-            <p className="modalSubtitle">Minden gamemode-hoz 500 pontot kap.</p>
-            <input
-              type="text"
-              className="modalInput"
-              placeholder="Minecraft név..."
-              value={newPlayerName}
-              onChange={(e) => setNewPlayerName(e.target.value)}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAddPlayer();
-                if (e.key === "Escape") setShowAddPlayerModal(false);
-              }}
-            />
-            <div className="modalActions">
-              <button className="modalBtn modalBtnCancel" onClick={() => setShowAddPlayerModal(false)}>
-                Mégse
-              </button>
-              <button className="modalBtn modalBtnConfirm" onClick={handleAddPlayer}>
-                Hozzáadás
-              </button>
-            </div>
-          </div>
         </div>
       )}
 
@@ -949,9 +865,6 @@ const freshTests = await loadTests();
               autoComplete="off"
             />
           </div>
-          <button className="addPlayerBtn" onClick={() => setShowAddPlayerModal(true)}>
-            + Új játékos
-          </button>
 
           {searchedPlayers.length > 0 && (
             <div className="searchResults">
@@ -1319,26 +1232,6 @@ const freshTests = await loadTests();
         .searchResultItem:hover {
           background: rgba(255, 255, 255, 0.08);
           border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .addPlayerBtn {
-          padding: 10px 18px;
-          background: #4ade80;
-          color: #000;
-          border: none;
-          border-radius: 10px;
-          font-weight: 800;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
-          flex-shrink: 0;
-          box-shadow: 0 6px 18px rgba(74, 222, 128, 0.25);
-        }
-
-        .addPlayerBtn:hover {
-          background: #22c55e;
-          box-shadow: 0 8px 22px rgba(74, 222, 128, 0.4);
-          transform: translateY(-1px);
         }
 
         .modalOverlay {

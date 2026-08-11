@@ -66,8 +66,17 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
           </a>
           <div className="anMobileFooter">
             <div className="anUserBadge">
-              <span className="anUserName">{adminName || "Admin"}</span>
-              <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
+              <img
+                className="anUserAvatar"
+                src={`https://mc-heads.net/avatar/${encodeURIComponent(adminName || "MHF_Question")}/32`}
+                alt=""
+                width={22}
+                height={22}
+              />
+              <span className="anUserInfo">
+                <span className="anUserName">{adminName || "Admin"}</span>
+                <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
+              </span>
             </div>
             <button type="button" className="anLogoutBtn" onClick={onLogout}>
               Kijelentkezés
@@ -77,8 +86,17 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
 
         <div className="anRight">
           <div className="anUserBadge">
-            <span className="anUserName">{adminName || "Admin"}</span>
-            <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
+            <img
+              className="anUserAvatar"
+              src={`https://mc-heads.net/avatar/${encodeURIComponent(adminName || "MHF_Question")}/32`}
+              alt=""
+              width={22}
+              height={22}
+            />
+            <span className="anUserInfo">
+              <span className="anUserName">{adminName || "Admin"}</span>
+              <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
+            </span>
           </div>
           <button type="button" className="anLogoutBtn" onClick={onLogout}>
             Kijelentkezés
@@ -228,17 +246,38 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
         }
         .anUserBadge {
           display: flex;
+          align-items: center;
+          gap: 9px;
+          padding: 6px 14px 6px 6px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+        .anUserAvatar {
+          width: 22px;
+          height: 22px;
+          border-radius: 6px;
+          object-fit: cover;
+          image-rendering: pixelated;
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+          flex: 0 0 auto;
+        }
+        .anUserInfo {
+          display: flex;
           flex-direction: column;
-          align-items: flex-end;
+          align-items: flex-start;
           line-height: 1.2;
         }
         .anUserName {
           font-size: 12px;
-          color: rgba(255, 255, 255, 0.6);
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.85);
         }
         .anUserRole {
-          font-size: 11px;
-          letter-spacing: 0.05em;
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
           color: #b7aadf;
         }
         .anLogoutBtn {

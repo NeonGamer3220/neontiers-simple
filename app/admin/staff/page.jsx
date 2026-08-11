@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminNavbar from "../_components/AdminNavbar";
+import AdminDropdown from "../_components/AdminDropdown";
 import "../admin-theme.css";
 
 export default function AdminStaffPage() {
@@ -139,52 +140,58 @@ export default function AdminStaffPage() {
 
   if (loading) {
     return (
-      <div className="adminPage admin-panel">
-        <div className="loadingScreen">
-          <div className="loadingBox">
-            <div className="loaderCircle" />
-            <p>Betöltés...</p>
-          </div>
-        </div>
+      <div className="stfLoadingPage admin-panel">
+        <div className="stfSpinner" />
       </div>
     );
   }
 
   return (
-    <div className="adminPage admin-panel">
+    <div className="stfPage admin-panel">
       {toast && <div className={`toast ${toast.type === "error" ? "toastError" : "toastOk"}`}>{toast.text}</div>}
 
       <AdminNavbar adminName={adminName} adminRole={adminRole} onLogout={handleLogout} />
 
-      <main className="adminContent">
-        <section className="staffSection">
-          <div className="staffHeader">
-            <div>
-              <h2 className="staffSectionTitle">Staff fiókok</h2>
-              <p className="staffSectionSubtitle">Itt hozhatsz létre, szerkeszthetsz és törölhetsz admin fiókokat.</p>
-            </div>
-            <div className="staffStats">
-              <span>{staffList.length} fiók</span>
-            </div>
+      <main className="stfContent">
+        <header className="stfPageHeader">
+          <div>
+            <h1>Staff fiókok</h1>
+            <p>Hozz létre, szerkessz vagy törölj admin fiókokat.</p>
           </div>
+          <span className="stfCount">{staffList.length} fiók</span>
+        </header>
 
-          <div className="staffList">
+        <section className="stfCard">
+          <h2 className="stfCardTitle">Fiókok</h2>
+
+          <div className="stfList">
             {staffList.length === 0 ? (
-              <div className="emptyStateCard">Nincs még létrehozott staff fiók.</div>
+              <div className="stfEmpty">Nincs még létrehozott staff fiók.</div>
             ) : (
               staffList.map((staff) => {
                 const normalizedRole = String(staff.role || "").toLowerCase();
+                const isEditing = editingStaffId === staff.id;
                 return (
-                  <div key={staff.id} className="staffItem">
-                    <div className="staffInfo">
-                      <span className="staffName">{staff.admin_name}</span>
-                      <span className={`staffRole staffRole-${normalizedRole}`}>
+                  <div key={staff.id} className={`stfItem ${isEditing ? "editing" : ""}`}>
+                    <img
+                      className="stfItemAvatar"
+                      src={`https://mc-heads.net/avatar/${encodeURIComponent(staff.admin_name || "MHF_Question")}/40`}
+                      alt=""
+                      width={38}
+                      height={38}
+                    />
+                    <div className="stfItemInfo">
+                      <span className="stfItemName">{staff.admin_name}</span>
+                      <span className={`stfItemRole role-${normalizedRole}`}>
+                        {normalizedRole === "owner" ? "★ " : ""}
                         {normalizedRole.toUpperCase()}
                       </span>
                     </div>
-                    <div className="staffActions">
+                    <div className="stfItemActions">
                       <button
-                        className="staffBtn staffBtnEdit"
+                        type="button"
+                        className="stfIconBtn edit"
+                        title="Szerkesztés"
                         onClick={() => {
                           setEditingStaffId(staff.id);
                           setAdminUsername(staff.admin_name);
@@ -192,13 +199,24 @@ export default function AdminStaffPage() {
                           setAdminPassword("");
                         }}
                       >
-                        Szerkesztés
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" />
+                        </svg>
                       </button>
                       <button
-                        className="staffBtn staffBtnDelete"
+                        type="button"
+                        className="stfIconBtn delete"
+                        title="Törlés"
                         onClick={() => handleDeleteStaff(staff.id, staff.admin_name)}
                       >
-                        Törlés
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18" />
+                          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                          <path d="M10 11v6" />
+                          <path d="M14 11v6" />
+                        </svg>
                       </button>
                     </div>
                   </div>
@@ -206,380 +224,297 @@ export default function AdminStaffPage() {
               })
             )}
           </div>
+        </section>
 
-          <div className="staffForm">
-            <h3 className="formTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h3>
-            <div className="formRow">
-              <label>Staff név</label>
+        <section className="stfCard">
+          <h2 className="stfCardTitle">{editingStaffId ? "Staff szerkesztése" : "Új staff hozzáadása"}</h2>
+
+          <div className="stfFormGrid">
+            <div className="stfField">
+              <label className="stfLabel">Staff név</label>
               <input
                 type="text"
-                className="formInput"
+                className="stfInput"
                 placeholder="Felhasználónév"
                 value={adminUsername}
                 onChange={(e) => setAdminUsername(e.target.value)}
               />
             </div>
-            <div className="formRow">
-              <label>Jelszó</label>
+            <div className="stfField">
+              <label className="stfLabel">Jelszó</label>
               <input
                 type="password"
-                className="formInput"
-                placeholder="Jelszó"
+                className="stfInput"
+                placeholder={editingStaffId ? "Hagyd üresen, ha nem változik" : "Jelszó"}
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
               />
             </div>
-            <div className="formRow">
-              <label>Jogosultság</label>
-              <select className="formInput" value={adminRoleInput} onChange={(e) => setAdminRoleInput(e.target.value)}>
-                <option value="regulator">Regulator</option>
-                <option value="owner">Owner</option>
-              </select>
+            <div className="stfField">
+              <label className="stfLabel">Jogosultság</label>
+              <AdminDropdown
+                value={adminRoleInput}
+                onChange={setAdminRoleInput}
+                options={[
+                  { value: "regulator", label: "Regulator", color: "#8f7cff" },
+                  { value: "owner", label: "Owner", color: "#d5b355" },
+                ]}
+              />
             </div>
-            <div className="formActions">
-              {editingStaffId && (
-                <button className="secondaryBtn" onClick={resetForm}>Mégse</button>
-              )}
-              <button className="primaryBtn" onClick={handleSaveStaff}>{editingStaffId ? "Mentés" : "Létrehozás"}</button>
-            </div>
+          </div>
+
+          <div className="stfFormActions">
+            {editingStaffId && (
+              <button type="button" className="stfBtn stfBtnGhost" onClick={resetForm}>
+                Mégse
+              </button>
+            )}
+            <button type="button" className="stfBtn stfBtnPrimary" onClick={handleSaveStaff}>
+              {editingStaffId ? "Mentés" : "Létrehozás"}
+            </button>
           </div>
         </section>
       </main>
 
-      <style jsx>{`
-        .adminPage {
+      <style jsx global>{`
+        .stfLoadingPage {
           min-height: 100vh;
-          background: #0b0e14;
+          display: grid;
+          place-items: center;
+          background: #05060a;
+        }
+        .stfSpinner {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: 3px solid rgba(255, 255, 255, 0.15);
+          border-top-color: #8f7cff;
+          animation: stfspin 0.8s linear infinite;
+        }
+        @keyframes stfspin {
+          to { transform: rotate(360deg); }
+        }
+        .stfPage {
+          min-height: 100vh;
+          background: #05060a;
           color: #fff;
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
-
-        .loadingScreen {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 30px;
-          background: linear-gradient(180deg, rgba(11, 14, 20, 0.9), #0b0e14);
-        }
-
-        .loadingBox {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 16px;
-          padding: 28px 32px;
-          border-radius: 24px;
-          background: rgba(15, 23, 42, 0.92);
-          border: 1px solid rgba(255,255,255,0.08);
-          box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-        }
-
-        .loaderCircle {
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          border: 6px solid rgba(255,255,255,0.12);
-          border-top-color: #d64747;
-          animation: spin 1s linear infinite;
-        }
-
-        .loadingBox p {
-          margin: 0;
-          font-size: 16px;
-          letter-spacing: 0.04em;
-          color: rgba(255,255,255,0.88);
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .adminNavbar {
-          position: sticky;
-          top: 0;
-          z-index: 20;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: space-between;
-          align-items: center;
-          gap: 18px;
-          padding: 16px 24px;
-          background: rgba(11, 14, 20, 0.94);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(14px);
-        }
-
-        .navbarLeft {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          flex: 0 0 auto;
-        }
-
-        .navbarTitle {
-          font-size: 18px;
-          font-weight: 800;
-          margin: 0;
-          letter-spacing: 0.02em;
-        }
-
-        .navbarLinks {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: center;
-          flex: 1;
-          min-width: 240px;
-          margin: 0;
-          padding: 0;
-          list-style: none;
-        }
-
-        .navbarLink {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 10px 16px;
-          color: rgba(255, 255, 255, 0.72);
-          text-decoration: none;
-          font-weight: 800;
-          font-size: 13px;
-          border-radius: 999px;
-          transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-        }
-
-        .navbarLink:hover,
-        .navbarLink.active {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.08);
-          transform: translateY(-1px);
-        }
-
-        .adminUserBadge {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          padding: 10px 16px;
-          background: rgba(255, 255, 255, 0.06);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 14px;
-          color: #fff;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        .logoutBtn,
-        .primaryBtn,
-        .secondaryBtn {
-          padding: 10px 18px;
-          border-radius: 12px;
-          font-weight: 800;
-          font-size: 13px;
-          cursor: pointer;
-          border: none;
-          min-width: 120px;
-        }
-
-        .logoutBtn,
-        .primaryBtn {
-          background: #d64747;
-          color: #fff;
-        }
-
-        .secondaryBtn {
-          background: rgba(255,255,255,0.08);
-          color: #fff;
-          border: 1px solid rgba(255,255,255,0.12);
-        }
-
-        .primaryBtn:hover,
-        .logoutBtn:hover,
-        .secondaryBtn:hover {
-          transform: translateY(-1px);
-        }
-
-        .adminContent {
-          max-width: 1480px;
+        .stfContent {
+          max-width: 900px;
           margin: 0 auto;
-          padding: 30px 20px;
+          padding: 32px 24px 80px;
           display: grid;
-          gap: 24px;
+          gap: 22px;
         }
-
-        .staffSection {
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 24px;
-          padding: 28px;
-          display: grid;
-          gap: 26px;
-        }
-
-        .staffHeader {
+        .stfPageHeader {
           display: flex;
+          align-items: flex-end;
           justify-content: space-between;
-          gap: 20px;
-          align-items: center;
+          gap: 14px;
           flex-wrap: wrap;
         }
-
-        .staffSectionTitle {
-          font-size: 26px;
-          font-weight: 800;
-          margin: 0;
+        .stfPageHeader h1 {
+          margin: 0 0 6px;
+          font-size: 28px;
+          font-weight: 900;
         }
-
-        .staffSectionSubtitle {
-          margin: 8px 0 0;
-          color: rgba(255,255,255,0.65);
+        .stfPageHeader p {
+          margin: 0;
+          color: rgba(255, 255, 255, 0.6);
           font-size: 14px;
         }
-
-        .staffStats {
+        .stfCount {
+          padding: 8px 14px;
+          border-radius: 999px;
+          background: rgba(143, 124, 255, 0.14);
+          border: 1px solid rgba(143, 124, 255, 0.35);
+          color: #d7d0ff;
+          font-size: 12.5px;
+          font-weight: 800;
+        }
+        .stfCard {
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 24px 26px;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+        .stfCardTitle {
+          margin: 0 0 16px;
           font-size: 13px;
-          color: rgba(255,255,255,0.75);
-          font-weight: 700;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.85);
         }
-
-        .staffList {
+        .stfList {
           display: grid;
-          gap: 12px;
+          gap: 10px;
         }
-
-        .staffItem {
-          display: flex;
-          justify-content: space-between;
-          gap: 16px;
-          align-items: center;
-          padding: 18px 20px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 18px;
+        .stfEmpty {
+          padding: 22px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px dashed rgba(255, 255, 255, 0.14);
+          text-align: center;
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 13.5px;
         }
-
-        .staffInfo {
+        .stfItem {
           display: flex;
           align-items: center;
           gap: 14px;
-          min-width: 0;
+          padding: 12px 14px;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.025);
+          transition: border-color 0.15s ease, background 0.15s ease;
         }
-
-        .staffName {
-          font-weight: 700;
-          font-size: 15px;
+        .stfItem:hover {
+          border-color: rgba(255, 255, 255, 0.16);
+          background: rgba(255, 255, 255, 0.04);
+        }
+        .stfItem.editing {
+          border-color: rgba(143, 124, 255, 0.5);
+          background: rgba(143, 124, 255, 0.08);
+        }
+        .stfItemAvatar {
+          width: 38px;
+          height: 38px;
+          border-radius: 10px;
+          object-fit: cover;
+          image-rendering: pixelated;
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+          flex: 0 0 auto;
+        }
+        .stfItemInfo {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
           min-width: 0;
+          flex: 1;
+        }
+        .stfItemName {
+          font-weight: 800;
+          font-size: 14px;
+          color: #fff;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-
-        .staffRole {
-          font-size: 11px;
-          font-weight: 800;
-          text-transform: uppercase;
-          padding: 6px 10px;
+        .stfItemRole {
+          align-self: flex-start;
+          font-size: 10.5px;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          padding: 3px 9px;
           border-radius: 999px;
-          background: rgba(196, 30, 58, 0.18);
-          color: #c41e3a;
+          background: rgba(143, 124, 255, 0.16);
+          border: 1px solid rgba(143, 124, 255, 0.35);
+          color: #d7d0ff;
         }
-
-        .staffRole-owner {
-          background: rgba(213, 179, 85, 0.2);
-          color: #d5b355;
+        .stfItemRole.role-owner {
+          background: rgba(213, 179, 85, 0.18);
+          border-color: rgba(213, 179, 85, 0.45);
+          color: #e8cf8a;
         }
-
-        .staffActions {
+        .stfItemActions {
           display: flex;
-          gap: 10px;
-          flex-wrap: wrap;
+          gap: 8px;
+          flex: 0 0 auto;
         }
-
-        .staffBtn {
-          padding: 10px 16px;
-          border-radius: 12px;
-          font-weight: 700;
-          font-size: 13px;
-          cursor: pointer;
-          border: none;
-          min-width: 110px;
-        }
-
-        .staffBtnEdit {
-          background: rgba(255,255,255,0.08);
-          color: #fff;
-        }
-
-        .staffBtnDelete {
-          background: rgba(214,71,71,0.22);
-          color: #d64747;
-        }
-
-        .staffForm {
+        .stfIconBtn {
           display: grid;
-          gap: 18px;
-          padding: 24px;
-          border-radius: 20px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
+          place-items: center;
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.75);
+          cursor: pointer;
+          transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.1s ease;
         }
-
-        .formTitle {
-          margin: 0;
-          font-size: 18px;
-          font-weight: 800;
+        .stfIconBtn svg {
+          width: 16px;
+          height: 16px;
         }
-
-        .formRow {
+        .stfIconBtn:hover {
+          transform: translateY(-1px);
+        }
+        .stfIconBtn.edit:hover {
+          border-color: rgba(143, 124, 255, 0.5);
+          background: rgba(143, 124, 255, 0.14);
+          color: #d7d0ff;
+        }
+        .stfIconBtn.delete:hover {
+          border-color: rgba(214, 71, 71, 0.5);
+          background: rgba(214, 71, 71, 0.16);
+          color: #ffb4b4;
+        }
+        .stfFormGrid {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 18px;
+        }
+        .stfField {
           display: grid;
           gap: 8px;
         }
-
-        .formRow label {
-          color: rgba(255,255,255,0.7);
-          font-size: 13px;
+        .stfLabel {
+          font-size: 11px;
           font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.03em;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.55);
         }
-
-        .formInput,
-        .staffForm select {
+        .stfInput {
           width: 100%;
-          padding: 12px 14px;
-          border-radius: 14px;
-          border: 1px solid rgba(255,255,255,0.14);
-          background: rgba(255,255,255,0.05);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.05);
           color: #fff;
+          padding: 12px 14px;
           font-size: 14px;
+          font-family: inherit;
+        }
+        .stfInput:focus {
           outline: none;
-          transition: border-color 0.18s ease, box-shadow 0.18s ease;
+          border-color: #8f7cff;
         }
-
-        .formInput:focus,
-        .staffForm select:focus {
-          border-color: #d64747;
-          box-shadow: 0 0 0 3px rgba(214,71,71,0.16);
-        }
-
-        .formActions {
+        .stfFormActions {
           display: flex;
-          gap: 12px;
-          flex-wrap: wrap;
           justify-content: flex-end;
+          gap: 10px;
         }
-
-        .emptyStateCard {
-          padding: 24px;
-          border-radius: 20px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          text-align: center;
-          color: rgba(255,255,255,0.75);
+        .stfBtn {
+          padding: 12px 22px;
+          border-radius: 12px;
+          border: none;
+          font-weight: 900;
+          font-size: 13.5px;
+          cursor: pointer;
+          transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
         }
-
+        .stfBtnGhost {
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .stfBtnGhost:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .stfBtnPrimary {
+          background: linear-gradient(135deg, #8f7cff, #6f5cd6);
+          box-shadow: 0 8px 24px rgba(143, 124, 255, 0.35);
+          color: #fff;
+        }
+        .stfBtnPrimary:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 10px 30px rgba(143, 124, 255, 0.5);
+        }
         .toast {
           position: fixed;
           bottom: 28px;
@@ -590,31 +525,15 @@ export default function AdminStaffPage() {
           font-size: 15px;
           font-weight: 800;
           color: #fff;
-          animation: toastSlideIn 0.3s ease-out;
-          box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
           pointer-events: none;
         }
-
         .toastOk { background: rgba(52, 211, 153, 0.95); }
         .toastError { background: rgba(214, 71, 71, 0.95); }
 
-        @keyframes toastSlideIn {
-          from { opacity: 0; transform: translateY(20px) scale(0.92); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        @media (max-width: 820px) {
-          .staffSection {
-            padding: 20px;
-          }
-
-          .staffItem {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .staffActions {
-            justify-content: space-between;
+        @media (max-width: 720px) {
+          .stfFormGrid {
+            grid-template-columns: 1fr;
           }
         }
       `}</style>

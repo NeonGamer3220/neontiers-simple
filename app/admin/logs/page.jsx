@@ -211,850 +211,624 @@ export default function AdminLogsPage() {
     }
   };
 
+  const logTypeOptions = [
+    { value: "all", label: `Összes (${tests.length + auditLogs.length})` },
+    { value: "tests", label: `Tesztek (${tests.length})` },
+    { value: "audit", label: `Admin akciók (${auditLogs.length})` },
+  ];
+
   if (loading) {
     return (
-      <div className="logsPage admin-panel">
-        <div className="loadingState">Betöltés...</div>
+      <div className="lgLoadingPage admin-panel">
+        <div className="lgSpinner" />
       </div>
     );
   }
 
   return (
-    <div className="logsPage admin-panel">
+    <div className="lgPage admin-panel">
       <AdminNavbar adminName={adminName} adminRole={adminRole} onLogout={handleLogout} />
 
-      <header className="logsHeader">
-        <div className="headerLeft">
-          <h2 className="headerTitle">Összes teszt napló</h2>
-          <p className="headerSubtitle">Összes teszt eredmény dátummal, tierrel és játékmóddal</p>
-        </div>
-        <div className="headerStat">
-          <span className="headerStatValue">{filteredTests.length}</span>
-          <span className="headerStatLabel">Teszt</span>
-        </div>
-      </header>
-
-      <main className="logsContent">
-        <div className="logTypeTabs">
-          <button
-            className={`logTypeTab ${logType === "all" ? "active" : ""}`}
-            onClick={() => setLogType("all")}
-          >
-            Összes ({tests.length + auditLogs.length})
-          </button>
-          <button
-            className={`logTypeTab ${logType === "tests" ? "active" : ""}`}
-            onClick={() => setLogType("tests")}
-          >
-            Tesztek ({tests.length})
-          </button>
-          <button
-            className={`logTypeTab ${logType === "audit" ? "active" : ""}`}
-            onClick={() => setLogType("audit")}
-          >
-            Admin akciók ({auditLogs.length})
-          </button>
-        </div>
-
-        <div className="filtersSection">
-          <div className="filterGroup">
-            <label className="filterLabel">Játékos:</label>
-            <input
-              type="text"
-              className="filterInput"
-              placeholder="Játékos neve..."
-              value={filterUsername}
-              onChange={(e) => setFilterUsername(e.target.value)}
-            />
+      <main className="lgContent">
+        <header className="lgPageHeader">
+          <div>
+            <h1>Logok</h1>
+            <p>Minden teszt eredmény és admin tevékenység egy helyen, kereshetően.</p>
           </div>
-          {(logType === "all" || logType === "tests") && (
-            <div className="filterGroup">
-              <label className="filterLabel">Játékmód:</label>
+          <div className="lgHeaderStats">
+            <div className="lgHeaderStat">
+              <span className="lgHeaderStatValue">{filteredTests.length}</span>
+              <span className="lgHeaderStatLabel">Teszt</span>
+            </div>
+            <div className="lgHeaderStat">
+              <span className="lgHeaderStatValue">{filteredAudit.length}</span>
+              <span className="lgHeaderStatLabel">Admin akció</span>
+            </div>
+          </div>
+        </header>
+
+        <section className="lgCard lgFilterCard">
+          <div className="lgTabs">
+            {logTypeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                className={`lgTab ${logType === opt.value ? "active" : ""}`}
+                onClick={() => setLogType(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="lgFilterGrid">
+            <div className="lgField">
+              <label className="lgLabel">Játékos</label>
               <input
                 type="text"
-                className="filterInput"
-                placeholder="Játékmód..."
-                value={filterGamemode}
-                onChange={(e) => setFilterGamemode(e.target.value)}
+                className="lgInput"
+                placeholder="Játékos neve..."
+                value={filterUsername}
+                onChange={(e) => setFilterUsername(e.target.value)}
               />
             </div>
-          )}
-        </div>
+            {(logType === "all" || logType === "tests") && (
+              <div className="lgField">
+                <label className="lgLabel">Játékmód</label>
+                <input
+                  type="text"
+                  className="lgInput"
+                  placeholder="Játékmód..."
+                  value={filterGamemode}
+                  onChange={(e) => setFilterGamemode(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+        </section>
 
-        {/* Test Results Table */}
         {(logType === "all" || logType === "tests") && (
-          <div className="logsTable">
-            <div className="tableHead">
-              <div className="tableCell colDate">Dátum</div>
-              <div className="tableCell colPlayer">Játékos</div>
-              <div className="tableCell colMode">Játékmód</div>
-              <div className="tableCell colRank">Tier</div>
-              <div className="tableCell colPoints">Pont</div>
-            </div>
+          <section className="lgCard">
+            <h2 className="lgCardTitle">Teszt eredmények</h2>
 
             {filteredTests.length === 0 ? (
-              <div className="emptyState">
-                <div className="emptyTitle">Nincs teszt adat</div>
-                <div className="emptySub">Nem található a szűrésnek megfelelő teszt.</div>
+              <div className="lgEmpty">
+                <span className="lgEmptyTitle">Nincs teszt adat</span>
+                <span className="lgEmptySub">Nem található a szűrésnek megfelelő teszt.</span>
               </div>
             ) : (
-              filteredTests.map((test, idx) => (
-                <div key={`${test.username}-${test.gamemode}-${idx}`} className="tableRow">
-                  <div className="tableCell colDate">
-                    {new Date(test.created_at).toLocaleString("hu-HU", {
-                      year: "numeric",
-                      month: "2-digit",
-                      day: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    })}
-                  </div>
-                  <div className="tableCell colPlayer">
-                    <div className="playerCell">
-                    <img
-                      src={
-                       test.uuid
-                         ? `https://mc-heads.net/avatar/${test.uuid.replace(/-/g, "")}/32`
-                         : `https://mc-heads.net/avatar/${encodeURIComponent(test.username)}/32`
-                     }
-                      alt={test.username}
-                      className="playerAvatar"
-                    />
-                    <span>{test.username}</span>
-                  </div>
+              <div className="lgTestTable">
+                <div className="lgTestRow lgTestHead">
+                  <span>Dátum</span>
+                  <span>Játékos</span>
+                  <span>Játékmód</span>
+                  <span>Tier</span>
+                  <span>Pont</span>
                 </div>
-                <div className="tableCell colMode">{test.gamemode}</div>
-                   <div className="tableCell colRank">
-                      <span className="rankBadge" data-rank={eloToTierLabel(test.rank)} data-retired={test.retired ? "true" : "false"}>
-                         {test.retired ? `R${eloToTierLabel(test.rank)}` : eloToTierLabel(test.rank)}
+                {filteredTests.map((test, idx) => (
+                  <div key={`${test.username}-${test.gamemode}-${idx}`} className="lgTestRow">
+                    <span className="lgTestDate">
+                      {new Date(test.created_at).toLocaleString("hu-HU", {
+                        year: "numeric", month: "2-digit", day: "2-digit",
+                        hour: "2-digit", minute: "2-digit",
+                      })}
+                    </span>
+                    <span className="lgTestPlayer">
+                      <img
+                        src={
+                          test.uuid
+                            ? `https://mc-heads.net/avatar/${test.uuid.replace(/-/g, "")}/28`
+                            : `https://mc-heads.net/avatar/${encodeURIComponent(test.username)}/28`
+                        }
+                        alt=""
+                        className="lgTestAvatar"
+                      />
+                      <span>{test.username}</span>
+                    </span>
+                    <span className="lgTestMode">{test.gamemode}</span>
+                    <span>
+                      <span className="lgRankBadge" data-rank={eloToTierLabel(test.rank)}>
+                        {test.retired ? `R${eloToTierLabel(test.rank)}` : eloToTierLabel(test.rank)}
                       </span>
-                    </div>
-                <div className="tableCell colPoints">{test.points}</div>
+                    </span>
+                    <span className="lgTestPoints">{test.points}</span>
+                  </div>
+                ))}
               </div>
-            ))
-          )}
-        </div>
+            )}
+          </section>
         )}
 
-        {/* Audit Log */}
         {(logType === "all" || logType === "audit") && (
-          <div className="logsTable auditTable">
-            <div className="auditSectionLabel">Admin tevékenységek</div>
+          <section className="lgCard">
+            <h2 className="lgCardTitle">Admin tevékenységek</h2>
 
             {filteredAudit.length === 0 ? (
-              <div className="emptyState">
-                <div className="emptyTitle">Nincs audit adat</div>
-                <div className="emptySub">Nincs admin tevékenység naplózva.</div>
+              <div className="lgEmpty">
+                <span className="lgEmptyTitle">Nincs audit adat</span>
+                <span className="lgEmptySub">Nincs admin tevékenység naplózva.</span>
               </div>
             ) : (
-              filteredAudit.map((log, idx) => {
-                const actionLabel = actionLabelFor(log.action);
-                const actionMeta = actionMetaFor(log.action);
-                const detailsSummary = detailsSummaryFor(log);
-                const canRestore = log.action === "tier_save" && log.target_username && log.gamemode && (log.old_rank !== null || log.old_rank !== undefined);
-                const canRestoreRename = log.action === "player_rename" && log.details?.old_name && log.details?.new_name;
+              <div className="lgAuditList">
+                {filteredAudit.map((log, idx) => {
+                  const actionLabel = actionLabelFor(log.action);
+                  const actionMeta = actionMetaFor(log.action);
+                  const detailsSummary = detailsSummaryFor(log);
+                  const canRestore =
+                    log.action === "tier_save" && log.target_username && log.gamemode && log.old_rank != null;
+                  const canRestoreRename =
+                    log.action === "player_rename" && log.details?.old_name && log.details?.new_name;
 
-                return (
-                  <div key={`${log.admin_name}-${log.created_at}-${idx}`} className="auditCard">
-                    <div className="auditCardTop">
-                      <span className="auditActionBadge" style={{ "--badge-color": actionMeta.color }}>
-                        <span className="auditActionIcon">{actionMeta.icon}</span>
-                        {actionLabel}
+                  return (
+                    <div key={`${log.admin_name}-${log.created_at}-${idx}`} className="lgAuditCard">
+                      <span className="lgAuditIcon" style={{ "--badge-color": actionMeta.color }}>
+                        {actionMeta.icon}
                       </span>
-                      <span className="auditAdminName">{log.admin_name}</span>
-                      <span className="auditCardDate">
-                        {new Date(log.created_at).toLocaleString("hu-HU", {
-                          year: "numeric", month: "2-digit", day: "2-digit",
-                          hour: "2-digit", minute: "2-digit", second: "2-digit",
-                        })}
-                      </span>
+
+                      <div className="lgAuditBody">
+                        <div className="lgAuditTopRow">
+                          <span className="lgAuditAction" style={{ "--badge-color": actionMeta.color }}>
+                            {actionLabel}
+                          </span>
+                          <span className="lgAuditAdmin">{log.admin_name}</span>
+                          <span className="lgAuditDate">
+                            {new Date(log.created_at).toLocaleString("hu-HU", {
+                              year: "numeric", month: "2-digit", day: "2-digit",
+                              hour: "2-digit", minute: "2-digit",
+                            })}
+                          </span>
+                        </div>
+
+                        {(log.target_username || log.gamemode) && (
+                          <div className="lgAuditMetaRow">
+                            {log.target_username && <span className="lgAuditChip">👤 {log.target_username}</span>}
+                            {log.gamemode && <span className="lgAuditChip">🎮 {log.gamemode}</span>}
+                          </div>
+                        )}
+
+                        {log.action === "player_rename" && log.details?.old_name && log.details?.new_name && (
+                          <div className="lgAuditChange">
+                            <span className="lgAuditPill">{log.details.old_name}</span>
+                            <span className="lgAuditArrow">→</span>
+                            <span className="lgAuditPill new">{log.details.new_name}</span>
+                          </div>
+                        )}
+
+                        {log.old_rank !== null && log.old_rank !== undefined && log.action !== "player_rename" && (
+                          <div className="lgAuditChange">
+                            <span className="lgAuditPill">{eloToTierLabel(log.old_rank)}</span>
+                            <span className="lgAuditArrow">→</span>
+                            <span className="lgAuditPill new">{eloToTierLabel(log.new_rank)}</span>
+                          </div>
+                        )}
+
+                        {log.details?.fight_notes && Object.keys(log.details.fight_notes).length > 0 && (
+                          <div className="lgAuditFightNotes">
+                            {Object.entries(log.details.fight_notes)
+                              .filter(([, v]) => v?.trim?.())
+                              .map(([k, v]) => (
+                                <div key={k}>
+                                  {k}: {v?.substring(0, 40)}
+                                  {v?.length > 40 ? "…" : ""}
+                                </div>
+                              ))}
+                          </div>
+                        )}
+
+                        {log.details && typeof log.details === "string" && (
+                          <div className="lgAuditSummary">{log.details}</div>
+                        )}
+                        {detailsSummary && <div className="lgAuditSummary">{detailsSummary}</div>}
+                      </div>
+
                       {(canRestore || canRestoreRename) && (
-                        <button className="restoreBtn" onClick={() => handleRestoreLog(log)}>
+                        <button type="button" className="lgRestoreBtn" onClick={() => handleRestoreLog(log)}>
                           ↺ Visszaállítás
                         </button>
                       )}
                     </div>
-
-                    {(log.target_username || log.gamemode) && (
-                      <div className="auditCardMetaRow">
-                        {log.target_username && <span className="auditMetaChip">👤 {log.target_username}</span>}
-                        {log.gamemode && <span className="auditMetaChip">🎮 {log.gamemode}</span>}
-                      </div>
-                    )}
-
-                    <div className="auditDetails">
-                      {log.action === "player_rename" && log.details?.old_name && log.details?.new_name && (
-                        <div className="auditRenameChange">
-                          <span className="auditTierPill">{log.details.old_name}</span>
-                          <span className="auditArrow">→</span>
-                          <span className="auditTierPill auditTierPillNew">{log.details.new_name}</span>
-                        </div>
-                      )}
-                      {log.old_rank !== null && log.old_rank !== undefined && log.action !== "player_rename" && (
-                        <div className="auditRenameChange">
-                          <span className="auditTierPill">{eloToTierLabel(log.old_rank)}</span>
-                          <span className="auditArrow">→</span>
-                          <span className="auditTierPill auditTierPillNew">{eloToTierLabel(log.new_rank)}</span>
-                        </div>
-                      )}
-                      {log.details?.fight_notes && Object.keys(log.details.fight_notes).length > 0 && (
-                        <div className="auditFightNotes">
-                          {Object.entries(log.details.fight_notes).filter(([_, v]) => v?.trim()).map(([k, v]) => (
-                            <div key={k}>{k}: {v?.substring(0, 30)}{v?.length > 30 ? "..." : ""}</div>
-                          ))}
-                        </div>
-                      )}
-                      {log.details && typeof log.details === "string" && (
-                        <div className="auditDetailsSummary">{log.details}</div>
-                      )}
-                      {detailsSummary && (
-                        <div className="auditDetailsSummary">{detailsSummary}</div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             )}
-          </div>
+          </section>
         )}
       </main>
 
-      {toast && (
-        <div className={`toast ${toast.type}`}>
-          {toast.text}
-        </div>
-      )}
+      {toast && <div className={`lgToast ${toast.type === "error" ? "lgToastError" : "lgToastOk"}`}>{toast.text}</div>}
 
-      <style jsx>{`
-        .logsPage {
+      <style jsx global>{`
+        .lgLoadingPage {
           min-height: 100vh;
-          background: var(--bg, #0b0e14);
-          color: var(--text, #fffffff0);
+          display: grid;
+          place-items: center;
+          background: #05060a;
+        }
+        .lgSpinner {
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          border: 3px solid rgba(255, 255, 255, 0.15);
+          border-top-color: #8f7cff;
+          animation: lgspin 0.8s linear infinite;
+        }
+        @keyframes lgspin {
+          to { transform: rotate(360deg); }
+        }
+        .lgPage {
+          min-height: 100vh;
+          background: #05060a;
+          color: #fff;
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
         }
-
-        .adminNavbar {
-          position: sticky;
-          top: 0;
-          z-index: 20;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: space-between;
-          align-items: center;
-          gap: 18px;
-          padding: 16px 24px;
-          background: rgba(11, 14, 20, 0.94);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-          backdrop-filter: blur(14px);
-          max-width: 1480px;
+        .lgContent {
+          max-width: 1180px;
           margin: 0 auto;
+          padding: 32px 24px 80px;
+          display: grid;
+          gap: 22px;
         }
-
-        .navbarLeft {
+        .lgPageHeader {
           display: flex;
-          align-items: center;
-          gap: 14px;
-          flex: 0 0 auto;
-        }
-
-        .navbarTitle {
-          font-size: 18px;
-          font-weight: 800;
-          margin: 0;
-          letter-spacing: 0.02em;
-        }
-
-        .navbarLinks {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          justify-content: center;
-          flex: 1;
-          min-width: 240px;
-          margin: 0;
-          padding: 0;
-          list-style: none;
-        }
-
-        .navbarLink {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 10px 16px;
-          color: rgba(255, 255, 255, 0.72);
-          text-decoration: none;
-          font-weight: 800;
-          font-size: 13px;
-          border-radius: 999px;
-          transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-        }
-
-        .navbarLink:hover,
-        .navbarLink.active {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.08);
-          transform: translateY(-1px);
-        }
-
-        .logoutBtn {
-          padding: 10px 20px;
-          background: #d64747;
-          border: 1px solid rgba(214, 71, 71, 0.7);
-          border-radius: 10px;
-          color: #fff;
-          font-weight: 800;
-          cursor: pointer;
-          transition: background 0.18s ease, transform 0.18s ease;
-        }
-
-        .logoutBtn:hover {
-          background: #c23f3f;
-          transform: translateY(-1px);
-        }
-
-        .logsHeader {
-          display: flex;
+          align-items: flex-end;
           justify-content: space-between;
-          align-items: center;
-          padding: 24px 20px;
-          background: rgba(11, 14, 20, 0.5);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          max-width: 1480px;
-          margin: 0 auto;
-          gap: 30px;
+          gap: 16px;
+          flex-wrap: wrap;
         }
-
-        .headerLeft {
-          flex: 1;
-        }
-
-        .headerTitle {
-          font-size: 24px;
-          font-weight: 800;
-          margin: 0 0 4px 0;
-        }
-
-        .headerSubtitle {
-          font-size: 13px;
-          color: rgba(255, 255, 255, 0.6);
-          margin: 0;
-        }
-
-        .headerStat {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 4px;
-        }
-
-        .headerStatValue {
+        .lgPageHeader h1 {
+          margin: 0 0 6px;
           font-size: 28px;
-          font-weight: 800;
+          font-weight: 900;
         }
-
-        .headerStatLabel {
-          font-size: 11px;
+        .lgPageHeader p {
+          margin: 0;
           color: rgba(255, 255, 255, 0.6);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          font-weight: 800;
+          font-size: 14px;
         }
-
-        .logsContent {
-          max-width: 1480px;
-          margin: 0 auto;
-          padding: 30px 20px;
-        }
-
-        .filtersSection {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 16px;
-          margin-bottom: 24px;
-        }
-
-        .filterGroup {
+        .lgHeaderStats {
           display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .filterLabel {
-          font-size: 12px;
-          font-weight: 800;
-          color: rgba(255, 255, 255, 0.7);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .filterInput {
-          padding: 10px 14px;
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 8px;
-          color: #fff;
-          font-family: inherit;
-          font-size: 14px;
-          transition: all 0.15s;
-        }
-
-        .filterInput:focus {
-          outline: none;
-          border-color: rgba(255, 255, 255, 0.2);
-          background: rgba(255, 255, 255, 0.08);
-        }
-
-        .filterInput::placeholder {
-          color: rgba(255, 255, 255, 0.4);
-        }
-
-        .logsTable {
-          background: rgba(255, 255, 255, 0.02);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 12px;
-          overflow: hidden;
-        }
-
-        .tableHead {
-          display: grid;
-          grid-template-columns: 200px 1fr 150px 100px 80px;
-          gap: 16px;
-          padding: 14px 16px;
-          background: rgba(255, 255, 255, 0.04);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          font-weight: 800;
-          font-size: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-          color: rgba(255, 255, 255, 0.7);
-        }
-
-        .tableRow {
-          display: grid;
-          grid-template-columns: 200px 1fr 150px 100px 80px;
-          gap: 16px;
-          padding: 14px 16px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-          align-items: center;
-          transition: background 0.15s;
-        }
-
-        .tableRow:hover {
-          background: rgba(255, 255, 255, 0.03);
-        }
-
-        .colDate {
-          font-size: 13px;
-        }
-
-        .colPlayer {
-          font-size: 14px;
-        }
-
-        .colMode {
-          font-size: 13px;
-        }
-
-        .colRank {
-          font-size: 13px;
-        }
-
-        .colPoints {
-          text-align: right;
-          font-size: 14px;
-          font-weight: 800;
-        }
-
-        .playerCell {
-          display: flex;
-          align-items: center;
           gap: 10px;
         }
-
-        .playerAvatar {
-          width: 32px;
-          height: 32px;
-          border-radius: 6px;
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        .rankBadge {
-          display: inline-block;
-          padding: 4px 10px;
-          background: rgba(213, 179, 85, 0.2);
-          border-radius: 4px;
-          font-weight: 800;
-          font-size: 12px;
-          text-transform: uppercase;
-          letter-spacing: 0.3px;
-        }
-
-.rankBadge[data-rank="HT1"],
-.rankBadge[data-rank="LT1"] {
-          background: rgba(213, 179, 85, 0.25);
-          color: #d5b355;
-        }
-
-        .rankBadge[data-rank="LT2"] {
-          background: rgba(136, 136, 149, 0.25);
-          color: #888d95;
-        }
-
-        .rankBadge[data-rank="HT2"] {
-          background: rgba(164, 179, 199, 0.25);
-          color: #a4b3c7;
-        }
-
-        .rankBadge[data-rank="LT3"] {
-          background: rgba(179, 104, 48, 0.25);
-          color: #b36830;
-        }
-
-        .rankBadge[data-rank="HT3"] {
-          background: rgba(221, 136, 73, 0.25);
-          color: #dd8849;
-        }
-
-        .rankBadge[data-rank="LT4"] {
-          background: rgba(81, 71, 100, 0.25);
-          color: #514764;
-        }
-
-        .rankBadge[data-rank="HT4"] {
-          background: rgba(183, 170, 223, 0.25);
-          color: #b7aadf;
-        }
-
-        .rankBadge[data-rank="LT5"] {
-          background: rgba(64, 56, 79, 0.25);
-          color: #40384f;
-        }
-
-        .rankBadge[data-rank="HT5"] {
-          background: rgba(111, 99, 137, 0.25);
-          color: #6f6389;
-        }
-
-        /* Retired rank styling */
-        .rankBadge[data-retired="true"] {
-          background: rgba(143, 124, 255, 0.25);
-          color: #8f7cff;
-        }
-
-         .logTypeTabs {
+        .lgHeaderStat {
           display: flex;
-          gap: 8px;
-          margin-bottom: 20px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+          flex-direction: column;
+          align-items: center;
+          padding: 8px 18px;
+          border-radius: 14px;
+          background: rgba(143, 124, 255, 0.1);
+          border: 1px solid rgba(143, 124, 255, 0.28);
+          min-width: 74px;
         }
-
-        .logTypeTab {
-          padding: 12px 16px;
-          background: none;
-          border: none;
-          color: rgba(255, 255, 255, 0.6);
-          cursor: pointer;
+        .lgHeaderStatValue {
+          font-size: 18px;
+          font-weight: 900;
+          color: #d7d0ff;
+        }
+        .lgHeaderStatLabel {
+          font-size: 10px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: rgba(255, 255, 255, 0.5);
+        }
+        .lgCard {
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 24px 26px;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+        .lgCardTitle {
+          margin: 0 0 16px;
+          font-size: 13px;
           font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.85);
+        }
+        .lgTabs {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 18px;
+        }
+        .lgTab {
+          padding: 9px 16px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.04);
+          color: rgba(255, 255, 255, 0.65);
+          font-size: 12.5px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.15s ease;
+        }
+        .lgTab:hover {
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+        .lgTab.active {
+          color: #fff;
+          background: linear-gradient(135deg, rgba(143, 124, 255, 0.32), rgba(214, 71, 71, 0.16));
+          border-color: #8f7cff;
+          box-shadow: 0 0 0 1px rgba(143, 124, 255, 0.3), 0 6px 18px rgba(143, 124, 255, 0.25);
+        }
+        .lgFilterGrid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 14px;
+        }
+        .lgField {
+          display: grid;
+          gap: 8px;
+        }
+        .lgLabel {
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.55);
+        }
+        .lgInput {
+          width: 100%;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          padding: 11px 14px;
           font-size: 14px;
-          transition: all 0.2s;
-          border-bottom: 2px solid transparent;
-          position: relative;
-          bottom: -1px;
+          font-family: inherit;
+        }
+        .lgInput:focus {
+          outline: none;
+          border-color: #8f7cff;
+        }
+        .lgEmpty {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6px;
+          padding: 40px 20px;
+          text-align: center;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.02);
+          border: 1px dashed rgba(255, 255, 255, 0.12);
+        }
+        .lgEmptyTitle {
+          font-size: 14px;
+          font-weight: 800;
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .lgEmptySub {
+          font-size: 12.5px;
+          color: rgba(255, 255, 255, 0.45);
         }
 
-        .logTypeTab:hover {
+        /* Test table */
+        .lgTestTable {
+          display: grid;
+          gap: 6px;
+          overflow-x: auto;
+        }
+        .lgTestRow {
+          display: grid;
+          grid-template-columns: 150px 1fr 130px 90px 70px;
+          align-items: center;
+          gap: 12px;
+          padding: 11px 14px;
+          border-radius: 12px;
+          font-size: 13px;
+          min-width: 640px;
+        }
+        .lgTestHead {
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding-top: 0;
+          padding-bottom: 8px;
+        }
+        .lgTestRow:not(.lgTestHead) {
+          background: rgba(255, 255, 255, 0.025);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .lgTestRow:not(.lgTestHead):hover {
+          background: rgba(255, 255, 255, 0.045);
+          border-color: rgba(255, 255, 255, 0.12);
+        }
+        .lgTestDate {
+          color: rgba(255, 255, 255, 0.55);
+          font-size: 12px;
+          font-variant-numeric: tabular-nums;
+        }
+        .lgTestPlayer {
+          display: flex;
+          align-items: center;
+          gap: 9px;
+          font-weight: 800;
+          color: #fff;
+          min-width: 0;
+        }
+        .lgTestPlayer span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .lgTestAvatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+          image-rendering: pixelated;
+          flex: 0 0 auto;
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        .lgTestMode {
+          color: rgba(255, 255, 255, 0.75);
+        }
+        .lgRankBadge {
+          display: inline-block;
+          padding: 3px 9px;
+          border-radius: 8px;
+          font-size: 11.5px;
+          font-weight: 900;
+          background: rgba(143, 124, 255, 0.16);
+          border: 1px solid rgba(143, 124, 255, 0.4);
+          color: #d7d0ff;
+        }
+        .lgTestPoints {
+          font-weight: 800;
           color: rgba(255, 255, 255, 0.8);
         }
 
-        .logTypeTab.active {
-          color: #fff;
-          border-bottom-color: #c41e3a;
-        }
-
-        .auditTable {
-          margin-top: 24px;
-        }
-
-        .auditRow {
-          border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .colAdmin {
-          flex: 0 0 80px;
-        }
-
-        .colAction {
-          flex: 0 0 140px;
-        }
-
-        .colDetails {
-          flex: 1;
-          min-width: 200px;
-        }
-
-        .auditSectionLabel {
-          font-size: 12px;
-          font-weight: 800;
-          color: rgba(255, 255, 255, 0.4);
-          text-transform: uppercase;
-          letter-spacing: 0.08em;
-          margin-bottom: 14px;
-          padding: 0 4px;
-        }
-
-        .auditCard {
-          background: rgba(255, 255, 255, 0.04);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 16px;
-          padding: 16px 18px;
-          margin-bottom: 10px;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          transition: background 0.15s, border-color 0.15s;
-        }
-
-        .auditCard:hover {
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(255, 255, 255, 0.14);
-        }
-
-        .auditCardTop {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .auditActionBadge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 11px;
-          border-radius: 20px;
-          font-size: 12.5px;
-          font-weight: 800;
-          color: var(--badge-color, #94a3b8);
-          background: color-mix(in srgb, var(--badge-color, #94a3b8) 16%, transparent);
-          border: 1px solid color-mix(in srgb, var(--badge-color, #94a3b8) 35%, transparent);
-        }
-
-        .auditActionIcon {
-          font-size: 12px;
-          line-height: 1;
-        }
-
-        .auditAdminName {
-          font-size: 13.5px;
-          font-weight: 700;
-          color: rgba(255, 255, 255, 0.85);
-        }
-
-        .auditCardDate {
-          margin-left: auto;
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.4);
-          white-space: nowrap;
-        }
-
-        .auditCardMetaRow {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .auditMetaChip {
-          font-size: 12.5px;
-          font-weight: 600;
-          color: rgba(255, 255, 255, 0.75);
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          padding: 4px 10px;
-          border-radius: 8px;
-        }
-
-        .auditDetails {
-          color: rgba(255, 255, 255, 0.75);
-          font-size: 13px;
-          line-height: 1.6;
+        /* Audit list */
+        .lgAuditList {
           display: grid;
+          gap: 10px;
+        }
+        .lgAuditCard {
+          display: flex;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 14px 16px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.025);
+          border: 1px solid rgba(255, 255, 255, 0.07);
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .lgAuditCard:hover {
+          border-color: rgba(255, 255, 255, 0.14);
+          background: rgba(255, 255, 255, 0.04);
+        }
+        .lgAuditIcon {
+          display: grid;
+          place-items: center;
+          width: 34px;
+          height: 34px;
+          border-radius: 10px;
+          font-size: 15px;
+          flex: 0 0 auto;
+          background: color-mix(in srgb, var(--badge-color, #94a3b8) 16%, transparent);
+          border: 1px solid color-mix(in srgb, var(--badge-color, #94a3b8) 40%, transparent);
+        }
+        .lgAuditBody {
+          flex: 1;
+          min-width: 0;
+          display: grid;
+          gap: 8px;
+        }
+        .lgAuditTopRow {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .lgAuditAction {
+          font-size: 12.5px;
+          font-weight: 900;
+          color: var(--badge-color, #94a3b8);
+        }
+        .lgAuditAdmin {
+          font-size: 12px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.55);
+        }
+        .lgAuditAdmin::before {
+          content: "· ";
+          color: rgba(255, 255, 255, 0.3);
+        }
+        .lgAuditDate {
+          margin-left: auto;
+          font-size: 11.5px;
+          color: rgba(255, 255, 255, 0.4);
+          font-variant-numeric: tabular-nums;
+        }
+        .lgAuditMetaRow {
+          display: flex;
+          flex-wrap: wrap;
           gap: 6px;
         }
-
-        .auditRenameChange {
+        .lgAuditChip {
+          font-size: 11.5px;
+          font-weight: 700;
+          padding: 3px 9px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
+        }
+        .lgAuditChange {
           display: flex;
           align-items: center;
           gap: 8px;
+          font-size: 12px;
         }
-
-        .auditTierPill {
-          display: inline-block;
-          font-size: 12.5px;
-          font-weight: 800;
-          padding: 4px 10px;
+        .lgAuditPill {
+          padding: 3px 9px;
           border-radius: 8px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.6);
+          background: rgba(214, 71, 71, 0.14);
+          border: 1px solid rgba(214, 71, 71, 0.35);
+          color: #ffb4b4;
+          font-weight: 800;
         }
-
-        .auditTierPillNew {
-          background: rgba(74, 222, 128, 0.12);
-          border-color: rgba(74, 222, 128, 0.3);
-          color: #86efac;
+        .lgAuditPill.new {
+          background: rgba(52, 211, 153, 0.14);
+          border-color: rgba(52, 211, 153, 0.35);
+          color: #b8f5dd;
         }
-
-        .auditArrow {
-          color: rgba(255, 255, 255, 0.3);
-          font-size: 13px;
+        .lgAuditArrow {
+          color: rgba(255, 255, 255, 0.35);
         }
-
-        .auditFightNotes {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.5);
-          margin-top: 4px;
+        .lgAuditFightNotes {
+          font-size: 11.5px;
+          color: rgba(255, 255, 255, 0.55);
+          line-height: 1.5;
         }
-
-        .auditDetailsSummary {
-          font-size: 12.5px;
-          color: rgba(255, 255, 255, 0.5);
-          font-style: italic;
+        .lgAuditSummary {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.55);
         }
-
-        .restoreBtn {
-          margin-left: 4px;
-          padding: 6px 13px;
-          background: rgba(74, 222, 128, 0.12);
-          border: 1px solid rgba(74, 222, 128, 0.3);
+        .lgRestoreBtn {
+          flex: 0 0 auto;
+          align-self: center;
+          padding: 8px 14px;
           border-radius: 10px;
-          color: #d4f8dc;
-          font-size: 12.5px;
+          border: 1px solid rgba(143, 124, 255, 0.4);
+          background: rgba(143, 124, 255, 0.1);
+          color: #d7d0ff;
+          font-size: 11.5px;
           font-weight: 800;
           cursor: pointer;
-          transition: all 0.2s;
           white-space: nowrap;
         }
-
-        .restoreBtn:hover {
-          background: rgba(74, 222, 128, 0.2);
-          border-color: rgba(74, 222, 128, 0.55);
+        .lgRestoreBtn:hover {
+          background: rgba(143, 124, 255, 0.2);
         }
 
-        .toast {
+        .lgToast {
           position: fixed;
-          left: 50%;
-          transform: translateX(-50%);
-          bottom: 24px;
+          bottom: 22px;
+          right: 22px;
           padding: 14px 18px;
           border-radius: 14px;
-          font-weight: 700;
-          z-index: 2000;
-          box-shadow: 0 24px 60px rgba(0,0,0,0.3);
-        }
-
-        .toast.ok {
-          background: rgba(34, 197, 94, 0.18);
-          border: 1px solid rgba(74, 222, 128, 0.4);
-          color: #fff;
-        }
-
-        .toast.error {
-          background: rgba(220, 38, 38, 0.16);
-          border: 1px solid rgba(248, 113, 113, 0.35);
-          color: #fff;
-        }
-
-        .emptyState {
-          padding: 40px;
-          text-align: center;
-        }
-
-        .emptyTitle {
-          font-size: 18px;
           font-weight: 800;
+          z-index: 999;
+          max-width: 320px;
+        }
+        .lgToastOk {
+          background: rgba(52, 211, 153, 0.95);
+          color: #04241a;
+        }
+        .lgToastError {
+          background: rgba(214, 71, 71, 0.95);
           color: #fff;
-          margin-bottom: 8px;
         }
 
-        .emptySub {
-          font-size: 14px;
-          color: rgba(255, 255, 255, 0.6);
-        }
-
-        .loadingState {
-          min-height: 100vh;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 18px;
-        }
-
-        @media (max-width: 768px) {
-          .tableHead,
-          .tableRow {
+        @media (max-width: 720px) {
+          .lgFilterGrid {
             grid-template-columns: 1fr;
           }
-
-          .tableHead {
-            display: none;
-          }
-
-        .tableRow {
-          display: flex;
-          gap: 0;
-          padding: 10px 14px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-          align-items: center;
-          transition: background 0.15s;
-        }
-
-        .tableRow:hover {
-          background: rgba(255, 255, 255, 0.03);
-        }
-
-        .colDate {
-          flex: 0 0 130px;
-          font-size: 13px;
-        }
-
-        .colPlayer {
-          flex: 1;
-          min-width: 120px;
-          font-size: 14px;
-        }
-
-        .colMode {
-          flex: 0 0 110px;
-          font-size: 13px;
-        }
-
-          .tableCell::before {
-            display: block;
-            font-weight: 800;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-          }
-
-          .colDate::before {
-            content: "Dátum";
-          }
-          .colPlayer::before {
-            content: "Játékos";
-          }
-          .colMode::before {
-            content: "Játékmód";
-          }
-          .colRank::before {
-            content: "Tier";
-          }
-          .colPoints::before {
-            content: "Pont";
+          .lgTestRow {
+            grid-template-columns: 130px 1fr 110px 80px 60px;
           }
         }
       `}</style>

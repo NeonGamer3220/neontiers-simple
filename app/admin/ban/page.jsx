@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminNavbar from "../_components/AdminNavbar";
+import AdminDropdown from "../_components/AdminDropdown";
 import "../admin-theme.css";
 
 const DURATION_OPTIONS = [
@@ -259,11 +260,16 @@ export default function BanManagerPage() {
           <div className="htTopGrid banTopGrid">
             <div className="htField">
               <label className="htLabel">Időtartam</label>
-              <select className="htInput htSelect" value={duration} onChange={(e) => setDuration(e.target.value)}>
-                {DURATION_OPTIONS.map((d) => (
-                  <option key={d.value} value={d.value}>{d.label}</option>
-                ))}
-              </select>
+              <AdminDropdown
+                value={duration}
+                options={DURATION_OPTIONS.map((d) => ({
+                  value: d.value,
+                  label: d.label,
+                  color: d.value === "perm" ? "#d64747" : "#8f7cff",
+                }))}
+                onChange={setDuration}
+                placeholder="Válassz időtartamot..."
+              />
             </div>
           </div>
 
