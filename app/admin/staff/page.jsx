@@ -172,7 +172,17 @@ export default function AdminStaffPage() {
                 const normalizedRole = String(staff.role || "").toLowerCase();
                 const isEditing = editingStaffId === staff.id;
                 return (
-                  <div key={staff.id} className={`stfItem ${isEditing ? "editing" : ""}`}>
+                  <div
+                    key={staff.id}
+                    className={`stfItem clickable ${isEditing ? "editing" : ""}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => router.push(`/admin/staff/${encodeURIComponent(staff.admin_name)}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") router.push(`/admin/staff/${encodeURIComponent(staff.admin_name)}`);
+                    }}
+                    title="Regulátor profil megnyitása"
+                  >
                     <img
                       className="stfItemAvatar"
                       src={`https://mc-heads.net/avatar/${encodeURIComponent(staff.admin_name || "MHF_Question")}/40`}
@@ -192,7 +202,8 @@ export default function AdminStaffPage() {
                         type="button"
                         className="stfIconBtn edit"
                         title="Szerkesztés"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingStaffId(staff.id);
                           setAdminUsername(staff.admin_name);
                           setAdminRoleInput(staff.role);
@@ -208,7 +219,10 @@ export default function AdminStaffPage() {
                         type="button"
                         className="stfIconBtn delete"
                         title="Törlés"
-                        onClick={() => handleDeleteStaff(staff.id, staff.admin_name)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteStaff(staff.id, staff.admin_name);
+                        }}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M3 6h18" />
@@ -370,6 +384,9 @@ export default function AdminStaffPage() {
           border: 1px solid rgba(255, 255, 255, 0.08);
           background: rgba(255, 255, 255, 0.025);
           transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .stfItem.clickable {
+          cursor: pointer;
         }
         .stfItem:hover {
           border-color: rgba(255, 255, 255, 0.16);

@@ -101,6 +101,7 @@ export default function AdminLogsPage() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [filterUsername, setFilterUsername] = useState("");
   const [filterGamemode, setFilterGamemode] = useState("");
+  const [filterAdmin, setFilterAdmin] = useState("");
   const [toast, setToast] = useState(null);
   const [adminRole, setAdminRole] = useState("");
   const [adminName, setAdminName] = useState("");
@@ -157,9 +158,9 @@ export default function AdminLogsPage() {
   });
 
   const filteredAudit = auditLogs.filter((log) => {
-    if (log.action === "high_score_save") return false;
     const matchUsername = !filterUsername || log.target_username?.toLowerCase().includes(filterUsername.toLowerCase());
-    return matchUsername;
+    const matchAdmin = !filterAdmin || log.admin_name?.toLowerCase().includes(filterAdmin.toLowerCase());
+    return matchUsername && matchAdmin;
   });
 
   const showToast = (type, text) => {
@@ -284,6 +285,18 @@ export default function AdminLogsPage() {
                 />
               </div>
             )}
+            {(logType === "all" || logType === "audit") && (
+              <div className="lgField">
+                <label className="lgLabel">Regulator</label>
+                <input
+                  type="text"
+                  className="lgInput"
+                  placeholder="Regulator neve..."
+                  value={filterAdmin}
+                  onChange={(e) => setFilterAdmin(e.target.value)}
+                />
+              </div>
+            )}
           </div>
         </section>
 
@@ -370,7 +383,15 @@ export default function AdminLogsPage() {
                           <span className="lgAuditAction" style={{ "--badge-color": actionMeta.color }}>
                             {actionLabel}
                           </span>
-                          <span className="lgAuditAdmin">{log.admin_name}</span>
+                          <span
+                            className="lgAuditAdmin"
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => router.push(`/admin/staff/${encodeURIComponent(log.admin_name)}`)}
+                            title="Regulátor profil megnyitása"
+                          >
+                            {log.admin_name}
+                          </span>
                           <span className="lgAuditDate">
                             {new Date(log.created_at).toLocaleString("hu-HU", {
                               year: "numeric", month: "2-digit", day: "2-digit",
@@ -731,6 +752,11 @@ export default function AdminLogsPage() {
           font-size: 12px;
           font-weight: 700;
           color: rgba(255, 255, 255, 0.55);
+          cursor: pointer;
+        }
+        .lgAuditAdmin:hover {
+          color: #d7d0ff;
+          text-decoration: underline;
         }
         .lgAuditAdmin::before {
           content: "· ";

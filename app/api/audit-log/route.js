@@ -59,6 +59,7 @@ export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const action = (searchParams.get("action") || "").trim();
   const username = (searchParams.get("username") || "").trim();
+  const adminName = (searchParams.get("admin_name") || "").trim();
   const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 1000);
 
   let query = supabase
@@ -73,6 +74,10 @@ export async function GET(req) {
 
   if (username) {
     query = query.ilike("target_username", username);
+  }
+
+  if (adminName) {
+    query = query.eq("admin_name", adminName);
   }
 
   const { data, error } = await query;
