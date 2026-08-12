@@ -65,7 +65,12 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
             Publikus oldal
           </a>
           <div className="anMobileFooter">
-            <div className="anUserBadge">
+            <a
+              href={`/admin/staff/${encodeURIComponent(adminName || "")}`}
+              className="anUserBadge anUserBadgeLink"
+              onClick={() => setMobileOpen(false)}
+              title="Saját profil megnyitása"
+            >
               <img
                 className="anUserAvatar"
                 src={`https://mc-heads.net/avatar/${encodeURIComponent(adminName || "MHF_Question")}/32`}
@@ -77,7 +82,7 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
                 <span className="anUserName">{adminName || "Admin"}</span>
                 <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
               </span>
-            </div>
+            </a>
             <button type="button" className="anLogoutBtn" onClick={onLogout}>
               Kijelentkezés
             </button>
@@ -85,7 +90,11 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
         </nav>
 
         <div className="anRight">
-          <div className="anUserBadge">
+          <a
+            href={`/admin/staff/${encodeURIComponent(adminName || "")}`}
+            className="anUserBadge anUserBadgeLink"
+            title="Saját profil megnyitása"
+          >
             <img
               className="anUserAvatar"
               src={`https://mc-heads.net/avatar/${encodeURIComponent(adminName || "MHF_Question")}/32`}
@@ -97,7 +106,7 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
               <span className="anUserName">{adminName || "Admin"}</span>
               <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
             </span>
-          </div>
+          </a>
           <button type="button" className="anLogoutBtn" onClick={onLogout}>
             Kijelentkezés
           </button>
@@ -253,6 +262,16 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
           background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
           border: 1px solid rgba(255, 255, 255, 0.1);
           box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 6px 16px rgba(0, 0, 0, 0.3);
+        }
+        .anUserBadgeLink {
+          text-decoration: none;
+          cursor: pointer;
+          transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+        }
+        .anUserBadgeLink:hover {
+          border-color: rgba(143, 124, 255, 0.5);
+          background: linear-gradient(180deg, rgba(143, 124, 255, 0.16), rgba(143, 124, 255, 0.06));
+          transform: translateY(-1px);
         }
         .anUserAvatar {
           width: 22px;
