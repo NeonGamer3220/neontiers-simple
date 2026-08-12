@@ -104,3 +104,166 @@ input, textarea, select {
 svg {
   display: block;
 }
+
+/* ── Navbar critical CSS ───────────────────────────────────────────────
+   Duplicated verbatim from the per-page styled-jsx (page.js / legacy /
+   docs all share these exact class names for the top navbar). Having it
+   here too means the navbar is laid out correctly from the very first
+   paint on a hard reload, instead of waiting for the page's own scoped
+   styled-jsx to attach — the actual visible cause of the remaining
+   "text and icons flash" the user saw. The styled-jsx copies stay in
+   place as a harmless duplicate; identical rules just apply twice. */
+.navbar {
+  max-width: 1480px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 18px;
+}
+
+.navInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 78px;
+  padding: 14px 24px;
+  background: var(--bg-panel-strong);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 16px 42px #0000004d;
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+}
+
+.navLogo a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.navLinks {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 15px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.navLinkBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: inherit;
+}
+
+.navLink:hover, .navLink.active {
+  color: white;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.navLinkIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.searchWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 40px;
+  color: rgba(255, 255, 255, 0.45);
+  justify-self: end;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  font-size: 14px;
+  width: 180px;
+}
+
+.searchKbd {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+@media (max-width: 980px) {
+  .navbar {
+    padding-left: 14px;
+    padding-right: 14px;
+    padding-top: 14px;
+  }
+  .navInner {
+    gap: 12px;
+    padding: 10px 16px;
+    min-height: 64px;
+  }
+}
+
+@media (max-width: 900px) {
+  .navInner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 14px 16px;
+    min-height: 0;
+  }
+  .navLogo {
+    font-size: 18px;
+  }
+  .navLinks {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .navLink {
+    padding: 8px 9px;
+    gap: 0;
+    flex: 1;
+    justify-content: center;
+  }
+  .navLinkText {
+    display: none;
+  }
+  .navLinkIcon {
+    width: 19px;
+    height: 19px;
+  }
+  .searchInput {
+    width: 100%;
+    min-width: 0;
+  }
+  .searchKbd {
+    display: none;
+  }
+}
