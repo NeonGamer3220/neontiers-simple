@@ -136,10 +136,10 @@ export default function DocsPage() {
       <header className="navbar">
         <nav className="navInner">
           <h1 className="navLogo"><a href="/">NeonTiers</a></h1>
-          <ul className="navLinks">
+          <ul className="navLinks" style={{ display: "flex", gap: 4, listStyle: "none", margin: 0, padding: 0, justifyContent: "center" }}>
             <li>
               <a className="navLink" href="/">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
                   <path d="M12 3.2 3.8 9.8a1 1 0 0 0-.38.78V20a1 1 0 0 0 1 1h5.1a1 1 0 0 0 1-1v-4.8h3V20a1 1 0 0 0 1 1h5.08a1 1 0 0 0 1-1v-9.42a1 1 0 0 0-.37-.78L12 3.2Z"/>
                 </svg>
                 <span className="navLinkText">Főoldal</span>
@@ -147,7 +147,7 @@ export default function DocsPage() {
             </li>
             <li>
               <a className="navLink active" href="/docs">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
                   <path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6Zm7 1.5L18.5 9H13V3.5ZM7 12h10v1.5H7V12Zm0 4h10v1.5H7V16Zm0-8h4v1.5H7V8Z"/>
                 </svg>
                 <span className="navLinkText">Dokumentumok</span>
@@ -155,7 +155,7 @@ export default function DocsPage() {
             </li>
             <li>
               <a className="navLink" href="https://modrinth.com/mod/neontierstagger" target="_blank" rel="noreferrer">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+                <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
                   <path d="M11.14 3.38a1.7 1.7 0 0 1 1.72 0l6 3.42A1.72 1.72 0 0 1 19.72 8v8a1.72 1.72 0 0 1-.86 1.48l-6 3.42a1.7 1.7 0 0 1-1.72 0l-6-3.42A1.72 1.72 0 0 1 4.28 16V8c0-.62.33-1.2.86-1.49l6-3.13Zm.86 2.03L7.16 8.17 12 10.93l4.84-2.76L12 5.41Zm-5.72 4.2V15L11 17.67v-5.52L6.28 9.6Zm7.72 8.06 4.72-2.68V9.6L13 12.15v5.52Z"/>
                 </svg>
                 <span className="navLinkText">Mod</span>
@@ -163,7 +163,7 @@ export default function DocsPage() {
             </li>
             <li>
               <a className="navLink" href="/legacy">
-                <svg className="navLinkIcon" viewBox="0 0 24 24" aria-hidden="true">
+                <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
                 </svg>
                 <span className="navLinkText">Legacy</span>
