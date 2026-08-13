@@ -405,7 +405,7 @@ const closePlayerDetail = () => {
                <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
                  <path d="M12 3.2 3.8 9.8a1 1 0 0 0-.38.78V20a1 1 0 0 0 1 1h5.1a1 1 0 0 0 1-1v-4.8h3V20a1 1 0 0 0 1 1h5.08a1 1 0 0 0 1-1v-9.42a1 1 0 0 0-.37-.78L12 3.2Z"/>
                </svg>
-               <span className="navLinkText">Főoldal</span>
+               <span className="navLinkText">{t("nav_home")}</span>
              </a>
            </li>
            <li>
@@ -413,7 +413,7 @@ const closePlayerDetail = () => {
                 <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
                   <path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6H6Zm7 1.5L18.5 9H13V3.5ZM7 12h10v1.5H7V12Zm0 4h10v1.5H7V16Zm0-8h4v1.5H7V8Z"/>
                 </svg>
-                <span className="navLinkText">Dokumentumok</span>
+                <span className="navLinkText">{t("nav_docs_link")}</span>
               </a>
             </li>
 <li>
@@ -421,7 +421,7 @@ const closePlayerDetail = () => {
                 <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="currentColor">
                   <path d="M11.14 3.38a1.7 1.7 0 0 1 1.72 0l6 3.42A1.72 1.72 0 0 1 19.72 8v8a1.72 1.72 0 0 1-.86 1.48l-6 3.42a1.7 1.7 0 0 1-1.72 0l-6-3.42A1.72 1.72 0 0 1 4.28 16V8c0-.62.33-1.2.86-1.49l6-3.13Zm.86 2.03L7.16 8.17 12 10.93l4.84-2.76L12 5.41Zm-5.72 4.2V15L11 17.67v-5.52L6.28 9.6Zm7.72 8.06 4.72-2.68V9.6L13 12.15v5.52Z"/>
                 </svg>
-                <span className="navLinkText">Mod</span>
+                <span className="navLinkText">{t("nav_mod")}</span>
               </a>
             </li>
             <li>
@@ -429,11 +429,10 @@ const closePlayerDetail = () => {
                 <svg className="navLinkIcon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
                 </svg>
-                <span className="navLinkText">Legacy</span>
+                <span className="navLinkText">{t("nav_legacy")}</span>
               </a>
             </li>
             </ul>
-           <span className="navRightGroup">
            <span className="searchWrap" ref={searchWrapRef}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
               <path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/>
@@ -458,8 +457,6 @@ const closePlayerDetail = () => {
                 ))}
               </div>
             )}
-          </span>
-          <LangToggle />
           </span>
         </nav>
         </header>
@@ -504,6 +501,7 @@ const closePlayerDetail = () => {
                         </svg>
                         <span>Discord</span>
                       </a>
+                      <LangToggle />
                     </div>
 </div>
 
@@ -511,8 +509,8 @@ const closePlayerDetail = () => {
                   <h2 className="colHead">
                     <span className="colHash">#</span>
                     <span className="colSkinSpacer" aria-hidden="true"></span>
-                    <span className="colPlayer">Játékos</span>
-                    <span className="colTiers">Tierek</span>
+                    <span className="colPlayer">{t("col_player")}</span>
+                    <span className="colTiers">{t("col_tiers")}</span>
                   </h2>
 
                    {/* Player rows */}
@@ -534,8 +532,8 @@ const closePlayerDetail = () => {
                      ))
                     ) : leaderboard.length === 0 ? (
                      <div className="emptyState">
-                   <h3 className="emptyTitle">Nincs adat</h3>
-                   <div className="emptySub">Még nincs mentett teszt eredmény.</div>
+                   <h3 className="emptyTitle">{t("no_data")}</h3>
+                   <div className="emptySub">{t("no_saved_tests")}</div>
                  </div>
                   ) : (
                   leaderboard.map((p, idx) => (
@@ -623,7 +621,7 @@ const closePlayerDetail = () => {
               ) : (
                 <div className="statsOnlyView">
                   <div className="emptyState">
-                    <h3 className="emptyTitle">Rangsor szünetel</h3>
+                    <h3 className="emptyTitle">{t("leaderboard_paused")}</h3>
                     <div className="emptySub">A teljes rangsor jelenleg nem érhető el.</div>
                   </div>
                 </div>
@@ -698,7 +696,7 @@ const closePlayerDetail = () => {
                                );
                              })
                            ) : (
-                             <div className="emptyTierList">Nincs játékos</div>
+                             <div className="emptyTierList">{t("no_players")}</div>
                           )}
                         </div>
                       </section>
@@ -726,7 +724,7 @@ const tierColors = {
               <div className="playerModalCard" onClick={(e) => e.stopPropagation()}>
                 <div className="tierBoardHeader">
                   <h2 className="tierBoardTitle">{displayMode(tierBoardMode)} ranglista</h2>
-                  <button className="tierBoardClose" onClick={closeTierBoard} aria-label="Bezárás">
+                  <button className="tierBoardClose" onClick={closeTierBoard} aria-label={t("close")}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M18 6L6 18M6 6l12 12" />
                     </svg>
@@ -803,7 +801,7 @@ const totalPoints = selectedPlayer.total;
           return (
             <div className="playerDetailBackdrop" onClick={closePlayerDetail}>
               <div className="playerDetailCard" onClick={(e) => e.stopPropagation()}>
-                <button className="playerDetailClose" onClick={closePlayerDetail} aria-label="Bezárás">
+                <button className="playerDetailClose" onClick={closePlayerDetail} aria-label={t("close")}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M18 6L6 18M6 6l12 12" />
                   </svg>
@@ -834,11 +832,11 @@ const totalPoints = selectedPlayer.total;
                  <div className="detailStats">
                    <div className="detailStat">
                      <span className="detailStatValue">{totalPoints}</span>
-                     <span className="detailStatLabel">Pont</span>
+                     <span className="detailStatLabel">{t("col_points")}</span>
                    </div>
                    <div className="detailStat">
                      <span className="detailStatValue">{modeCount}</span>
-                     <span className="detailStatLabel">Mód</span>
+                     <span className="detailStatLabel">{t("col_mode")}</span>
                    </div>
                  </div>
 <div className="detailTiers">
@@ -894,14 +892,14 @@ const totalPoints = selectedPlayer.total;
 
         <footer className="pageFooter">
           <div className="footerText">NeonTiers © {new Date().getFullYear()}</div>
-<nav className="footerNav" aria-label="Oldalak">
+<nav className="footerNav" aria-label={t("footer_pages")}>
              <a className="footerNavLink" href="https://render.crafty.gg">Crafty.gg</a>
              <a className="footerNavLink" href="https://modrinth.com/mod/neontierstagger">Mod</a>
              <a className="footerNavLink" href={DISCORD_INVITE} target="_blank" rel="noreferrer">Discord</a>
              <span className="footerDivider" aria-hidden="true">|</span>
               <a className="footerNavLink" href="/legacy">Legacy</a>
            </nav>
-          <div className="footerLastUpdate">Eredmények frissítve: legutóbbi teszt futás alapján</div>
+          <div className="footerLastUpdate">{t("footer_last_update")}</div>
         </footer>
         <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
 
@@ -1080,14 +1078,6 @@ const totalPoints = selectedPlayer.total;
           border: 1px solid var(--border);
           border-radius: 18px;
           box-shadow: 0 16px 42px #0000004d;
-        }
-
-        .navRightGroup {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          justify-self: end;
-          min-width: 0;
         }
 
         .navLogo {
@@ -2180,8 +2170,7 @@ const totalPoints = selectedPlayer.total;
             min-height: 0;
           }
           .navLogo { grid-area: logo; font-size: 18px; justify-self: start; }
-          .navRightGroup { grid-area: search; justify-self: stretch; width: 100%; }
-          .searchWrap { justify-self: stretch; width: 100%; flex: 1; min-width: 0; }
+          .searchWrap { grid-area: search; justify-self: stretch; width: 100%; }
           .navLinks { grid-area: links; justify-self: stretch; width: 100%; justify-content: space-between; }
           .navLink { padding: 8px 9px; gap: 0; flex: 1; justify-content: center; }
           .navLinkText { display: none; }
