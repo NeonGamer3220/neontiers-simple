@@ -151,6 +151,27 @@ Demote-nak számít, ha a játékos nem nyeri meg a körök 25%-át. Rosszabb ti
 Példa: HT3 vs HT3 mérkőzésen 4:0 az eredmény, majd a továbbjutó játékos LT2 ellen veszít. Ilyenkor a korábbi ellenfele egy tierrel rosszabb helyre kerül.
 `.trim(),
   },
+  {
+    title: "🖥️ 9. Hivatalos teszt szerverek",
+    body: `
+Tesztelni az alábbi szervereken ajánlott. Ezek a szerverek csak ajánlott szerverek, nem kötelező. Tesztelni bármelyik szerveren lehet, ami eredetis szerver.
+
+| Játékmód | Szerverek |
+|---|---|
+| Vanilla | hutierprac.kinetic.host, eu.mcpvp.club, mcprac.net, eu.applepvp.com, centralpvp.net, eu.stray.gg |
+| DiaSMP | hutierprac.kinetic.host, diasmp.com, fadedmc.net, eu.catpvp.xyz, flowpvp.gg, eu.minemen.club |
+| OGVanilla | hutierprac.kinetic.host, fadedmc.net, eu.catpvp.xyz, flowpvp.gg |
+| NethPot | hutierprac.kinetic.host, flowpvp.gg, eu.mcpvp.club, eu.stray.gg, eu.minemen.club, eu.catpvp.xyz |
+| Mace | hutierprac.kinetic.host, eu.catpvp.xyz, eu.mcpvp.club, flowpvp.gg |
+| SMP | hutierprac.kinetic.host, flowpvp.gg, eu.mcpvp.club, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
+| Cart | hutierprac.kinetic.host, cartprac.net (csak sivatagi pályán) |
+| Sword | hutierprac.kinetic.host, eu.mcpvp.club, flowpvp.gg, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
+| UHC | hutierprac.kinetic.host, flowpvp.gg, eu.mcpvp.club, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
+| Pot | hutierprac.kinetic.host, flowpvp.gg, eu.mcpvp.club, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
+| ShieldlessUHC | hutierprac.kinetic.host, eu.stray.gg, eu.minemen.club, eu.catpvp.xyz, flowpvp.gg |
+| Axe | hutierprac.kinetic.host, eu.mcpvp.club, flowpvp.gg, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
+    `.trim(),
+  },
 ];
 
 export const LEGACY_RULES_TITLE = "📖 Tier Teszt Szabályok";
