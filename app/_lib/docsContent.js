@@ -133,6 +133,22 @@ export const MODERN_RULES_SECTIONS = [
   |---|---|---|
   | FT4 | 4:2 | 4:3 |
   | FT10 | 10:6 | 10:7 |
+
+**Kitspecifikus Szabályok**
+  | Formátum | Érintett Kitek | Szabály |
+  |---|---|---|
+  | FT4 | Vanilla, SMP, NethPot, Cart, DiaSMP | A 4:3 vereség is elegendő ahhoz a tierhez, amiért harcoltál. A tiert megkapod, de tovább nem mehetsz. |
+  | FT10 | Sword, Pot | A 10:7 vereség is elegendő a tierhez. A tiert megkapod, de tovább nem mehetsz. |
+  | FT20 | Axe | A 20:16 elegendő, a 20:15 már nem. |
+
+**Demote**
+Demote-nak számít, ha a játékos nem nyeri meg a körök 25%-át. Rosszabb tierbe kerülhet, akinek nincs meg a minimum, vagy aki ezek alatt teljesít:
+| Formátum | Minimum a demote elkerüléséhez |
+|---|---|
+| FT4 | 4:1 |
+| FT10 | 10:3 |
+| FT20 | 20:7 |
+Példa: HT3 vs HT3 mérkőzésen 4:0 az eredmény, majd a továbbjutó játékos LT2 ellen veszít. Ilyenkor a korábbi ellenfele egy tierrel rosszabb helyre kerül.
 `.trim(),
   },
 ];
