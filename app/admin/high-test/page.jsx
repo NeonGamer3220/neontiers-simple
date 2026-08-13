@@ -68,6 +68,19 @@ function scoreOptionsFor(category, gamemode, won) {
 }
 
 const TIER_ORDER = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+const ALL_TIERS = ["LT5", "HT5", "LT4", "HT4", "LT3", "HT3", "LT2", "HT2", "LT1", "HT1"]; // worst → best
+
+// If a player passes the tier they were tested for, they get that tier.
+// If they fail, they get the next tier DOWN (one step worse) — e.g. failed
+// LT2 → HT3, failed HT3 → LT3.
+function resolveTierFromTest(testedTier, passed) {
+  const idx = ALL_TIERS.indexOf(testedTier);
+  if (idx === -1) return null;
+  if (passed) return testedTier;
+  const worseIdx = idx - 1;
+  if (worseIdx < 0) return null; // already the lowest tier — nothing worse to give
+  return ALL_TIERS[worseIdx];
+}
 
 function tierBelow(tier) {
   const i = TIER_ORDER.indexOf(tier);
@@ -196,6 +209,8 @@ export default function HighTestManagerPage() {
   const [knownPlayers, setKnownPlayers] = useState([]);
 
   const [saving, setSaving] = useState(false);
+  const [manualPassed, setManualPassed] = useState(true);
+  const [applyTierChange, setApplyTierChange] = useState(true);
 
   const modeOptions = category === "legacy" ? LEGACY_MODES : MODERN_MODES;
 
@@ -340,7 +355,8 @@ export default function HighTestManagerPage() {
 
   const canAddRow = !!gamemode;
 
-  const overallWon = fights.length > 0 ? fights[fights.length - 1].won : true;
+  const overallWon = manualPassed;
+  const resolvedTier = resolveTierFromTest(testedTier, overallWon);
 
   const rowsValid =
     fights.length > 0 &&
@@ -405,7 +421,36 @@ export default function HighTestManagerPage() {
         setSaving(false);
         return;
       }
-      setToast({ type: "ok", text: "Elmentve! A bot hamarosan kiküldi Discordra." });
+
+      let tierMsg = "";
+      if (applyTierChange) {
+        if (!resolvedTier) {
+          tierMsg = ` Figyelem: sikertelen ${testedTier} teszt esetén nincs ennél gyengébb tier, a tier NEM változott.`;
+        } else {
+          try {
+            const tierRes = await fetch("/api/admin/set-tier", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                username: selectedPlayer.minecraftName,
+                gamemode,
+                rank: resolvedTier,
+                retired: false,
+              }),
+            });
+            const tierData = await tierRes.json();
+            if (!tierRes.ok) {
+              tierMsg = ` Figyelem: a fight mentve, de a tier frissítése sikertelen (${tierData.error || "hiba"}).`;
+            } else {
+              tierMsg = ` Tier frissítve: ${resolvedTier}.`;
+            }
+          } catch {
+            tierMsg = " Figyelem: a fight mentve, de a tier frissítése hálózati hiba miatt sikertelen.";
+          }
+        }
+      }
+
+      setToast({ type: "ok", text: `Elmentve! A bot hamarosan kiküldi Discordra.${tierMsg}` });
       setFights([]);
       setSelectedPlayer(null);
       setPlayerQuery("");
@@ -512,7 +557,7 @@ export default function HighTestManagerPage() {
             <p className="htCardHint">A "Tesztelt tier" a fejlécben szereplő tier — a fightokat lent, tier szerint csoportosítva add hozzá.</p>
           </div>
 
-          <div className="htTopGrid">
+          <div className="htTopGrid htTopGrid3">
             <div className="htField">
               <label className="htLabel">Tesztelt tier</label>
               <Dropdown
@@ -532,6 +577,43 @@ export default function HighTestManagerPage() {
                 placeholder="Válassz gamemode-ot..."
               />
             </div>
+
+            <div className="htField">
+              <label className="htLabel">Teszt eredménye</label>
+              <button
+                type="button"
+                className={`htCategoryBtn ${manualPassed ? "active" : ""}`}
+                onClick={() => setManualPassed((v) => !v)}
+              >
+                <span className="htCategoryDot" />
+                {manualPassed ? "Sikeres" : "Sikertelen"}
+              </button>
+            </div>
+          </div>
+
+          <div className="htTierChangeRow">
+            <label className="htTierChangeToggle">
+              <input
+                type="checkbox"
+                checked={applyTierChange}
+                onChange={(e) => setApplyTierChange(e.target.checked)}
+              />
+              <span>Tier módosítása mentéskor</span>
+            </label>
+            {applyTierChange && (
+              <span className="htTierChangeResult">
+                {resolvedTier ? (
+                  <>
+                    {manualPassed ? "Sikeres" : "Sikertelen"} {testedTier} teszt → kapott tier:{" "}
+                    <strong style={{ color: "var(--accent, #8f7cff)" }}>{resolvedTier}</strong>
+                  </>
+                ) : (
+                  <span style={{ color: "#ff9b9b" }}>
+                    Sikertelen {testedTier} teszt esetén nincs ennél gyengébb tier — a tier nem fog változni.
+                  </span>
+                )}
+              </span>
+            )}
           </div>
         </section>
 
@@ -806,6 +888,43 @@ export default function HighTestManagerPage() {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: 16px;
+        }
+        .htTopGrid3 {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .htTierChangeRow {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 12px 20px;
+          margin-top: 16px;
+          padding-top: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .htTierChangeToggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 13px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.85);
+          cursor: pointer;
+        }
+        .htTierChangeToggle input {
+          width: 16px;
+          height: 16px;
+          accent-color: #8f7cff;
+          cursor: pointer;
+        }
+        .htTierChangeResult {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.65);
+          font-weight: 600;
+        }
+        @media (max-width: 760px) {
+          .htTopGrid3 {
+            grid-template-columns: 1fr;
+          }
         }
         .htField {
           display: grid;
