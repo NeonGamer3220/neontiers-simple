@@ -124,15 +124,15 @@ export const MODERN_RULES_SECTIONS = [
   - A kisorsolt teszternek 48 óra áll rendelkezésére a teszt lebonyolítására. Indokolt esetben további idő engedélyezhető.
   - A tesztek egy hét inaktivitás után automatikusan lezáródnak.
   
-*Sikeres teszt*
+**Sikeres teszt**
   - A teszt akkor sikeres, ha a játékos legalább 7 kört nyer az ellenfele ellen. Példa: a 10:7 vagy jobb eredménnyel a játékos megkapja a nagyobb rangot, a 10:6 viszont már nem elegendő.
 
-*Jogosultság magasabb tierre*
+**Jogosultság magasabb tierre**
   - A játékos csak akkor mehet nagyobb tierű ellenfél ellen, ha tiergappeli a vele azonos szinten lévő ellenfelét, tehát az ellenfele nem nyeri meg ellene a körök 75%-át.
-  | Formátum | Elegendő a továbbjutáshoz | Nem elegendő a továbbjutáshoz |
+  | Formátum | Elegendő a továbbjutáshoz | Nem elengedő a továbbjutáshoz |
   |---|---|---|
-  | FT4 |	4:2 |	4:3
-  | FT10 | 10:6 |	10:7
+  | FT4 | 4:2 | 4:3 |
+  | FT10 | 10:6 | 10:7 |
 `.trim(),
   },
 ];
