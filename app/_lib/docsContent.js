@@ -179,6 +179,14 @@ Tesztelni az alábbi szervereken ajánlott. Ezek a szerverek csak ajánlott szer
     • Csak akkor FF-elhetsz, ha a körök legalább **75%-át** megnyerted, és az ellenfeled is. Ilyenkor te véded a pozíciódat, tehát **defendeled az ellenfeledet**, és ő nem léphet tovább.
     `.trim(),
   },
+    {
+     title: "🖥️ 11. Képernyőmegosztás",
+     body: `
+     • Bizonyos esetekben a mérkőzés alatt vagy után **képernyőmegosztásos ellenőrzés** kötelező lehet.
+     • Az ellenőrzés elkerülése **bant** eredményezhet.
+     • Ha partnerszerveren kapnak el csalással, a NeonTiersről is **bant** kapsz.
+     `.trim(),
+   }, 
 ];
 
 export const LEGACY_RULES_TITLE = "📖 Tier Teszt Szabályok";
