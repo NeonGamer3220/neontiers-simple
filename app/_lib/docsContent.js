@@ -172,6 +172,13 @@ Tesztelni az alábbi szervereken ajánlott. Ezek a szerverek csak ajánlott szer
 | Axe | hutierprac.kinetic.host, eu.mcpvp.club, flowpvp.gg, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
     `.trim(),
   },
+    {
+    title: "🏳️ 10. FF rendszer",
+    body: `
+    • Ha **FF-elsz**, tehát feladod a meccsedet egy magas szintű tesztben, akkor hiába éri el az ellenfeled a magasabb tiert, te **demote-ot** kapsz.
+    • Csak akkor FF-elhetsz, ha a körök legalább **75%-át** megnyerted, és az ellenfeled is. Ilyenkor te véded a pozíciódat, tehát **defendeled az ellenfeledet**, és ő nem léphet tovább.
+    `.trim(),
+  },
 ];
 
 export const LEGACY_RULES_TITLE = "📖 Tier Teszt Szabályok";
