@@ -1,9 +1,23 @@
-export const MODERN_RULES = `
-# 📜 NeonTiers - Szabályzat & Útmutató
-## 🛠️ 1. Modok és Kiegészítők
+// Docs content, split into sections. Each entry in a *_SECTIONS array is
+// a self-contained { title, body } block rendered as its own boxed card
+// on the Dokumentumok page — add, remove, or edit a section by editing
+// (or adding/removing) one object in the array below. `body` supports the
+// same lightweight markdown as before (###, tables, **bold**, `code`,
+// •/- bullet lists).
+
+export const MODERN_RULES_TITLE = "📜 NeonTiers - Szabályzat & Útmutató";
+
+export const MODERN_RULES_SECTIONS = [
+  {
+    title: "🛠️ 1. Modok és Kiegészítők",
+    body: `
 • **Engedélyezett:** Low fire, Consumable Optimizer, shield status mod, és minden olyan mod ami nem ad előnyt / nem automatizálja a játékmenetet.
 • **Tiltott:** Mouse tweaks, Dura pack, Tweakaroo, Walksy/Marlow's Crystal Optimizer, Fire Client, Hack kliensek, pinget befolyásoló modok, Multi Keybinds, Health indicator, más kitett/plusz dolgok CPVP-ben.
-## ⚖️ 2. Tierlist Bannok & Büntetések
+`.trim(),
+  },
+  {
+    title: "⚖️ 2. Tierlist Bannok & Büntetések",
+    body: `
 | Szabályszegés | Büntetés |
 |---|---|
 | Csalás / Tiltott mod | 1 hónap (+ tier wipe ha van) |
@@ -17,7 +31,11 @@ export const MODERN_RULES = `
 | Toxicitás / zaklatás | 14 nap |
 | Sandbagging | 1 hónap |
 | Megvesztegetés / Összejátszás | **Örök ban azonnal** (mindkét félnek) |
-## ⚔️ 3. Teszt Közbeni Szabályzat
+`.trim(),
+  },
+  {
+    title: "⚔️ 3. Teszt Közbeni Szabályzat",
+    body: `
 • Nincs időhúzás / menekülés.
 • Mendelés / bújás / textúraváltás max 2 perc, utána a kör az ellenfélé (clip kell).
 • Időkérés / shiftelés: állj meg, redó kérhető ha nem áll meg (clip kell).
@@ -26,27 +44,41 @@ export const MODERN_RULES = `
 • Free hit tilos a kör elején.
 • FFA szervereken harmadik fél beleszólásakor: újrakezdés.
 • SpearMaceben tilos groundozni, ha kifogytok mindketten mindenből a kört újra kell kezdeni (ha volt totem vesztés, az a játékos a megfelelő mennyiséggel kezdjen.)
-
-## 🔄 4. Újratesztelés & Új Név
+`.trim(),
+  },
+  {
+    title: "🔄 4. Újratesztelés & Új Név",
+    body: `
 • Újratesztelés 14 naponta lehetséges. Első teszten max LT3.
 • **Névváltás:** 1. Discordon: \`/unlink\` majd \`/link\`
   2. A kapott kódot 10 percen belül beírni a \`chaosffa.kinetic.host\` szerveren a \`/link [kód]\` paranccsal.
-## 📊 5. Gamemód Követelmények (LT3 alatt)
+`.trim(),
+  },
+  {
+    title: "📊 5. Gamemód Követelmények (LT3 alatt)",
+    body: `
 | Gamemód | LT3 felett | LT3 alatt |
 |---|---|---|
 | Vanilla / SMP / Cart | FT4 | FT3 |
 | DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident | FT4 | FT2 |
 | Sword / Uhc / Pot / Creeper / ShieldlessUHC | FT10 | FT6 |
 | Axe | FT20 | FT10 |
-## 🟣 6. UnRetire & Retired Rendszer
+`.trim(),
+  },
+  {
+    title: "🟣 6. UnRetire & Retired Rendszer",
+    body: `
 • **UnRetire:** Indulás a retire tierből. 75% winrate kell az azonos tierű ellen, ha nem sikerül, lefelé haladva HT3-ig. Ha ott sem, maradhat a retire vagy megy sima eval tesztre.
 • **Retired feltételek:** Min. LT2 rang. 2 defenset kell szerezni saját tieredbeli vagy feljebb pályázó játékos legyőzésével (75% winrate). Az elmúlt 2 hónapban nem lehetett magasabb tier próbálkozásod.
 • **Időtartamok:**
   - LT2 / HT2: 2 védelem + 40+ nap
   - LT1: 2 védelem + 60+ nap
   - HT1: 3 védelem + 90+ nap
-
-## 🏆 Eredmény Alapú Tier Besorolások
+`.trim(),
+  },
+  {
+    title: "🏆 Eredmény Alapú Tier Besorolások",
+    body: `
 *(Ha a tesztered nagyobb tier, mint az LT3, a teszterek eltérhetnek ezektől).*
 ### • Vanilla / DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident
 | Gamemód | Eredmény | Kapott tier |
@@ -81,18 +113,27 @@ export const MODERN_RULES = `
 | 10-9, 9-10 | LT3 |
 
 *(Ha nyersz eval pass: LT3)*
-`.trim();
+`.trim(),
+  },
+];
 
-export const LEGACY_RULES = `
-# 📖 Tier Teszt Szabályok
-## ✅ Engedélyezett Módosítások
+export const LEGACY_RULES_TITLE = "📖 Tier Teszt Szabályok";
+
+export const LEGACY_RULES_SECTIONS = [
+  {
+    title: "✅ Engedélyezett Módosítások",
+    body: `
 Olyan kliensmódosítások, amelyek kizárólag kozmetikai vagy teljesítménybeli előnyt nyújtanak, de nem biztosítanak tisztességtelen előnyt:
 • Kozmetikai texture packok (pl. alacsony/kikapcsolt tűz, kisebb totem animáció, block overlayek)
 • HUD modok, amelyek csak a saját adataidat jelenítik meg (Páncél, Effektek, Életerő, Telítettség, Tartósság, Totem számláló)
 • Teljesítménynövelő modok (FPS boosterek, Marlow's & Hero's Optimizers)
 • Kozmetikai modok (Köpenyek, Célkeresztek)
 • ExitLag vagy VPN kizárólag jobb útvonalválasztásra (szükség esetén bizonyítani kell)
-## ❌ Tiltott Módosítások
+`.trim(),
+  },
+  {
+    title: "❌ Tiltott Módosítások",
+    body: `
 Minden olyan mod vagy eszköz, amely befolyásolja a játékmenetet vagy tisztességtelen előnyt biztosít:
 • Hack/Cheat kliensek (pl. Ghast, Snaptap, Optimal Aim)
 • X-Ray texture packok
@@ -104,7 +145,11 @@ Minden olyan mod vagy eszköz, amely befolyásolja a játékmenetet vagy tisztes
 • Ellenfél-információt megjelenítő modok (ESP, Radar, Páncél/Életerő/Telítettség kijelzése)
 • Double-bind modok (kivéve, ha az egér szoftvere igényli)
 • Olyan eszközök, amelyek mesterségesen befolyásolják a kapcsolatot vagy meghamisítják a pinget
-## Teszt Közbeni Szabályzat
+`.trim(),
+  },
+  {
+    title: "Teszt Közbeni Szabályzat",
+    body: `
 • Nincs időhúzás / menekülés.
 • Mendelés / bújás / textúraváltás max 2 perc, utána a kör az ellenfélé (clip kell).
 • Időkérés / shiftelés: állj meg, redó kérhető ha nem áll meg (clip kell).
@@ -112,26 +157,40 @@ Minden olyan mod vagy eszköz, amely befolyásolja a játékmenetet vagy tisztes
 • Kifagyás: 1 hit elnézhető, többnél redó kérhető.
 • Free hit tilos a kör elején.
 • FFA szervereken harmadik fél beleszólásakor: újrakezdés.
-
-## 🔄 4. Újratesztelés & Új Név
+`.trim(),
+  },
+  {
+    title: "🔄 4. Újratesztelés & Új Név",
+    body: `
 • Újratesztelés 14 naponta lehetséges. Első teszten max LT3.
 • **Névváltás:** 1. Discordon: \`/unlink\` majd \`/link\`
   2. A kapott kódot 10 percen belül beírni a \`chaosffa.kinetic.host\` szerveren a \`/link [kód]\` paranccsal.
-## 📊 5. Gamemód Követelmények (LT3 alatt)
+`.trim(),
+  },
+  {
+    title: "📊 5. Gamemód Követelmények (LT3 alatt)",
+    body: `
 | Gamemód | LT3 felett | LT3 alatt |
 |---|---|---|
 | Combo / Boxing | FT4 | FT2 |
 | Fireball Fight / Soup / OP / No Debuff | FT4 | FT2 (ha nyersz teszter ellen kört, akkor FT3) |
 | Bridge | FT10 | FT5 |
-## 🟣 6. UnRetire & Retired Rendszer
+`.trim(),
+  },
+  {
+    title: "🟣 6. UnRetire & Retired Rendszer",
+    body: `
 • **UnRetire:** Indulás a retire tierből. 75% winrate kell az azonos tierű ellen, ha nem sikerül, lefelé haladva HT3-ig. Ha ott sem, maradhat a retire vagy megy sima eval tesztre.
 • **Retired feltételek:** Min. LT2 rang. 2 defenset kell szerezni saját tieredbeli vagy feljebb pályázó játékos legyőzésével (75% winrate). Az elmúlt 2 hónapban nem lehetett magasabb tier próbálkozásod.
 • **Időtartamok:**
   - LT2 / HT2: 2 védelem + 40+ nap
   - LT1: 2 védelem + 60+ nap
   - HT1: 3 védelem + 90+ nap
-
-## 🏆 Eredmény Alapú Tier Besorolások
+`.trim(),
+  },
+  {
+    title: "🏆 Eredmény Alapú Tier Besorolások",
+    body: `
 *(Ha a teszter nagyobb tier, mint az LT3, a teszterek eltérhetnek ezektől).*
 ### • Combo / Boxing
 | Eredmény | Kapott tier |
@@ -159,17 +218,24 @@ Minden olyan mod vagy eszköz, amely befolyásolja a játékmenetet vagy tisztes
 | 5-4 | HT4, LT3 |
 
 *(Ha nyersz eval pass: LT3)*
-`.trim();
+`.trim(),
+  },
+];
 
-export const PRIVACY_POLICY = `
-# Adatvédelmi tájékoztató
+export const PRIVACY_POLICY_TITLE = "Adatvédelmi tájékoztató";
 
-## 1. Az adatkezelő
+export const PRIVACY_POLICY_SECTIONS = [
+  {
+    title: "1. Az adatkezelő",
+    body: `
 Név: NeonTiers.hu
 Weboldal: https://neontiers.hu
 Az adatkezelő felelős azért, hogy a NeonTiers.hu használata során kezelt adatok kezelése jogszerűen, átláthatóan és biztonságosan történjen.
-
-## 2. Milyen adatokat kezelünk?
+`.trim(),
+  },
+  {
+    title: "2. Milyen adatokat kezelünk?",
+    body: `
 A NeonTiers.hu az alábbi adatokat kezelheti:
 
 **Minecraft-fiókhoz kapcsolódó adatok**
@@ -187,16 +253,22 @@ A NeonTiers.hu az alábbi adatokat kezelheti:
 • látogatás időpontja,
 • munkamenethez kapcsolódó technikai adatok,
 • hibakereséshez és biztonsághoz szükséges naplóadatok.
-
-## 3. Nyilvánosan megjelenő adatok
+`.trim(),
+  },
+  {
+    title: "3. Nyilvánosan megjelenő adatok",
+    body: `
 A NeonTiers.hu egy Minecraft PvP statisztikai és rangsoroló weboldal, ezért bizonyos adatok nyilvánosan megjelenhetnek a weboldalon. Nyilvánosan megjelenhet például:
 • Minecraft játékosnév,
 • Minecraft UUID-hoz kapcsolódó profil,
 • PvP statisztikák,
 • ranglistán elfoglalt helyezés,
 • győzelmek, vereségek, pontszámok vagy egyéb játékteljesítményhez kapcsolódó adatok.
-
-## 4. Az adatkezelés célja
+`.trim(),
+  },
+  {
+    title: "4. Az adatkezelés célja",
+    body: `
 Az adatokat az alábbi célokra kezeljük:
 • Minecraft-játékosok azonosítása,
 • Minecraft PvP statisztikák megjelenítése,
@@ -207,8 +279,11 @@ Az adatokat az alábbi célokra kezeljük:
 • a weboldal biztonságos működtetése,
 • technikai hibák vizsgálata és javítása,
 • felhasználói kérelmek kezelése.
-
-## 5. Minecraft PvP statisztikák kezelése
+`.trim(),
+  },
+  {
+    title: "5. Minecraft PvP statisztikák kezelése",
+    body: `
 A NeonTiers.hu Minecraft PvP statisztikákat jeleníthet meg a weboldalon. Ezek a statisztikák a játékos Minecraft-profiljához kapcsolódhatnak. A statisztikák célja:
 • játékosprofilok megjelenítése,
 • ranglisták készítése,
@@ -216,8 +291,11 @@ A NeonTiers.hu Minecraft PvP statisztikákat jeleníthet meg a weboldalon. Ezek 
 • közösségi és versenyszerű funkciók biztosítása.
 
 A weboldalon közzétett PvP statisztikák nyilvánosan elérhetők lehetnek más látogatók számára is.
-
-## 6. Adatbiztonság
+`.trim(),
+  },
+  {
+    title: "6. Adatbiztonság",
+    body: `
 A NeonTiers.hu megfelelő technikai és szervezési intézkedéseket alkalmaz az adatok védelme érdekében. Ilyen intézkedések lehetnek:
 • hozzáférések korlátozása,
 • biztonságos bejelentkezés,
@@ -226,8 +304,11 @@ A NeonTiers.hu megfelelő technikai és szervezési intézkedéseket alkalmaz az
 • naplózás,
 • hibák és visszaélések vizsgálata,
 • jogosulatlan hozzáférés elleni védelem.
-
-## 7. Felhasználói jogok
+`.trim(),
+  },
+  {
+    title: "7. Felhasználói jogok",
+    body: `
 A felhasználó jogosult:
 • tájékoztatást kérni az adatkezelésről,
 • hozzáférést kérni a róla kezelt adatokhoz,
@@ -239,8 +320,11 @@ A felhasználó jogosult:
 • panaszt tenni az illetékes adatvédelmi hatóságnál.
 
 A kérelmeket discord hibajegyben teheted fel. A NeonTiers.hu a kérelmeket indokolatlan késedelem nélkül, a vonatkozó jogszabályi határidők szerint kezeli.
-
-## 8. Adatok törlésének kérése
+`.trim(),
+  },
+  {
+    title: "8. Adatok törlésének kérése",
+    body: `
 A felhasználó kérheti a hozzá kapcsolódó adatok törlését, például:
 • Discord-fiók összekapcsolásának megszüntetését,
 • Discord azonosító törlését a NeonTiers.hu rendszeréből,
@@ -248,10 +332,15 @@ A felhasználó kérheti a hozzá kapcsolódó adatok törlését, például:
 • nem szükséges technikai adatok törlését.
 
 Fontos, hogy bizonyos nyilvános Minecraft PvP statisztikák törlése vagy elrejtése korlátozott lehet, ha azok a ranglista működéséhez, visszaélések megelőzéséhez vagy a szolgáltatás integritásának fenntartásához szükségesek.
-
-## 9. A tájékoztató módosulása
+`.trim(),
+  },
+  {
+    title: "9. A tájékoztató módosulása",
+    body: `
 A NeonTiers.hu fenntartja a jogot, hogy ezt az adatvédelmi tájékoztatót módosítsa, különösen akkor, ha a weboldal működése, az adatkezelés módja, a használt szolgáltatók vagy a jogszabályi környezet megváltozik. A mindenkor hatályos adatvédelmi tájékoztató a NeonTiers.hu weboldalon érhető el.
-`.trim();
+`.trim(),
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Tournament results

@@ -2,7 +2,12 @@
 
 import React, { useState } from "react";
 import { renderMarkdownLite } from "../_lib/markdownLite";
-import { MODERN_RULES, LEGACY_RULES, PRIVACY_POLICY, TOURNAMENT_RESULTS } from "../_lib/docsContent";
+import {
+  MODERN_RULES_TITLE, MODERN_RULES_SECTIONS,
+  LEGACY_RULES_TITLE, LEGACY_RULES_SECTIONS,
+  PRIVACY_POLICY_TITLE, PRIVACY_POLICY_SECTIONS,
+  TOURNAMENT_RESULTS,
+} from "../_lib/docsContent";
 
 export const dynamic = "force-static";
 
@@ -125,6 +130,20 @@ function TournamentResults() {
   );
 }
 
+function DocSections({ pageTitle, sections }) {
+  return (
+    <div className="docSections">
+      {pageTitle && <h1 className="docSectionsPageTitle">{pageTitle}</h1>}
+      {sections.map((section, i) => (
+        <div className="docSectionCard" key={i}>
+          <h2 className="docSectionTitle">{section.title}</h2>
+          <div className="docSectionBody">{renderMarkdownLite(section.body)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function DocsPage() {
   const [activeDoc, setActiveDoc] = useState("modern");
   const activeMeta = DOCS.find((d) => d.id === activeDoc);
@@ -199,9 +218,9 @@ export default function DocsPage() {
             </div>
 
             <div className={`docsContent ${activeDoc === "tournaments" ? "docsContentTour" : ""}`}>
-              {activeDoc === "modern" && renderMarkdownLite(MODERN_RULES)}
-              {activeDoc === "legacy" && renderMarkdownLite(LEGACY_RULES)}
-              {activeDoc === "privacy" && renderMarkdownLite(PRIVACY_POLICY)}
+              {activeDoc === "modern" && <DocSections pageTitle={MODERN_RULES_TITLE} sections={MODERN_RULES_SECTIONS} />}
+              {activeDoc === "legacy" && <DocSections pageTitle={LEGACY_RULES_TITLE} sections={LEGACY_RULES_SECTIONS} />}
+              {activeDoc === "privacy" && <DocSections pageTitle={PRIVACY_POLICY_TITLE} sections={PRIVACY_POLICY_SECTIONS} />}
               {activeDoc === "tournaments" && <TournamentResults />}
             </div>
           </section>
@@ -389,6 +408,44 @@ export default function DocsPage() {
           margin: 0;
         }
 
+        .docSectionsPageTitle {
+          font-size: 24px;
+          font-weight: 900;
+          color: #f8fafc;
+          margin: 0 0 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .docSections {
+          display: grid;
+          gap: 16px;
+        }
+
+        .docSectionCard {
+          background: rgba(255, 255, 255, 0.025);
+          border: 1px solid rgba(148, 163, 184, 0.14);
+          border-radius: 16px;
+          padding: 20px 22px;
+        }
+
+        .docSectionTitle {
+          font-size: 16.5px;
+          font-weight: 800;
+          color: #f8fafc;
+          margin: 0 0 14px;
+        }
+
+        .docSectionBody :global(.mdH3) {
+          font-size: 14px;
+          font-weight: 800;
+          color: #fca5a5;
+          margin: 18px 0 8px;
+        }
+        .docSectionBody :global(.mdH3:first-child) {
+          margin-top: 0;
+        }
+
         .docsContent :global(.mdH1) {
           font-size: 24px;
           font-weight: 900;
@@ -396,19 +453,6 @@ export default function DocsPage() {
           margin: 0 0 18px;
           padding-bottom: 16px;
           border-bottom: 1px solid rgba(148, 163, 184, 0.16);
-        }
-        .docsContent :global(.mdH2) {
-          font-size: 17.5px;
-          font-weight: 800;
-          color: #f8fafc;
-          margin: 30px 0 12px;
-          padding-top: 20px;
-          border-top: 1px solid rgba(148, 163, 184, 0.1);
-        }
-        .docsContent :global(.mdH2:first-child) {
-          margin-top: 0;
-          padding-top: 0;
-          border-top: none;
         }
         .docsContent :global(.mdH3) {
           font-size: 14px;
