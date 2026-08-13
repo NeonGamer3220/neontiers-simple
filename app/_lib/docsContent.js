@@ -20,17 +20,17 @@ export const MODERN_RULES_SECTIONS = [
     body: `
 | Szabályszegés | Büntetés |
 |---|---|
-| Csalás / Tiltott mod | 1 hónap (+ tier wipe ha van) |
-| Account sharing | 3 hónap mindkét félnek (tier wipe csak annál, akinél játszottak) |
+| Csalás / Tiltott mod | 1 hónap |
+| Account sharing | 2 hónap mindkét félnek |
 | Alt tesztelés | 1 hónap (alt törölve, eredeti ban) |
-| Boostolás / Megegyezés | 1 hónap (+ tier wipe) |
+| Boostolás / Megegyezés | 1 hónap (+ gamemode tier wipe) |
 | SS megtagadása | 1 hónap |
-| Handcam megtagadása | 2 hónap (+ tier wipe) |
-| Eredmény / videó hamisítás | 2 hónap |
+| Handcam megtagadása | 1 hónap (+ gamemode tier wipe) |
+| Eredmény / videó hamisítás | 1 hónap |
 | Staff megtévesztése | 1 hónap |
 | Toxicitás / zaklatás | 14 nap |
 | Sandbagging | 1 hónap |
-| Megvesztegetés / Összejátszás | **Örök ban azonnal** (mindkét félnek) |
+| Megvesztegetés / Összejátszás | 2-3 hónap (mindkét félnek) |
 `.trim(),
   },
   {
@@ -77,7 +77,7 @@ export const MODERN_RULES_SECTIONS = [
 `.trim(),
   },
   {
-    title: "🏆 Eredmény Alapú Tier Besorolások",
+    title: "🏆 7. Eredmény Alapú Tier Besorolások",
     body: `
 *(Ha a tesztered nagyobb tier, mint az LT3, a teszterek eltérhetnek ezektől).*
 ### • Vanilla / DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident
@@ -113,6 +113,26 @@ export const MODERN_RULES_SECTIONS = [
 | 10-9, 9-10 | LT3 |
 
 *(Ha nyersz eval pass: LT3)*
+`.trim(),
+  },
+  {
+    title: "🛠️ 8. Magas tesztek (LT3 és fölötte)",
+    body: `
+**Feltételek**
+  - A játékosnak előzetesen meg kell felelnie a tesztelés feltételeinek, vagyis el kell érnie az LT3 tiert, mielőtt magasabb szintre léphet.
+  - Az ellenfelet véletlenszerű sorsolás választja ki.
+  - A kisorsolt teszternek 48 óra áll rendelkezésére a teszt lebonyolítására. Indokolt esetben további idő engedélyezhető.
+  - A tesztek egy hét inaktivitás után automatikusan lezáródnak.
+  
+*Sikeres teszt*
+  - A teszt akkor sikeres, ha a játékos legalább 7 kört nyer az ellenfele ellen. Példa: a 10:7 vagy jobb eredménnyel a játékos megkapja a nagyobb rangot, a 10:6 viszont már nem elegendő.
+
+*Jogosultság magasabb tierre*
+  - A játékos csak akkor mehet nagyobb tierű ellenfél ellen, ha tiergappeli a vele azonos szinten lévő ellenfelét, tehát az ellenfele nem nyeri meg ellene a körök 75%-át.
+  | Formátum | Elegendő a továbbjutáshoz | Nem elegendő a továbbjutáshoz |
+  |---|---|---|
+  | FT4 |	4:2 |	4:3
+  | FT10 | 10:6 |	10:7
 `.trim(),
   },
 ];
