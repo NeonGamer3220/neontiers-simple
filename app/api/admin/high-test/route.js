@@ -4,6 +4,7 @@ export const revalidate = 0;
 
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { rateLimit, rateLimitResponse } from "../../../_lib/rateLimit";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -107,6 +108,9 @@ function isValidScore(category, gamemode, won, score) {
 }
 
 export async function POST(req) {
+  const limited = rateLimit(req, "admin-high-test", { limit: 20, windowMs: 60_000 });
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
   if (!supabase) {
     return json({ error: "Supabase nincs konfigurálva", need_env: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] }, 500);
   }
@@ -200,6 +204,7 @@ export async function POST(req) {
     tested_tier: testedTier,
     player_discord_id: discordId,
     message,
+    event_type: "high_test",
     processed: false,
   });
 

@@ -4,6 +4,7 @@ export const revalidate = 0;
 
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { rateLimit, rateLimitResponse } from "../../../_lib/rateLimit";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -53,6 +54,9 @@ const DURATIONS = {
 };
 
 export async function POST(req) {
+  const limited = rateLimit(req, "admin-ban", { limit: 20, windowMs: 60_000 });
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
   if (!supabase) {
     return json({ error: "Supabase nincs konfigurálva", need_env: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] }, 500);
   }
@@ -77,6 +81,7 @@ export async function POST(req) {
   const uuid = String(body.uuid || "").trim();
   const reason = String(body.reason || "").trim();
   const durationKey = String(body.duration || "").trim();
+  const imageUrl = String(body.imageUrl || "").trim();
 
   if (!minecraftName || !discordId) {
     return json({ error: "Válassz ki egy játékost a linkelt fiókok közül" }, 400);
@@ -98,7 +103,9 @@ export async function POST(req) {
     .split("\n")
     .map((line) => `> ${line.trim()}`)
     .join("\n");
-  const message = [headerLine, reasonBlock, `**Lejárat:** ${lejaratText}`].join("\n\n");
+  const messageParts = [headerLine, reasonBlock, `**Lejárat:** ${lejaratText}`];
+  if (imageUrl) messageParts.push(`**Bizonyíték:** ${imageUrl}`);
+  const message = messageParts.join("\n\n");
 
   const { error: insertError } = await supabase.from("discord_notifications").insert({
     username: minecraftName,
@@ -107,6 +114,8 @@ export async function POST(req) {
     channel_id: BAN_CHANNEL_ID,
     player_discord_id: discordId,
     message,
+    image_url: imageUrl || null,
+    event_type: "ban",
     processed: false,
   });
 

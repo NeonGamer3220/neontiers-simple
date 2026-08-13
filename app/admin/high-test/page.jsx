@@ -68,6 +68,7 @@ function scoreOptionsFor(category, gamemode, won) {
 }
 
 const TIER_ORDER = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+const ALL_TIERS = ["LT5", "HT5", "LT4", "HT4", "LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
 
 function tierBelow(tier) {
   const i = TIER_ORDER.indexOf(tier);
@@ -196,6 +197,11 @@ export default function HighTestManagerPage() {
   const [knownPlayers, setKnownPlayers] = useState([]);
 
   const [saving, setSaving] = useState(false);
+
+  // ─── Manual tier editor (set/change a player's tier directly) ───
+  const [editTier, setEditTier] = useState("HT3");
+  const [editRetired, setEditRetired] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
 
   const modeOptions = category === "legacy" ? LEGACY_MODES : MODERN_MODES;
 
@@ -378,6 +384,37 @@ export default function HighTestManagerPage() {
     return [header, modeLine, ...fightBlocks].filter(Boolean).join("\n\n");
   }, [selectedPlayer, overallWon, testedTier, gamemode, fightsByTier]);
 
+  const handleSetTier = async () => {
+    if (!selectedPlayer || !gamemode || !editTier) {
+      setToast({ type: "error", text: "Válassz játékost, gamemode-ot és tiert a tier módosításához" });
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const res = await fetch("/api/admin/set-tier", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: selectedPlayer.minecraftName,
+          gamemode,
+          rank: editTier,
+          retired: editRetired,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Hiba a tier mentése során" });
+        setEditSaving(false);
+        return;
+      }
+      setToast({ type: "ok", text: `Tier frissítve: ${selectedPlayer.minecraftName} → ${editTier}${editRetired ? " (visszavonult)" : ""}` });
+      setEditSaving(false);
+    } catch {
+      setToast({ type: "error", text: "Hálózati hiba" });
+      setEditSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!canSave) return;
     setSaving(true);
@@ -532,6 +569,55 @@ export default function HighTestManagerPage() {
                 placeholder="Válassz gamemode-ot..."
               />
             </div>
+          </div>
+        </section>
+
+        <section className="htCard">
+          <div className="htCardTitleRow">
+            <h2 className="htCardTitle">Tier módosítása</h2>
+            <p className="htCardHint">Ez közvetlenül beállítja a játékos tierjét ehhez a gamemode-hoz — nem csak fightot naplóz.</p>
+          </div>
+          {(!selectedPlayer || !gamemode) && (
+            <div className="htWarning">Válassz ki egy játékost és egy gamemode-ot a tier módosításához.</div>
+          )}
+          <div className="htTopGrid">
+            <div className="htField">
+              <label className="htLabel">Új tier</label>
+              <Dropdown
+                value={editTier}
+                options={ALL_TIERS.map((t) => ({ value: t, label: t }))}
+                onChange={setEditTier}
+                placeholder="Válassz tiert..."
+                disabled={!selectedPlayer || !gamemode}
+              />
+            </div>
+            <div className="htField">
+              <label className="htLabel">Státusz</label>
+              <button
+                type="button"
+                className={`htCategoryBtn ${editRetired ? "active" : ""}`}
+                onClick={() => setEditRetired((v) => !v)}
+                disabled={!selectedPlayer || !gamemode}
+              >
+                <span className="htCategoryDot" />
+                {editRetired ? "Visszavonult" : "Aktív"}
+              </button>
+            </div>
+          </div>
+          <div className="htSaveRow" style={{ marginTop: 16 }}>
+            <span className="htSaveTarget">
+              {selectedPlayer && gamemode
+                ? <>Beállítás: <strong>{selectedPlayer.minecraftName}</strong> · {gamemode} → <strong>{editTier}</strong></>
+                : "Válassz játékost és gamemode-ot"}
+            </span>
+            <button
+              type="button"
+              className="htSaveBtn"
+              disabled={!selectedPlayer || !gamemode || !editTier || editSaving}
+              onClick={handleSetTier}
+            >
+              {editSaving ? "Mentés..." : "Tier mentése"}
+            </button>
           </div>
         </section>
 

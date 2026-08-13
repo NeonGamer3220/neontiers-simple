@@ -4,6 +4,11 @@ export const revalidate = 0;
 
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { rateLimit, rateLimitResponse } from "../../_lib/rateLimit";
+
+// Discord channel that tier-change notifications are posted to. Override
+// via env if you want a different channel than the default.
+const TIER_CHANGE_CHANNEL_ID = process.env.TIER_CHANGE_DISCORD_CHANNEL_ID || "";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -106,6 +111,9 @@ function requireSupabase() {
 // - /api/tests                 -> lista (DB-ből)
 // - /api/tests?username=...&gamemode=... -> 1 darab (az adott user + mode aktuális)
 export async function GET(req) {
+  const limited = rateLimit(req, "tests-get", { limit: 120, windowMs: 60_000 });
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
   const missing = requireSupabase();
   if (missing) return missing;
 
@@ -179,6 +187,9 @@ export async function GET(req) {
 
 // POST: Save test result
 export async function POST(req) {
+  const limited = rateLimit(req, "tests-post", { limit: 30, windowMs: 60_000 });
+  if (!limited.ok) return rateLimitResponse(limited.retryAfterSec);
+
   const missing = requireSupabase();
   if (missing) return missing;
 
@@ -233,6 +244,22 @@ export async function POST(req) {
     created_at: new Date().toISOString(),
   };
 
+  // Look up the current rank BEFORE overwriting the row, so we can tell
+  // afterwards whether this save actually changed the player's tier
+  // (needed for the Discord tier-change auto-post below).
+  let previousRankRow = null;
+  try {
+    const { data } = await supabase
+      .from("tests")
+      .select("rank,points")
+      .ilike("username", username)
+      .ilike("gamemode", gamemode)
+      .maybeSingle();
+    previousRankRow = data || null;
+  } catch (e) {
+    console.error("Failed to read previous rank:", e?.message || e);
+  }
+
   let saved = null;
   let saveErr = null;
 
@@ -276,6 +303,50 @@ export async function POST(req) {
   }
 
   if (saveErr) return json({ error: saveErr.message }, 500);
+
+  // Append to rank_history (best-effort, never blocks the response). The
+  // "tests" row above is overwritten on every retest, so this is the only
+  // place a player's tier progression over time is preserved.
+  try {
+    await supabase.from("rank_history").insert({
+      username,
+      gamemode,
+      rank,
+      points,
+      retired: retiredRaw,
+      created_at: row.created_at,
+    });
+  } catch (e) {
+    console.error("rank_history insert failed:", e?.message || e);
+  }
+
+  // Auto-post to Discord when the tier actually changed (new player, or an
+  // existing player moving to a different rank/retired state). Uses the
+  // same discord_notifications outbox the bot already polls for bans and
+  // high-test results.
+  try {
+    const oldRank = previousRankRow?.rank ? String(previousRankRow.rank).toUpperCase() : null;
+    const changed = oldRank !== rank;
+    if (changed && TIER_CHANGE_CHANNEL_ID) {
+      const modeLabel = gamemode;
+      const headerLine = oldRank
+        ? `**${username}** tierje frissült ${modeLabel} módban: \`${oldRank}\` → \`${rank}\``
+        : `**${username}** új tesztet kapott ${modeLabel} módban: \`${rank}\``;
+      await supabase.from("discord_notifications").insert({
+        username,
+        gamemode,
+        result: rank,
+        old_rank: oldRank,
+        new_rank: rank,
+        event_type: "tier_change",
+        channel_id: TIER_CHANGE_CHANNEL_ID,
+        message: headerLine,
+        processed: false,
+      });
+    }
+  } catch (e) {
+    console.error("tier-change discord notification failed:", e?.message || e);
+  }
 
   try {
     const cookieStore = await cookies();

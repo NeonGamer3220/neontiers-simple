@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useLang, LangToggle } from "./_lib/i18n";
 
 const DISCORD_INVITE = "https://discord.gg/7fanAQDxaN";
 
@@ -149,6 +150,7 @@ function skinUrl(username, uuid) {
 }
 
 export default function Page() {
+  const { t } = useLang();
   const [activeMode, setActiveMode] = useState("Összes");
   const [query, setQuery] = useState("");
 const [tests, setTests] = useState([]);
@@ -158,6 +160,8 @@ const [tests, setTests] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showPlayerDetail, setShowPlayerDetail] = useState(false);
   const [singleModeFilter, setSingleModeFilter] = useState(null);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchWrapRef = React.useRef(null);
 
   useEffect(() => {
     let alive = true;
@@ -318,6 +322,22 @@ const closePlayerDetail = () => {
   };
 
   useEffect(() => {
+    const onClickOutside = (e) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target)) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  const searchSuggestions = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return [];
+    return leaderboard.filter((p) => p.username.toLowerCase().includes(q)).slice(0, 6);
+  }, [query, leaderboard]);
+
+  useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && showTierBoard) {
         closeTierBoard();
@@ -413,19 +433,32 @@ const closePlayerDetail = () => {
               </a>
             </li>
             </ul>
-           <span className="searchWrap">
+           <span className="searchWrap" ref={searchWrapRef}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
               <path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/>
             </svg>
             <input
               className="searchInput"
-              placeholder="Játékos keresése..."
+              placeholder={t("search_placeholder")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setSearchFocused(true)}
               spellCheck={false}
             />
             <kbd className="searchKbd">/</kbd>
+            {searchFocused && query.trim() && searchSuggestions.length > 0 && (
+              <div className="searchDropdown">
+                {searchSuggestions.map((p) => (
+                  <a key={p.username} className="searchDropdownItem" href={`/player/${encodeURIComponent(p.username)}`}>
+                    <img className="searchDropdownSkin" src={skinUrl(p.username, p.entries?.[0]?.uuid)} alt="" width={22} height={22} referrerPolicy="no-referrer" />
+                    <span>{p.username}</span>
+                    <span className="searchDropdownPoints">{p.total} pont</span>
+                  </a>
+                ))}
+              </div>
+            )}
           </span>
+          <LangToggle />
         </nav>
         </header>
 
@@ -792,7 +825,10 @@ const totalPoints = selectedPlayer.total;
                </div>
                 <div className="detailRight">
                  <div className="detailUsername" id="player-modal-title">{selectedPlayer.username}</div>
-                 <div className="detailPosition">Pozíció: {rankMap.get(selectedPlayer.username) || "-"}</div>
+                 <div className="detailPosition">{t("position_label")}: {rankMap.get(selectedPlayer.username) || "-"}</div>
+                 <a className="detailProfileLink" href={`/player/${encodeURIComponent(selectedPlayer.username)}`}>
+                   {t("view_full_profile")}
+                 </a>
                  <div className="detailStats">
                    <div className="detailStat">
                      <span className="detailStatValue">{totalPoints}</span>
@@ -1126,6 +1162,51 @@ const totalPoints = selectedPlayer.total;
           font-size: 12px;
           padding: 3px 8px;
           border-radius: 4px;
+        }
+
+        .searchDropdown {
+          position: absolute;
+          top: calc(100% + 8px);
+          right: 0;
+          left: 0;
+          background: #14161f;
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 12px;
+          overflow: hidden;
+          z-index: 200;
+          box-shadow: 0 18px 40px #0000005c;
+        }
+
+        .searchDropdownItem {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          text-decoration: none;
+          color: var(--text);
+          font-size: 13px;
+          font-weight: 700;
+          border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .searchDropdownItem:hover {
+          background: rgba(255,255,255,0.06);
+        }
+
+        .searchDropdownSkin {
+          border-radius: 5px;
+          image-rendering: pixelated;
+        }
+
+        .searchDropdownPoints {
+          margin-left: auto;
+          color: var(--muted);
+          font-size: 11px;
+          font-weight: 700;
+        }
+
+        @media (max-width: 900px) {
+          .searchDropdown { left: 0; right: 0; }
         }
 
          /* Main layout */
@@ -1851,6 +1932,20 @@ const totalPoints = selectedPlayer.total;
            margin-bottom: 20px;
            padding-bottom: 16px;
            border-bottom: 1px solid rgba(255,255,255,0.08);
+         }
+
+         .detailProfileLink {
+           display: inline-block;
+           margin-top: 10px;
+           margin-bottom: 4px;
+           color: var(--accent);
+           font-size: 13px;
+           font-weight: 700;
+           text-decoration: none;
+         }
+
+         .detailProfileLink:hover {
+           text-decoration: underline;
          }
 
         .detailPosition {

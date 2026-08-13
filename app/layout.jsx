@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Montserrat } from "next/font/google";
+import { LangProvider } from "./_lib/i18n";
 
 const montserrat = Montserrat({
   weight: ["800"],
@@ -43,7 +44,9 @@ export default function RootLayout({ children }) {
       className={`${montserrat.className} ${montserrat.variable}`}
       style={{ fontWeight: 800 }}
     >
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <LangProvider>{children}</LangProvider>
+      </body>
     </html>
   );
 }

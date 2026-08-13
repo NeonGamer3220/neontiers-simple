@@ -40,6 +40,12 @@ export default function BanManagerPage() {
 
   const [saving, setSaving] = useState(false);
 
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [evidencePreview, setEvidencePreview] = useState(null);
+  const [evidenceUrl, setEvidenceUrl] = useState(null);
+  const [evidenceUploading, setEvidenceUploading] = useState(false);
+  const [evidenceError, setEvidenceError] = useState("");
+
   useEffect(() => {
     const checkAuth = async () => {
       const res = await fetch("/api/admin/check");
@@ -135,9 +141,49 @@ export default function BanManagerPage() {
     setPlayerBoxOpen(false);
   };
 
+  const handleEvidenceSelect = async (file) => {
+    setEvidenceError("");
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) {
+      setEvidenceError("Csak PNG, JPG, WEBP vagy GIF fájl tölthető fel");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setEvidenceError("A fájl mérete legfeljebb 8MB lehet");
+      return;
+    }
+    setEvidenceFile(file);
+    setEvidencePreview(URL.createObjectURL(file));
+    setEvidenceUrl(null);
+    setEvidenceUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        setEvidenceError(data.error || "Hiba a kép feltöltése során");
+        setEvidenceUploading(false);
+        return;
+      }
+      setEvidenceUrl(data.url);
+      setEvidenceUploading(false);
+    } catch {
+      setEvidenceError("Hálózati hiba a feltöltés során");
+      setEvidenceUploading(false);
+    }
+  };
+
+  const clearEvidence = () => {
+    setEvidenceFile(null);
+    setEvidencePreview(null);
+    setEvidenceUrl(null);
+    setEvidenceError("");
+  };
+
   const durationInfo = DURATION_OPTIONS.find((d) => d.value === duration) || DURATION_OPTIONS[0];
 
-  const canSave = !!selectedPlayer && reason.trim().length > 0 && !saving;
+  const canSave = !!selectedPlayer && reason.trim().length > 0 && !saving && !evidenceUploading;
 
   const previewMessage = useMemo(() => {
     if (!selectedPlayer) return "";
@@ -147,8 +193,10 @@ export default function BanManagerPage() {
       .map((l) => `> ${l.trim()}`)
       .join("\n");
     const lejaratText = durationInfo.days ? `${durationInfo.label} múlva` : "Sosem (végleges)";
-    return [header, reasonBlock, `**Lejárat:** ${lejaratText}`].join("\n\n");
-  }, [selectedPlayer, uuid, reason, durationInfo]);
+    const parts = [header, reasonBlock, `**Lejárat:** ${lejaratText}`];
+    if (evidenceUrl) parts.push(`**Bizonyíték:** ${evidenceUrl}`);
+    return parts.join("\n\n");
+  }, [selectedPlayer, uuid, reason, durationInfo, evidenceUrl]);
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -162,6 +210,7 @@ export default function BanManagerPage() {
           uuid,
           reason,
           duration,
+          imageUrl: evidenceUrl || null,
         }),
       });
       const data = await res.json();
@@ -176,6 +225,7 @@ export default function BanManagerPage() {
       setPlayerQuery("");
       setUuid("");
       setDuration("6m");
+      clearEvidence();
       setSaving(false);
     } catch (err) {
       setToast({ type: "error", text: "Hálózati hiba" });
@@ -282,6 +332,32 @@ export default function BanManagerPage() {
               onChange={(e) => setReason(e.target.value)}
               placeholder="Miért kapja a bant a játékos?"
             />
+          </div>
+
+          <div className="htField" style={{ marginTop: 16 }}>
+            <label className="htLabel">Bizonyíték (kép, opcionális)</label>
+            {!evidencePreview ? (
+              <label className="banUploadDrop">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  onChange={(e) => handleEvidenceSelect(e.target.files?.[0] || null)}
+                  hidden
+                />
+                <span>📎 Kép feltöltése (PNG, JPG, WEBP, GIF — max 8MB)</span>
+              </label>
+            ) : (
+              <div className="banEvidencePreview">
+                <img src={evidencePreview} alt="Bizonyíték előnézet" />
+                <div className="banEvidenceMeta">
+                  {evidenceUploading && <span className="banEvidenceStatus">Feltöltés...</span>}
+                  {!evidenceUploading && evidenceUrl && <span className="banEvidenceStatus banEvidenceOk">Feltöltve ✓</span>}
+                  {!evidenceUploading && !evidenceUrl && evidenceError && <span className="banEvidenceStatus banEvidenceErr">Hiba</span>}
+                  <button type="button" className="htPlayerChipClear" onClick={clearEvidence}>×</button>
+                </div>
+              </div>
+            )}
+            {evidenceError && <p className="htCardHint" style={{ marginTop: 6 }}>{evidenceError}</p>}
           </div>
         </section>
 
@@ -454,6 +530,62 @@ export default function BanManagerPage() {
         .banTopGrid {
           grid-template-columns: 1fr;
           max-width: 320px;
+        }
+        .banUploadDrop {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 22px 16px;
+          border-radius: 14px;
+          border: 1px dashed rgba(255, 255, 255, 0.22);
+          background: rgba(255, 255, 255, 0.03);
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          text-align: center;
+        }
+        .banUploadDrop:hover {
+          border-color: rgba(143, 124, 255, 0.5);
+          background: rgba(143, 124, 255, 0.06);
+        }
+        .banEvidencePreview {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 10px;
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.03);
+        }
+        .banEvidencePreview img {
+          width: 84px;
+          height: 84px;
+          object-fit: cover;
+          border-radius: 10px;
+          flex: 0 0 auto;
+        }
+        .banEvidenceMeta {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .banEvidenceStatus {
+          font-size: 12px;
+          font-weight: 800;
+          color: rgba(255, 255, 255, 0.55);
+        }
+        .banEvidenceOk {
+          color: #34d399;
+        }
+        .banEvidenceErr {
+          color: #ffc9c9;
+        }
+        @media (max-width: 640px) {
+          .banEvidencePreview {
+            flex-wrap: wrap;
+          }
         }
         .htField {
           display: grid;
