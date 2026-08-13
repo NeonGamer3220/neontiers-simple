@@ -68,7 +68,19 @@ function scoreOptionsFor(category, gamemode, won) {
 }
 
 const TIER_ORDER = ["LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
-const ALL_TIERS = ["LT5", "HT5", "LT4", "HT4", "LT3", "HT3", "LT2", "HT2", "LT1", "HT1"];
+const ALL_TIERS = ["LT5", "HT5", "LT4", "HT4", "LT3", "HT3", "LT2", "HT2", "LT1", "HT1"]; // worst → best
+
+// If a player passes the tier they were tested for, they get that tier.
+// If they fail, they get the next tier DOWN (one step worse) from the one
+// they were tested for — e.g. failed LT2 → HT3, failed HT3 → LT3.
+function resolveTierFromTest(testedTier, passed) {
+  const idx = ALL_TIERS.indexOf(testedTier);
+  if (idx === -1) return null;
+  if (passed) return testedTier;
+  const worseIdx = idx - 1;
+  if (worseIdx < 0) return null; // already the lowest tier — nothing worse to give
+  return ALL_TIERS[worseIdx];
+}
 
 function tierBelow(tier) {
   const i = TIER_ORDER.indexOf(tier);
@@ -199,7 +211,8 @@ export default function HighTestManagerPage() {
   const [saving, setSaving] = useState(false);
 
   // ─── Manual tier editor (set/change a player's tier directly) ───
-  const [editTier, setEditTier] = useState("HT3");
+  const [editTestedTier, setEditTestedTier] = useState("HT3");
+  const [editPassed, setEditPassed] = useState(true);
   const [editRetired, setEditRetired] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
 
@@ -385,8 +398,13 @@ export default function HighTestManagerPage() {
   }, [selectedPlayer, overallWon, testedTier, gamemode, fightsByTier]);
 
   const handleSetTier = async () => {
-    if (!selectedPlayer || !gamemode || !editTier) {
-      setToast({ type: "error", text: "Válassz játékost, gamemode-ot és tiert a tier módosításához" });
+    if (!selectedPlayer || !gamemode || !editTestedTier) {
+      setToast({ type: "error", text: "Válassz játékost, gamemode-ot és tesztelt tiert a módosításhoz" });
+      return;
+    }
+    const resolvedTier = resolveTierFromTest(editTestedTier, editPassed);
+    if (!resolvedTier) {
+      setToast({ type: "error", text: `Nincs ennél gyengébb tier, mint a(z) ${editTestedTier} — sikertelen teszt esetén nem adható tier` });
       return;
     }
     setEditSaving(true);
@@ -397,7 +415,7 @@ export default function HighTestManagerPage() {
         body: JSON.stringify({
           username: selectedPlayer.minecraftName,
           gamemode,
-          rank: editTier,
+          rank: resolvedTier,
           retired: editRetired,
         }),
       });
@@ -407,7 +425,10 @@ export default function HighTestManagerPage() {
         setEditSaving(false);
         return;
       }
-      setToast({ type: "ok", text: `Tier frissítve: ${selectedPlayer.minecraftName} → ${editTier}${editRetired ? " (visszavonult)" : ""}` });
+      const resultText = editPassed
+        ? `Sikeres ${editTestedTier} teszt → ${resolvedTier}`
+        : `Sikertelen ${editTestedTier} teszt → ${resolvedTier} (egy tierrel gyengébb)`;
+      setToast({ type: "ok", text: `${selectedPlayer.minecraftName}: ${resultText}${editRetired ? " (visszavonult)" : ""}` });
       setEditSaving(false);
     } catch {
       setToast({ type: "error", text: "Hálózati hiba" });
@@ -575,21 +596,37 @@ export default function HighTestManagerPage() {
         <section className="htCard">
           <div className="htCardTitleRow">
             <h2 className="htCardTitle">Tier módosítása</h2>
-            <p className="htCardHint">Ez közvetlenül beállítja a játékos tierjét ehhez a gamemode-hoz — nem csak fightot naplóz.</p>
+            <p className="htCardHint">
+              Add meg, melyik tierre tesztelted a játékost, és hogy sikerült-e. Siker esetén azt a tiert kapja;
+              sikertelen esetén automatikusan eggyel gyengébb tiert (pl. sikertelen LT2 → HT3, sikertelen HT3 → LT3).
+              Ez közvetlenül beállítja a játékos tierjét ehhez a gamemode-hoz — nem csak fightot naplóz.
+            </p>
           </div>
           {(!selectedPlayer || !gamemode) && (
             <div className="htWarning">Válassz ki egy játékost és egy gamemode-ot a tier módosításához.</div>
           )}
           <div className="htTopGrid">
             <div className="htField">
-              <label className="htLabel">Új tier</label>
+              <label className="htLabel">Tesztelt tier</label>
               <Dropdown
-                value={editTier}
+                value={editTestedTier}
                 options={ALL_TIERS.map((t) => ({ value: t, label: t }))}
-                onChange={setEditTier}
+                onChange={setEditTestedTier}
                 placeholder="Válassz tiert..."
                 disabled={!selectedPlayer || !gamemode}
               />
+            </div>
+            <div className="htField">
+              <label className="htLabel">Teszt eredménye</label>
+              <button
+                type="button"
+                className={`htCategoryBtn ${editPassed ? "active" : ""}`}
+                onClick={() => setEditPassed((v) => !v)}
+                disabled={!selectedPlayer || !gamemode}
+              >
+                <span className="htCategoryDot" />
+                {editPassed ? "Sikeres" : "Sikertelen"}
+              </button>
             </div>
             <div className="htField">
               <label className="htLabel">Státusz</label>
@@ -606,14 +643,28 @@ export default function HighTestManagerPage() {
           </div>
           <div className="htSaveRow" style={{ marginTop: 16 }}>
             <span className="htSaveTarget">
-              {selectedPlayer && gamemode
-                ? <>Beállítás: <strong>{selectedPlayer.minecraftName}</strong> · {gamemode} → <strong>{editTier}</strong></>
-                : "Válassz játékost és gamemode-ot"}
+              {selectedPlayer && gamemode ? (
+                (() => {
+                  const resolved = resolveTierFromTest(editTestedTier, editPassed);
+                  return resolved ? (
+                    <>
+                      Beállítás: <strong>{selectedPlayer.minecraftName}</strong> · {gamemode} · {editTestedTier} teszt{" "}
+                      {editPassed ? "sikeres" : "sikertelen"} → kapott tier: <strong>{resolved}</strong>
+                    </>
+                  ) : (
+                    <span style={{ color: "#ff9b9b" }}>
+                      Sikertelen {editTestedTier} teszt esetén nincs ennél gyengébb tier — válassz másik tesztelt tiert.
+                    </span>
+                  );
+                })()
+              ) : (
+                "Válassz játékost és gamemode-ot"
+              )}
             </span>
             <button
               type="button"
               className="htSaveBtn"
-              disabled={!selectedPlayer || !gamemode || !editTier || editSaving}
+              disabled={!selectedPlayer || !gamemode || !editTestedTier || editSaving || !resolveTierFromTest(editTestedTier, editPassed)}
               onClick={handleSetTier}
             >
               {editSaving ? "Mentés..." : "Tier mentése"}
