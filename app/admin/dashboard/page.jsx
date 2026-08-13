@@ -4,6 +4,9 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminNavbar from "../_components/AdminNavbar";
 import "../admin-theme.css";
+import {
+  HIGH_TIERS, categoryForGamemode, scoreOptionsFor, resolveTierFromTest, makeFightRow,
+} from "../../_lib/highTestShared";
 
 const RANKS = [
   { value: "", label: "Rangsorolatlan", points: 0, color: "rgba(255, 255, 255, 0.68)" },
@@ -415,6 +418,266 @@ const MODE_ICONS = {
   "Trident":   "/images/trident.png",
 };
 
+// ─── Embedded high-test quick panel ───
+// Slides down under a gamemode row after the admin picks a HT3+ tier and
+// hits save — logs the fights, then resolves + persists the actual tier
+// (pass → the tested tier, fail → one tier worse).
+function HighTestQuickPanel({ panel, discordId, saving, onSetPassed, onAddFight, onUpdateFight, onRemoveFight, onCancel, onSave }) {
+  const { entry, testedTier, category, passed, fights } = panel;
+  const resolvedTier = resolveTierFromTest(testedTier, passed);
+
+  return (
+    <div className="htqPanel">
+      <div className="htqHeader">
+        <span className="htqTitle">Magas Eredmény Kezelő — {entry.gamemode} · {testedTier} teszt</span>
+        {!discordId && (
+          <span className="htqWarn">Nincs linkelt Discord fiók ehhez a játékoshoz — a fight-naplózáshoz szükséges.</span>
+        )}
+      </div>
+
+      <div className="htqPassRow">
+        <button
+          type="button"
+          className={`htqPassBtn ${passed ? "active" : ""}`}
+          onClick={() => onSetPassed(true)}
+        >
+          Sikeres
+        </button>
+        <button
+          type="button"
+          className={`htqPassBtn htqFailBtn ${!passed ? "active" : ""}`}
+          onClick={() => onSetPassed(false)}
+        >
+          Sikertelen
+        </button>
+        <span className="htqResult">
+          {resolvedTier ? (
+            <>Kapott tier: <strong>{resolvedTier}</strong></>
+          ) : (
+            <span style={{ color: "#ff9b9b" }}>Nincs ennél gyengébb tier — a tier nem fog változni.</span>
+          )}
+        </span>
+      </div>
+
+      <div className="htqFights">
+        {fights.map((f) => {
+          const scoreOpts = scoreOptionsFor(category, entry.gamemode, f.won);
+          return (
+            <div key={f.id} className="htqFightRow">
+              <button
+                type="button"
+                className={`htqWonBtn ${f.won ? "won" : "lost"}`}
+                onClick={() => onUpdateFight(f.id, { won: !f.won })}
+              >
+                {f.won ? "Győzelem" : "Vereség"}
+              </button>
+              <select
+                className="htqSelect"
+                value={f.score}
+                onChange={(e) => onUpdateFight(f.id, { score: e.target.value })}
+              >
+                {scoreOpts.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <input
+                className="htqInput"
+                placeholder="Ellenfél..."
+                value={f.opponent}
+                onChange={(e) => onUpdateFight(f.id, { opponent: e.target.value })}
+              />
+              <input
+                className="htqInput htqComment"
+                placeholder="Megjegyzés (opcionális)"
+                value={f.comment}
+                onChange={(e) => onUpdateFight(f.id, { comment: e.target.value })}
+              />
+              {fights.length > 1 && (
+                <button type="button" className="htqRemoveBtn" onClick={() => onRemoveFight(f.id)} aria-label="Eltávolítás">×</button>
+              )}
+            </div>
+          );
+        })}
+        <button type="button" className="htqAddBtn" onClick={onAddFight}>+ Fight hozzáadása</button>
+      </div>
+
+      <div className="htqFooter">
+        <button type="button" className="htqCancelBtn" onClick={onCancel} disabled={saving}>Mégse</button>
+        <button type="button" className="htqSaveBtn" onClick={onSave} disabled={saving}>
+          {saving ? "Mentés..." : "Mentés és tier frissítése"}
+        </button>
+      </div>
+
+      <style jsx>{`
+        .htqPanel {
+          margin-top: 12px;
+          padding: 16px;
+          border-radius: 14px;
+          background: rgba(143, 124, 255, 0.06);
+          border: 1px solid rgba(143, 124, 255, 0.28);
+        }
+        .htqHeader {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+        .htqTitle {
+          font-size: 13px;
+          font-weight: 800;
+          color: #fff;
+        }
+        .htqWarn {
+          font-size: 11.5px;
+          font-weight: 700;
+          color: #ff9b9b;
+        }
+        .htqPassRow {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+        .htqPassBtn {
+          padding: 6px 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(255,255,255,0.16);
+          background: rgba(255,255,255,0.04);
+          color: rgba(255,255,255,0.7);
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .htqPassBtn.active {
+          background: rgba(52, 211, 153, 0.18);
+          border-color: rgba(52, 211, 153, 0.5);
+          color: #34d399;
+        }
+        .htqFailBtn.active {
+          background: rgba(255, 107, 107, 0.18);
+          border-color: rgba(255, 107, 107, 0.5);
+          color: #ff9b9b;
+        }
+        .htqResult {
+          font-size: 12.5px;
+          color: rgba(255,255,255,0.75);
+          font-weight: 700;
+        }
+        .htqFights {
+          display: grid;
+          gap: 8px;
+          margin-bottom: 14px;
+        }
+        .htqFightRow {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+        }
+        .htqWonBtn {
+          flex: 0 0 auto;
+          padding: 6px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.16);
+          font-size: 11.5px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .htqWonBtn.won {
+          background: rgba(52, 211, 153, 0.16);
+          color: #34d399;
+          border-color: rgba(52, 211, 153, 0.4);
+        }
+        .htqWonBtn.lost {
+          background: rgba(255, 107, 107, 0.16);
+          color: #ff9b9b;
+          border-color: rgba(255, 107, 107, 0.4);
+        }
+        .htqSelect, .htqInput {
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.14);
+          border-radius: 8px;
+          padding: 6px 10px;
+          color: #fff;
+          font-size: 12.5px;
+        }
+        .htqSelect {
+          flex: 0 0 auto;
+        }
+        .htqInput {
+          flex: 1 1 120px;
+          min-width: 100px;
+        }
+        .htqComment {
+          flex: 1 1 160px;
+        }
+        .htqRemoveBtn {
+          flex: 0 0 auto;
+          width: 26px;
+          height: 26px;
+          border-radius: 999px;
+          border: none;
+          background: rgba(255,255,255,0.08);
+          color: rgba(255,255,255,0.7);
+          font-size: 15px;
+          cursor: pointer;
+        }
+        .htqAddBtn {
+          justify-self: start;
+          padding: 6px 12px;
+          border-radius: 8px;
+          border: 1px dashed rgba(255,255,255,0.24);
+          background: transparent;
+          color: rgba(255,255,255,0.65);
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .htqFooter {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+        }
+        .htqCancelBtn {
+          padding: 8px 16px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.16);
+          background: transparent;
+          color: rgba(255,255,255,0.7);
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .htqSaveBtn {
+          padding: 8px 18px;
+          border-radius: 8px;
+          border: none;
+          background: #8f7cff;
+          color: #fff;
+          font-size: 12.5px;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .htqSaveBtn:disabled, .htqCancelBtn:disabled {
+          opacity: 0.6;
+          cursor: default;
+        }
+        @media (max-width: 640px) {
+          .htqFightRow {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .htqInput, .htqSelect {
+            width: 100%;
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -429,6 +692,207 @@ export default function AdminDashboard() {
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
   const [confirmState, setConfirmState] = useState(null);
+  const [bannedUsernames, setBannedUsernames] = useState(new Set());
+  const [unbanning, setUnbanning] = useState(false);
+
+  // ─── Embedded "Magas Eredmény Kezelő" quick-panel ───
+  // Opens inline under a gamemode row when the admin saves a HT3+ (and not
+  // retired) tier, instead of persisting the tier immediately — the panel
+  // logs the fights to Discord AND resolves/persists the real tier (which
+  // may end up one tier lower than picked, if marked as a failed test).
+  const [highTestPanel, setHighTestPanel] = useState(null); // { index, entry, testedTier, category, passed, fights }
+  const [highTestSaving, setHighTestSaving] = useState(false);
+  const [highTestDiscordId, setHighTestDiscordId] = useState("");
+
+  const openHighTestPanel = (index, entry) => {
+    const category = categoryForGamemode(entry.gamemode);
+    setHighTestPanel({
+      index,
+      entry,
+      testedTier: entry.rank,
+      category,
+      passed: true,
+      fights: [makeFightRow(category, entry.gamemode)],
+    });
+    setHighTestDiscordId("");
+    // Resolve the player's Discord ID from linked accounts, needed for the
+    // Discord ping in the fight-log message.
+    fetch(`/api/admin/linked-accounts?q=${encodeURIComponent(selectedPlayer?.username || "")}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const match = (d?.accounts || d?.results || []).find(
+          (a) => String(a.minecraftName || a.username || "").toLowerCase() === String(selectedPlayer?.username || "").toLowerCase()
+        );
+        if (match?.discordId) setHighTestDiscordId(match.discordId);
+      })
+      .catch(() => {});
+  };
+
+  const closeHighTestPanel = () => setHighTestPanel(null);
+
+  const addHighTestFight = () => {
+    setHighTestPanel((prev) => {
+      if (!prev) return prev;
+      return { ...prev, fights: [...prev.fights, makeFightRow(prev.category, prev.entry.gamemode)] };
+    });
+  };
+
+  const updateHighTestFight = (fightId, patch) => {
+    setHighTestPanel((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        fights: prev.fights.map((f) => {
+          if (f.id !== fightId) return f;
+          const next = { ...f, ...patch };
+          if (patch.won !== undefined) {
+            const opts = scoreOptionsFor(prev.category, prev.entry.gamemode, patch.won);
+            next.score = opts[0] || "";
+          }
+          return next;
+        }),
+      };
+    });
+  };
+
+  const removeHighTestFight = (fightId) => {
+    setHighTestPanel((prev) => {
+      if (!prev) return prev;
+      if (prev.fights.length <= 1) return prev; // keep at least one row
+      return { ...prev, fights: prev.fights.filter((f) => f.id !== fightId) };
+    });
+  };
+
+  const saveHighTestPanel = async () => {
+    if (!highTestPanel || !selectedPlayer) return;
+    const { entry, testedTier, category, passed, fights } = highTestPanel;
+
+    if (!highTestDiscordId) {
+      setToast({ type: "error", text: "Nem található linkelt Discord fiók ehhez a játékoshoz — a fight-naplózás Discordra ehhez szükséges." });
+      return;
+    }
+    if (fights.some((f) => !f.opponent.trim())) {
+      setToast({ type: "error", text: "Minden fighthoz add meg az ellenfelet" });
+      return;
+    }
+
+    const resolvedTier = resolveTierFromTest(testedTier, passed);
+    setHighTestSaving(true);
+
+    try {
+      const htRes = await fetch("/api/admin/high-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category,
+          testedTier,
+          gamemode: entry.gamemode,
+          overallWon: passed,
+          player: { minecraftName: selectedPlayer.username, discordId: highTestDiscordId },
+          fights: fights.map((f) => ({
+            tier: testedTier,
+            won: f.won,
+            score: f.score,
+            opponent: f.opponent.trim(),
+            comment: f.comment.trim(),
+          })),
+        }),
+      });
+      const htData = await htRes.json();
+      if (!htRes.ok) {
+        setToast({ type: "error", text: htData.error || "Hiba a fightok mentése során" });
+        setHighTestSaving(false);
+        return;
+      }
+
+      let tierMsg = "";
+      if (!resolvedTier) {
+        tierMsg = ` Figyelem: sikertelen ${testedTier} teszt esetén nincs ennél gyengébb tier, a tier NEM változott.`;
+      } else {
+        const tierRes = await fetch("/api/tests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: selectedPlayer.username,
+            gamemode: entry.gamemode,
+            rank: resolvedTier,
+            points: getPointsForRating(resolvedTier),
+            retired: false,
+          }),
+        });
+        if (!tierRes.ok) {
+          const tierData = await tierRes.json();
+          tierMsg = ` Figyelem: a fightok mentve, de a tier frissítése sikertelen (${tierData.error || "hiba"}).`;
+        } else {
+          tierMsg = ` Tier frissítve: ${resolvedTier}.`;
+        }
+      }
+
+      const freshTests = await loadTests();
+      const refreshed = getPlayerData(selectedPlayer.username, showUntested, freshTests);
+      setSelectedPlayer(refreshed);
+      setToast({ type: "ok", text: `Magas eredmény mentve!${tierMsg}` });
+      setHighTestPanel(null);
+      setHighTestSaving(false);
+    } catch {
+      setToast({ type: "error", text: "Hálózati hiba" });
+      setHighTestSaving(false);
+    }
+  };
+
+  // Wraps handleSaveEntry: for HT3+ non-retired ranks, opens the embedded
+  // high-test panel instead of saving the tier directly.
+  const handleSaveEntryGuarded = (entry, index) => {
+    if (entry.rank && !entry.retired && HIGH_TIERS.includes(entry.rank)) {
+      openHighTestPanel(index, entry);
+      return;
+    }
+    handleSaveEntry(entry);
+  };
+
+  const loadBans = async () => {
+    try {
+      const res = await fetch("/api/admin/bans");
+      if (!res.ok) return;
+      const data = await res.json();
+      const set = new Set((data.bans || []).map((b) => String(b.username || "").trim().toLowerCase()));
+      setBannedUsernames(set);
+    } catch {
+      // silently ignore — ban status is a nice-to-have, not blocking
+    }
+  };
+
+  useEffect(() => {
+    loadBans();
+  }, []);
+
+  const isSelectedPlayerBanned = !!selectedPlayer && bannedUsernames.has(String(selectedPlayer.username || "").trim().toLowerCase());
+
+  const handleUnban = async () => {
+    if (!selectedPlayer) return;
+    const ok = await showConfirm(`Biztos hogy feloldod "${selectedPlayer.username}" kitiltását?`);
+    if (!ok) return;
+    setUnbanning(true);
+    try {
+      const res = await fetch("/api/admin/bans/unban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: selectedPlayer.username }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Hiba a feloldás során" });
+        setUnbanning(false);
+        return;
+      }
+      await loadBans();
+      setToast({ type: "ok", text: "Kitiltás feloldva!" });
+      setUnbanning(false);
+    } catch {
+      setToast({ type: "error", text: "Hálózati hiba" });
+      setUnbanning(false);
+    }
+  };
 
   const showConfirm = (message) => new Promise((resolve) => {
     setConfirmState({ message, resolve });
@@ -938,7 +1402,19 @@ const freshTests = await loadTests();
                      </div>
                 <div className="pdBubble">
                   <span className="pdBubbleLabel">Globális Állapot</span>
-                  <span className="pdBubbleValue">Aktív</span>
+                  <span className={`pdBubbleValue ${isSelectedPlayerBanned ? "pdStatusBanned" : "pdStatusActive"}`}>
+                    {isSelectedPlayerBanned ? "Kitiltva" : "Aktív"}
+                  </span>
+                  {isSelectedPlayerBanned && (
+                    <button
+                      type="button"
+                      className="pdUnbanBtn"
+                      onClick={handleUnban}
+                      disabled={unbanning}
+                    >
+                      {unbanning ? "Feloldás..." : "Kitiltás feloldása"}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -971,9 +1447,23 @@ const freshTests = await loadTests();
                           value={displayRank}
                           retired={isRetired}
                           onChange={(rank, retired) => updateEntryRank(index, rank, retired)}
-                          onSave={() => handleSaveEntry(entry)}
+                          onSave={() => handleSaveEntryGuarded(entry, index)}
                         />
                       </div>
+
+                      {highTestPanel && highTestPanel.index === index && (
+                        <HighTestQuickPanel
+                          panel={highTestPanel}
+                          discordId={highTestDiscordId}
+                          saving={highTestSaving}
+                          onSetPassed={(passed) => setHighTestPanel((prev) => (prev ? { ...prev, passed } : prev))}
+                          onAddFight={addHighTestFight}
+                          onUpdateFight={updateHighTestFight}
+                          onRemoveFight={removeHighTestFight}
+                          onCancel={closeHighTestPanel}
+                          onSave={saveHighTestPanel}
+                        />
+                      )}
                     </div>
                   );
                 })}
@@ -982,6 +1472,7 @@ const freshTests = await loadTests();
           </div>
         )}
       </main>
+
 
       <style jsx>{`
         .adminDashboard {
@@ -1897,6 +2388,36 @@ const freshTests = await loadTests();
         .pdBubbleValue {
           font-size: 20px;
           font-weight: 800;
+        }
+
+        .pdStatusActive {
+          color: #34d399;
+        }
+
+        .pdStatusBanned {
+          color: #ff6b6b;
+        }
+
+        .pdUnbanBtn {
+          margin-top: 6px;
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 107, 107, 0.4);
+          background: rgba(255, 107, 107, 0.12);
+          color: #ff9b9b;
+          font-size: 10.5px;
+          font-weight: 800;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+
+        .pdUnbanBtn:hover {
+          background: rgba(255, 107, 107, 0.22);
+        }
+
+        .pdUnbanBtn:disabled {
+          opacity: 0.6;
+          cursor: default;
         }
 
         .tierBadgeInline {

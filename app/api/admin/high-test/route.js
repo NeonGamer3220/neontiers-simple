@@ -173,7 +173,7 @@ export async function POST(req) {
     cleanFights.push({ tier, won, score, opponent, comment });
   }
 
-  const overallWon = cleanFights[cleanFights.length - 1].won;
+  const overallWon = typeof body.overallWon === "boolean" ? body.overallWon : cleanFights[cleanFights.length - 1].won;
   const resultText = overallWon ? "Sikeres" : "Sikertelen";
   const modeEmoji = GAMEMODE_EMOJIS[gamemode] || DEFAULT_MODE_EMOJI;
 

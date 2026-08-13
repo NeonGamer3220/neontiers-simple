@@ -405,6 +405,7 @@ export default function HighTestManagerPage() {
           category,
           testedTier,
           gamemode,
+          overallWon,
           player: selectedPlayer,
           fights: fights.map((f) => ({
             tier: f.tier,

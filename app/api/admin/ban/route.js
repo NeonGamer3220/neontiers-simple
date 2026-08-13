@@ -124,6 +124,21 @@ export async function POST(req) {
   }
 
   try {
+    await supabase.from("bans").insert({
+      username: minecraftName,
+      discord_id: discordId,
+      reason,
+      duration_key: durationKey,
+      expires_at: expiresAt ? expiresAt.toISOString() : null,
+      active: true,
+      banned_by: admin.admin_name || "unknown",
+      image_url: imageUrl || null,
+    });
+  } catch (e) {
+    console.error("Failed to persist ban record:", e?.message || e);
+  }
+
+  try {
     await supabase.from("audit_logs").insert({
       admin_name: admin.admin_name || "unknown",
       action: "ban_issued",
