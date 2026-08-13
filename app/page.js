@@ -433,6 +433,7 @@ const closePlayerDetail = () => {
               </a>
             </li>
             </ul>
+           <span className="navRightGroup">
            <span className="searchWrap" ref={searchWrapRef}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
               <path d="M10 18a7.952 7.952 0 0 0 4.897-1.688l4.396 4.396 1.414-1.414-4.396-4.396A7.952 7.952 0 0 0 18 10c0-4.411-3.589-8-8-8s-8 3.589-8 8 3.589 8 8 8zm0-14c3.309 0 6 2.691 6 6s-2.691 6-6 6-6-2.691-6-6 2.691-6 6-6z"/>
@@ -459,6 +460,7 @@ const closePlayerDetail = () => {
             )}
           </span>
           <LangToggle />
+          </span>
         </nav>
         </header>
 
@@ -1078,6 +1080,14 @@ const totalPoints = selectedPlayer.total;
           border: 1px solid var(--border);
           border-radius: 18px;
           box-shadow: 0 16px 42px #0000004d;
+        }
+
+        .navRightGroup {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          justify-self: end;
+          min-width: 0;
         }
 
         .navLogo {
@@ -2170,7 +2180,8 @@ const totalPoints = selectedPlayer.total;
             min-height: 0;
           }
           .navLogo { grid-area: logo; font-size: 18px; justify-self: start; }
-          .searchWrap { grid-area: search; justify-self: stretch; width: 100%; }
+          .navRightGroup { grid-area: search; justify-self: stretch; width: 100%; }
+          .searchWrap { justify-self: stretch; width: 100%; flex: 1; min-width: 0; }
           .navLinks { grid-area: links; justify-self: stretch; width: 100%; justify-content: space-between; }
           .navLink { padding: 8px 9px; gap: 0; flex: 1; justify-content: center; }
           .navLinkText { display: none; }
