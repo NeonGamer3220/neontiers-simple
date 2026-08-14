@@ -159,7 +159,7 @@ function DocSections({ pageTitle, sections }) {
         <article className="docSectionCard" key={i}>
           <header className="docSectionHead">
             <span className="docSectionIcon" aria-hidden="true">
-              <svg className="docSectionIconSvg" viewBox="0 0 24 24">
+              <svg className="docSectionIconSvg" viewBox="0 0 24 24" width="19" height="19">
                 <path d={sectionIcon(i)} fill="currentColor" />
               </svg>
             </span>
@@ -439,7 +439,7 @@ export default function DocsPage() {
           margin: 0;
         }
 
-        .docSectionsPageTitle {
+        :global(.docSectionsPageTitle) {
           font-size: 24px;
           font-weight: 900;
           color: #f8fafc;
@@ -448,12 +448,12 @@ export default function DocsPage() {
           border-bottom: 1px solid rgba(148, 163, 184, 0.16);
         }
 
-        .docSections {
+        :global(.docSections) {
           display: grid;
           gap: 18px;
         }
 
-        .docSectionCard {
+        :global(.docSectionCard) {
           background: linear-gradient(180deg, #ffffff08, #ffffff02);
           border: 1px solid rgba(148, 163, 184, 0.16);
           border-radius: 18px;
@@ -462,12 +462,12 @@ export default function DocsPage() {
           transition: border-color 0.15s, box-shadow 0.15s;
         }
 
-        .docSectionCard:hover {
+        :global(.docSectionCard:hover) {
           border-color: rgba(217, 45, 32, 0.32);
           box-shadow: 0 18px 40px #00000045;
         }
 
-        .docSectionHead {
+        :global(.docSectionHead) {
           display: flex;
           align-items: center;
           gap: 14px;
@@ -476,7 +476,7 @@ export default function DocsPage() {
           border-bottom: 1px solid rgba(148, 163, 184, 0.14);
         }
 
-        .docSectionIcon {
+        :global(.docSectionIcon) {
           flex-shrink: 0;
           width: 38px;
           height: 38px;
@@ -489,19 +489,21 @@ export default function DocsPage() {
           color: #f87171;
         }
 
-        .docSectionIconSvg {
+        :global(.docSectionIconSvg) {
           width: 19px;
           height: 19px;
+          flex-shrink: 0;
+          display: block;
         }
 
-        .docSectionHeadText {
+        :global(.docSectionHeadText) {
           display: flex;
           flex-direction: column;
           gap: 3px;
           min-width: 0;
         }
 
-        .docSectionIndex {
+        :global(.docSectionIndex) {
           font-size: 11px;
           font-weight: 800;
           letter-spacing: 0.06em;
@@ -509,7 +511,7 @@ export default function DocsPage() {
           color: rgba(248, 113, 113, 0.75);
         }
 
-        .docSectionTitle {
+        :global(.docSectionTitle) {
           font-size: 17px;
           font-weight: 800;
           color: #f8fafc;
