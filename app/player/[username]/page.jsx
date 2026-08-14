@@ -205,7 +205,7 @@ export default function PlayerProfilePage() {
     async function load() {
       setLoading(true);
       try {
-        const res = await fetch("/api/tests", { cache: "no-store" });
+        const res = await fetch("/api/tests");
         const json = await res.json();
         if (alive) setTests(Array.isArray(json?.tests) ? json.tests : []);
       } catch {
@@ -221,7 +221,7 @@ export default function PlayerProfilePage() {
   useEffect(() => {
     let alive = true;
     if (!username) return;
-    fetch(`/api/rank-history?username=${encodeURIComponent(username)}`, { cache: "no-store" })
+    fetch(`/api/rank-history?username=${encodeURIComponent(username)}`)
       .then((r) => r.json())
       .then((j) => { if (alive) setHistory(Array.isArray(j?.history) ? j.history : []); })
       .catch(() => { if (alive) setHistory([]); });
@@ -231,7 +231,7 @@ export default function PlayerProfilePage() {
   useEffect(() => {
     let alive = true;
     if (!vsParam) { setVsHistory([]); return; }
-    fetch(`/api/rank-history?username=${encodeURIComponent(vsParam)}`, { cache: "no-store" })
+    fetch(`/api/rank-history?username=${encodeURIComponent(vsParam)}`)
       .then((r) => r.json())
       .then((j) => { if (alive) setVsHistory(Array.isArray(j?.history) ? j.history : []); })
       .catch(() => { if (alive) setVsHistory([]); });

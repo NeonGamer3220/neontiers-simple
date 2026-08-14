@@ -154,6 +154,7 @@ export default function Page() {
   const [activeMode, setActiveMode] = useState("Összes");
   const [query, setQuery] = useState("");
 const [tests, setTests] = useState([]);
+  const [bannedUsernames, setBannedUsernames] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [tierBoardMode, setTierBoardMode] = useState(null);
   const [showTierBoard, setShowTierBoard] = useState(false);
@@ -168,10 +169,25 @@ const [tests, setTests] = useState([]);
     async function load(isInitial) {
       try {
         if (isInitial) setLoading(true);
-        const testRes = await fetch("/api/tests", { cache: "no-store" });
+        // The API already sends a Cache-Control header (s-maxage=30,
+        // stale-while-revalidate=30) — let the browser honor it instead of
+        // forcing a fresh network round-trip on every load/interval tick.
+        const [testRes, bansRes] = await Promise.all([
+          fetch("/api/tests"),
+          fetch("/api/bans/public").catch(() => null),
+        ]);
         if (!alive) return;
         const testJson = await testRes.json();
         setTests(Array.isArray(testJson?.tests) ? testJson.tests : []);
+        if (bansRes) {
+          try {
+            const bansJson = await bansRes.json();
+            const names = Array.isArray(bansJson?.usernames) ? bansJson.usernames : [];
+            setBannedUsernames(new Set(names));
+          } catch {
+            // leave bannedUsernames as-is on parse failure
+          }
+        }
       } catch {
         if (!alive) return;
         if (isInitial) setTests([]);
@@ -215,7 +231,10 @@ const [tests, setTests] = useState([]);
     return () => { alive = false; clearInterval(intervalId); };
   }, []);
 
-  const leaderboard = useMemo(() => {
+  // Grouped/sorted by mode+points only — independent of the search box, so
+  // typing in search doesn't re-run this whole grouping/sorting pass on
+  // every keystroke (it only depends on data + the mode filters now).
+  const basePlayers = useMemo(() => {
     const rows = tests
       .map((r) => ({
         id: r?.id,
@@ -244,7 +263,7 @@ const [tests, setTests] = useState([]);
     }
 
     const latestRows = Array.from(latestByUserMode.values());
-    
+
     // Apply gamemode filter
     let filtered = latestRows;
     if (singleModeFilter && singleModeFilter.length > 0) {
@@ -272,29 +291,42 @@ const [tests, setTests] = useState([]);
         return a.gamemode.localeCompare(b.gamemode);
       });
       const total = entries.reduce((sum, e) => sum + safeInt(e.points, 0), 0);
-      return { username, entries, total };
+      const banned = bannedUsernames.has(username.trim().toLowerCase());
+      return { username, entries, total, banned };
     });
 
+    // Banned players always sink to the bottom of the list, below every
+    // active player, regardless of points — while the ban is active. Within
+    // each group (active / banned) the existing points-based order applies.
+    players.sort((a, b) => {
+      if (a.banned !== b.banned) return a.banned ? 1 : -1;
+      return b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username);
+    });
+    return players;
+  }, [tests, activeMode, singleModeFilter, bannedUsernames]);
+
+  // Cheap re-filter/re-rank on top of basePlayers whenever the search box
+  // changes — no re-grouping of the raw rows needed here.
+  const leaderboard = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let searched = !q ? players : players.filter((p) => p.username.toLowerCase().includes(q));
+    if (!q) return basePlayers;
+
+    const searched = basePlayers.filter((p) => p.username.toLowerCase().includes(q));
 
     // Improve search ranking: exact match > startsWith > includes > total points
-    if (q) {
-      searched.sort((a, b) => {
-        const an = a.username.toLowerCase();
-        const bn = b.username.toLowerCase();
-        const ae = an === q ? 0 : an.startsWith(q) ? 1 : an.includes(q) ? 2 : 3;
-        const be = bn === q ? 0 : bn.startsWith(q) ? 1 : bn.includes(q) ? 2 : 3;
-        if (ae !== be) return ae - be;
-        if (a.total !== b.total) return b.total - a.total;
-        return a.username.localeCompare(b.username);
-      });
-    } else {
-      searched.sort((a, b) => b.total !== a.total ? b.total - a.total : a.username.localeCompare(b.username));
-    }
+    searched.sort((a, b) => {
+      if (a.banned !== b.banned) return a.banned ? 1 : -1;
+      const an = a.username.toLowerCase();
+      const bn = b.username.toLowerCase();
+      const ae = an === q ? 0 : an.startsWith(q) ? 1 : an.includes(q) ? 2 : 3;
+      const be = bn === q ? 0 : bn.startsWith(q) ? 1 : bn.includes(q) ? 2 : 3;
+      if (ae !== be) return ae - be;
+      if (a.total !== b.total) return b.total - a.total;
+      return a.username.localeCompare(b.username);
+    });
 
     return searched;
-  }, [tests, activeMode, query, singleModeFilter]);
+  }, [basePlayers, query]);
 
   // Map usernames to their current position in the filtered leaderboard
   const rankMap = useMemo(() => {
@@ -544,7 +576,7 @@ const closePlayerDetail = () => {
                     <div
                       key={p.username}
                       id={p.username}
-                      className="playerRow"
+                      className={`playerRow${p.banned ? " playerRowBanned" : ""}`}
                       role="button"
                       tabIndex={0}
                       aria-haspopup="dialog"
@@ -569,7 +601,10 @@ const closePlayerDetail = () => {
                       referrerPolicy="no-referrer"
                     />
                     <span className="playerNameWrap">
-                      <span className="playerName">{p.username}</span>
+                      <span className="playerName">
+                        {p.username}
+                        {p.banned && <span className="bannedBadge">Kitiltva</span>}
+                      </span>
                       <span className="playerPoints">{p.total} pont</span>
                     </span>
                     <span className="rowChevron" aria-hidden="true">
@@ -1386,6 +1421,33 @@ const totalPoints = selectedPlayer.total;
           background: #ffffff0a;
           border-color: #ffffff29;
           z-index: 4;
+        }
+
+        /* Banned players: red card, sink to bottom of the list (sorting
+           handled in basePlayers/leaderboard) while the ban is active. */
+        .playerRowBanned {
+          background: rgba(220, 38, 38, 0.1);
+          border-color: rgba(220, 38, 38, 0.45);
+        }
+
+        .playerRowBanned:hover {
+          background: rgba(220, 38, 38, 0.16);
+          border-color: rgba(220, 38, 38, 0.6);
+        }
+
+        .bannedBadge {
+          display: inline-flex;
+          align-items: center;
+          margin-left: 8px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          color: #ff8080;
+          background: rgba(220, 38, 38, 0.18);
+          border: 1px solid rgba(220, 38, 38, 0.5);
+          vertical-align: middle;
         }
 
         .rowNum {
