@@ -6,7 +6,13 @@ const montserrat = Montserrat({
   weight: ["800"],
   style: ["normal"],
   subsets: ["latin", "latin-ext"],
-  display: "swap",
+  // Self-hosted via next/font and preloaded on every page, so it's ready
+  // before first paint almost all the time. "optional" tells the browser to
+  // just use it if it's available in time and not swap fonts mid-render
+  // otherwise — this is what kills the visible text "jump" on reload that
+  // "swap" causes when the fallback font has different metrics.
+  display: "optional",
+  preload: true,
   variable: "--font-montserrat",
 });
 

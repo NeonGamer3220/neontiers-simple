@@ -166,7 +166,6 @@ const [tests, setTests] = useState([]);
   useEffect(() => {
     let alive = true;
     async function load(isInitial) {
-      const startedAt = Date.now();
       try {
         if (isInitial) setLoading(true);
         const testRes = await fetch("/api/tests", { cache: "no-store" });
@@ -179,14 +178,9 @@ const [tests, setTests] = useState([]);
       } finally {
         if (!alive) return;
         if (isInitial) {
-          // Keep the custom loading screen visible for a minimum amount of
-          // time so it never just flashes on a fast connection/cache hit.
-          const MIN_LOADING_MS = 3000;
-          const elapsed = Date.now() - startedAt;
-          const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
-          setTimeout(() => {
-            if (alive) setLoading(false);
-          }, remaining);
+          // Data is in — drop the skeleton immediately instead of padding
+          // out an artificial minimum delay.
+          setLoading(false);
         }
       }
     }
