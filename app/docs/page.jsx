@@ -18,6 +18,27 @@ const DOCS = [
   { id: "tournaments", label: "Tournament eredmények", icon: "🏆" },
 ];
 
+// Small rotating set of section icons (plain SVG paths, single color via
+// currentColor) so each numbered section card gets a distinct glyph
+// instead of just a number, without needing per-section icon data.
+const SECTION_ICON_PATHS = [
+  "M9.4 4.2a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm0 8.4c-3.7 0-6.7 1.9-6.7 4.3v2.9h13.4v-2.9c0-2.4-3-4.3-6.7-4.3Zm7.8-7.2a2.8 2.8 0 1 0 0 5.6 2.8 2.8 0 0 0 0-5.6Zm0 6.9c-.9 0-1.8.13-2.6.4 1.6 1.1 2.7 2.6 2.7 4.2v2.9h4.1v-2.7c0-2.3-2-4.8-4.2-4.8Z",
+  "M12 3.2 5.1 10.1l1.42 1.42 4.47-4.47V20.4h2V7.05l4.47 4.47L18.9 10.1 12 3.2Z",
+  "M12 2.6 4.8 5.3a1 1 0 0 0-.65.94v5.1c0 4.4 3 8.2 7.5 9.9.23.08.47.08.7 0 4.5-1.7 7.5-5.5 7.5-9.9v-5.1a1 1 0 0 0-.65-.94L12 2.6Zm0 2.14 5.85 2.2v4.4c0 3.44-2.28 6.5-5.85 8-3.57-1.5-5.85-4.56-5.85-8v-4.4L12 4.74Zm-1.05 9.5-2.1-2.1-1.32 1.33 3.42 3.42 5.52-5.52-1.33-1.32-4.19 4.19Z",
+  "M12 4.1a9 9 0 0 0-7.8 13.5l1.73-1a7 7 0 1 1 12.14 0l1.73 1A9 9 0 0 0 12 4.1Zm4.03 4.13-4.9 3.44a1.8 1.8 0 1 0 1.14 1.64l3.76-5.08ZM6.4 11.2h2v1.9h-2v-1.9Zm9.2 0h2v1.9h-2v-1.9Zm-4.55-4.6h1.9v2h-1.9v-2Z",
+  "M4 5.6h2.2v2.2H4V5.6Zm4.2 0h11.8v2.2H8.2V5.6ZM4 10.9h2.2v2.2H4v-2.2Zm4.2 0h11.8v2.2H8.2v-2.2ZM4 16.2h2.2v2.2H4v-2.2Zm4.2 0h11.8v2.2H8.2v-2.2Z",
+  "M13.9 3.4h5.4a1 1 0 0 1 1 1v5.4h-2V6.83l-5.05 5.05-1.42-1.42 5.05-5.06H13.9v-2ZM4.7 3.4h5.4v2H7.12l9.5 9.5v-2.62h2v5.4a1 1 0 0 1-1 1h-5.4v-2h2.62L4.7 6.5V3.4Zm5.36 11.06 1.42 1.42-5.05 5.05h3.67v2H4.7a1 1 0 0 1-1-1v-5.4h2v3.67l4.36-5.74Z",
+  "M3.2 7.6a1.3 1.3 0 0 1 2.05-1.06L8.6 8.9l2.3-4.6a1.3 1.3 0 0 1 2.2 0l2.3 4.6 3.35-2.36A1.3 1.3 0 0 1 20.8 7.6l-1.6 8.5a1.3 1.3 0 0 1-1.28 1.06H6.08A1.3 1.3 0 0 1 4.8 16.1L3.2 7.6Zm2.62 1.9 1.1 5.86h10.16l1.1-5.86-2.5 1.76a1.3 1.3 0 0 1-1.9-.5L12 7.42l-1.78 3.34a1.3 1.3 0 0 1-1.9.5L5.82 9.5ZM6 18.5h12v1.9H6v-1.9Z",
+  "M4.6 3.9h14.8a1.6 1.6 0 0 1 1.6 1.6v3.6a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 9.1V5.5a1.6 1.6 0 0 1 1.6-1.6Zm.4 2v3h14v-3H5Zm-.4 7.4h14.8a1.6 1.6 0 0 1 1.6 1.6v3.6a1.6 1.6 0 0 1-1.6 1.6H4.6A1.6 1.6 0 0 1 3 18.5v-3.6a1.6 1.6 0 0 1 1.6-1.6Zm.4 2v3h14v-3H5Zm1.9-8.4h2v1.2h-2V6.9Zm0 9.4h2v1.2h-2v-1.2Z",
+  "M5.2 3h1.9v18H5.2V3Zm3.1 1.1h9.9a1 1 0 0 1 .82 1.57l-2.2 3.16 2.2 3.16a1 1 0 0 1-.82 1.57H8.3V4.1Zm1.9 1.9v5.66h6.09l-1.5-2.16a1 1 0 0 1 0-1.14l1.5-2.36h-6.09Z",
+  "M4.4 4.2h15.2a1.7 1.7 0 0 1 1.7 1.7v9.3a1.7 1.7 0 0 1-1.7 1.7h-5.4l.5 2h2.4v1.9H6.9v-1.9h2.4l.5-2H4.4a1.7 1.7 0 0 1-1.7-1.7V5.9a1.7 1.7 0 0 1 1.7-1.7Zm.3 2v8.7h14.6V6.2H4.7Z",
+  "M12 2.9a9.1 9.1 0 1 0 0 18.2 9.1 9.1 0 0 0 0-18.2Zm0 2a7.1 7.1 0 1 1 0 14.2 7.1 7.1 0 0 1 0-14.2Zm-1.05 2.4h2.1v2.1h-2.1V7.3Zm0 3.5h2.1v6h-2.1v-6Z",
+];
+
+function sectionIcon(i) {
+  return SECTION_ICON_PATHS[i % SECTION_ICON_PATHS.length];
+}
+
 const TIER_COLORS = {
   HT1: "#f87171", LT1: "#fb923c",
   HT2: "#fbbf24", LT2: "#facc15",
@@ -137,7 +158,11 @@ function DocSections({ pageTitle, sections }) {
       {sections.map((section, i) => (
         <article className="docSectionCard" key={i}>
           <header className="docSectionHead">
-            <span className="docSectionIcon" aria-hidden="true">{i + 1}</span>
+            <span className="docSectionIcon" aria-hidden="true">
+              <svg className="docSectionIconSvg" viewBox="0 0 24 24">
+                <path d={sectionIcon(i)} fill="currentColor" />
+              </svg>
+            </span>
             <span className="docSectionHeadText">
               <span className="docSectionIndex">{i + 1}. szakasz</span>
               <h2 className="docSectionTitle">{section.title}</h2>
@@ -462,8 +487,11 @@ export default function DocsPage() {
           background: rgba(217, 45, 32, 0.12);
           border: 1px solid rgba(217, 45, 32, 0.28);
           color: #f87171;
-          font-size: 15px;
-          font-weight: 800;
+        }
+
+        .docSectionIconSvg {
+          width: 19px;
+          height: 19px;
         }
 
         .docSectionHeadText {
@@ -560,6 +588,35 @@ export default function DocsPage() {
         }
         .docsContent :global(strong) {
           color: #f8fafc;
+        }
+        .docsContent :global(.mdTierBadge) {
+          display: inline-block;
+          padding: 1px 8px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+          white-space: nowrap;
+        }
+
+        /* Result grids (e.g. "Eredmény szerinti tier" subsections) */
+        .docsContent :global(.mdResultsGrid) {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 14px;
+          margin: 10px 0 6px;
+        }
+        .docsContent :global(.mdResultCard) {
+          background: rgba(255, 255, 255, 0.025);
+          border: 1px solid rgba(148, 163, 184, 0.14);
+          border-radius: 14px;
+          padding: 14px 16px 16px;
+        }
+        .docsContent :global(.mdResultCard .mdH3) {
+          margin-top: 0;
+        }
+        .docsContent :global(.mdResultCard .mdTableWrap) {
+          margin-bottom: 8px;
         }
 
         /* Tables */
