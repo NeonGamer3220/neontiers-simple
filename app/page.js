@@ -1252,26 +1252,21 @@ const totalPoints = selectedPlayer.total;
 
         .tabsScroller {
           overflow-x: auto;
-          overflow-y: visible;
           scrollbar-width: none;
-          padding: 6px 2px 10px;
         }
         .tabsScroller::-webkit-scrollbar { display: none; }
 
 .tabRow {
            display: flex;
-           flex-wrap: wrap;
-           gap: 10px;
-           align-items: stretch;
+           gap: 4px;
+           align-items: flex-end;
            justify-content: center;
            margin-top: 6px;
-           margin-bottom: 18px;
            padding-left: 6px;
          }
 
           @media (max-width: 900px) {
             .tabRow {
-              flex-wrap: nowrap;
               justify-content: flex-start;
               padding-left: 2px;
             }
@@ -1281,35 +1276,32 @@ const totalPoints = selectedPlayer.total;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-end;
             gap: 6px;
-            min-width: 76px;
-            padding: 12px 10px 10px;
+            min-width: 70px;
+            padding: 8px 6px 7px;
             cursor: pointer;
             user-select: none;
             position: relative;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            background: var(--bg-panel);
+            border: 1px solid #ffffff1a;
+            border-bottom: none;
+            border-radius: 18px 18px 0 0;
+            background: #ffffff06;
             color: #ffffff8f;
-            box-shadow: 0 10px 28px #00000038;
-            transition: color 0.15s, background 0.15s, border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+            transition: color 0.15s, background 0.15s, border-color 0.15s;
             flex-shrink: 0;
           }
 
         .tabBtn:hover {
           color: var(--text);
           background: #ffffff0d;
-          border-color: #ffffff33;
-          transform: translateY(-2px);
-          box-shadow: 0 14px 34px #00000050;
+          border-color: #ffffff2e;
         }
 
         .tabBtn.active {
           color: var(--text);
           background: var(--bg-panel);
-          border-color: #d92d2070;
-          box-shadow: 0 14px 34px #00000050, 0 0 0 1px #d92d2033;
+          border-color: #fff3;
         }
 
         .tabIcon {
@@ -1326,11 +1318,11 @@ const totalPoints = selectedPlayer.total;
 
          .tabActiveLine {
            position: absolute;
-           bottom: 6px;
-           left: 14px;
-           right: 14px;
+           bottom: 0;
+           left: 9px;
+           right: 9px;
            height: 3px;
-           background: #d92d20;
+           background: #fff;
            border-radius: 999px;
          }
 

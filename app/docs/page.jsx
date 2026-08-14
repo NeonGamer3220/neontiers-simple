@@ -135,10 +135,16 @@ function DocSections({ pageTitle, sections }) {
     <div className="docSections">
       {pageTitle && <h1 className="docSectionsPageTitle">{pageTitle}</h1>}
       {sections.map((section, i) => (
-        <div className="docSectionCard" key={i}>
-          <h2 className="docSectionTitle">{section.title}</h2>
+        <article className="docSectionCard" key={i}>
+          <header className="docSectionHead">
+            <span className="docSectionIcon" aria-hidden="true">{i + 1}</span>
+            <span className="docSectionHeadText">
+              <span className="docSectionIndex">{i + 1}. szakasz</span>
+              <h2 className="docSectionTitle">{section.title}</h2>
+            </span>
+          </header>
           <div className="docSectionBody">{renderMarkdownLite(section.body)}</div>
-        </div>
+        </article>
       ))}
     </div>
   );
@@ -419,29 +425,67 @@ export default function DocsPage() {
 
         .docSections {
           display: grid;
-          gap: 20px;
+          gap: 18px;
         }
 
         .docSectionCard {
-          background: var(--bg-panel, #12151c);
           background: linear-gradient(180deg, #ffffff08, #ffffff02);
           border: 1px solid rgba(148, 163, 184, 0.16);
           border-radius: 18px;
-          padding: 20px 22px;
+          padding: 22px 24px 24px;
           box-shadow: 0 14px 32px #00000030;
-          transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+          transition: border-color 0.15s, box-shadow 0.15s;
         }
 
         .docSectionCard:hover {
-          border-color: rgba(217, 45, 32, 0.35);
+          border-color: rgba(217, 45, 32, 0.32);
           box-shadow: 0 18px 40px #00000045;
         }
 
+        .docSectionHead {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding-bottom: 16px;
+          margin-bottom: 16px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .docSectionIcon {
+          flex-shrink: 0;
+          width: 38px;
+          height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 12px;
+          background: rgba(217, 45, 32, 0.12);
+          border: 1px solid rgba(217, 45, 32, 0.28);
+          color: #f87171;
+          font-size: 15px;
+          font-weight: 800;
+        }
+
+        .docSectionHeadText {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          min-width: 0;
+        }
+
+        .docSectionIndex {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: rgba(248, 113, 113, 0.75);
+        }
+
         .docSectionTitle {
-          font-size: 16.5px;
+          font-size: 17px;
           font-weight: 800;
           color: #f8fafc;
-          margin: 0 0 14px;
+          margin: 0;
         }
 
         .docSectionBody :global(.mdH3) {
