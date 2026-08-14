@@ -419,14 +419,22 @@ export default function DocsPage() {
 
         .docSections {
           display: grid;
-          gap: 16px;
+          gap: 20px;
         }
 
         .docSectionCard {
-          background: rgba(255, 255, 255, 0.025);
-          border: 1px solid rgba(148, 163, 184, 0.14);
-          border-radius: 16px;
+          background: var(--bg-panel, #12151c);
+          background: linear-gradient(180deg, #ffffff08, #ffffff02);
+          border: 1px solid rgba(148, 163, 184, 0.16);
+          border-radius: 18px;
           padding: 20px 22px;
+          box-shadow: 0 14px 32px #00000030;
+          transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+
+        .docSectionCard:hover {
+          border-color: rgba(217, 45, 32, 0.35);
+          box-shadow: 0 18px 40px #00000045;
         }
 
         .docSectionTitle {
