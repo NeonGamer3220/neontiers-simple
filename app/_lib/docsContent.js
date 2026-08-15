@@ -9,14 +9,14 @@ export const MODERN_RULES_TITLE = "📜 NeonTiers - Szabályzat & Útmutató";
 
 export const MODERN_RULES_SECTIONS = [
   {
-    title: "🛠️ 1. Modok és Kiegészítők",
+    title: "🛠️  Modok és Kiegészítők",
     body: `
 • **Engedélyezett:** Low fire, Consumable Optimizer, shield status mod, és minden olyan mod ami nem ad előnyt / nem automatizálja a játékmenetet.
 • **Tiltott:** Mouse tweaks, Dura pack, Tweakaroo, Walksy/Marlow's Crystal Optimizer, Fire Client, Hack kliensek, pinget befolyásoló modok, Multi Keybinds, Health indicator, más kitett/plusz dolgok CPVP-ben.
 `.trim(),
   },
   {
-    title: "⚖️ 2. Tierlist Bannok & Büntetések",
+    title: "⚖️  Tierlist Bannok & Büntetések",
     body: `
 | Szabályszegés | Büntetés |
 |---|---|
@@ -34,7 +34,7 @@ export const MODERN_RULES_SECTIONS = [
 `.trim(),
   },
   {
-    title: "⚔️ 3. Teszt Közbeni Szabályzat",
+    title: "⚔️  Teszt Közbeni Szabályzat",
     body: `
 • Nincs időhúzás / menekülés.
 • Mendelés / bújás / textúraváltás max 2 perc, utána a kör az ellenfélé (clip kell).
@@ -47,15 +47,15 @@ export const MODERN_RULES_SECTIONS = [
 `.trim(),
   },
   {
-    title: "🔄 4. Újratesztelés & Új Név",
+    title: "🔄  Újratesztelés & Új Név",
     body: `
 • Újratesztelés 14 naponta lehetséges. Első teszten max LT3.
 • **Névváltás:** 1. Discordon: \`/unlink\` majd \`/link\`
-  2. A kapott kódot 10 percen belül beírni a \`chaosffa.kinetic.host\` szerveren a \`/link [kód]\` paranccsal.
+  2. A kapott kódot 10 percen belül beírni a \`hutierprac.kinetic.host\` szerveren a \`/link [kód]\` paranccsal.
 `.trim(),
   },
   {
-    title: "📊 5. Gamemód Követelmények (LT3 alatt)",
+    title: "📊  Gamemód Követelmények (LT3 alatt)",
     body: `
 | Gamemód | LT3 felett | LT3 alatt |
 |---|---|---|
@@ -66,7 +66,7 @@ export const MODERN_RULES_SECTIONS = [
 `.trim(),
   },
   {
-    title: "🟣 6. UnRetire & Retired Rendszer",
+    title: "🟣  UnRetire & Retired Rendszer",
     body: `
 • **UnRetire:** Indulás a retire tierből. 75% winrate kell az azonos tierű ellen, ha nem sikerül, lefelé haladva HT3-ig. Ha ott sem, maradhat a retire vagy megy sima eval tesztre.
 • **Retired feltételek:** Min. LT2 rang. 2 defenset kell szerezni saját tieredbeli vagy feljebb pályázó játékos legyőzésével (75% winrate). Az elmúlt 2 hónapban nem lehetett magasabb tier próbálkozásod.
@@ -77,7 +77,7 @@ export const MODERN_RULES_SECTIONS = [
 `.trim(),
   },
   {
-    title: "🏆 7. Eredmény Alapú Tier Besorolások",
+    title: "🏆  Eredmény Alapú Tier Besorolások",
     body: `
 *(Ha a tesztered nagyobb tier, mint az LT3, a teszterek eltérhetnek ezektől).*
 ### • Vanilla / DiaSMP / OGV / NethPot / Mace / SpearMace / SpearElytra / Trident
@@ -116,7 +116,7 @@ export const MODERN_RULES_SECTIONS = [
 `.trim(),
   },
   {
-    title: "🛠️ 8. Magas tesztek (LT3 és fölötte)",
+    title: "🛠️  Magas tesztek (LT3 és fölötte)",
     body: `
 **Feltételek**
   - A játékosnak előzetesen meg kell felelnie a tesztelés feltételeinek, vagyis el kell érnie az LT3 tiert, mielőtt magasabb szintre léphet.
@@ -152,7 +152,7 @@ Példa: HT3 vs HT3 mérkőzésen 4:0 az eredmény, majd a továbbjutó játékos
 `.trim(),
   },
   {
-    title: "🖥️ 9. Hivatalos teszt szerverek",
+    title: "🖥️  Hivatalos teszt szerverek",
     body: `
 Tesztelni az alábbi szervereken ajánlott. Ezek a szerverek csak ajánlott szerverek, nem kötelező. Tesztelni bármelyik szerveren lehet, ami eredetis szerver.
 
@@ -168,19 +168,19 @@ Tesztelni az alábbi szervereken ajánlott. Ezek a szerverek csak ajánlott szer
 | Sword | hutierprac.kinetic.host, eu.mcpvp.club, flowpvp.gg, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
 | UHC | hutierprac.kinetic.host, flowpvp.gg, eu.mcpvp.club, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
 | Pot | hutierprac.kinetic.host, flowpvp.gg, eu.mcpvp.club, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
-| ShieldlessUHC | hutierprac.kinetic.host, eu.stray.gg, eu.minemen.club, eu.catpvp.xyz, flowpvp.gg |
+| ShieldlessUHC | hutierprac.kinetic.host, eu.minemen.club, eu.catpvp.xyz, flowpvp.gg |
 | Axe | hutierprac.kinetic.host, eu.mcpvp.club, flowpvp.gg, fadedmc.net, eu.minemen.club, eu.catpvp.xyz |
     `.trim(),
   },
     {
-    title: "🏳️ 10. FF rendszer",
+    title: "🏳️  FF rendszer",
     body: `
     • Ha **FF-elsz**, tehát feladod a meccsedet egy magas szintű tesztben, akkor hiába éri el az ellenfeled a magasabb tiert, te **demote-ot** kapsz.
     • Csak akkor FF-elhetsz, ha a körök legalább **75%-át** megnyerted, és az ellenfeled is. Ilyenkor te véded a pozíciódat, tehát **defendeled az ellenfeledet**, és ő nem léphet tovább.
     `.trim(),
   },
     {
-     title: "🖥️ 11. Képernyőmegosztás",
+     title: "🖥️  Képernyőmegosztás",
      body: `
      • Bizonyos esetekben a mérkőzés alatt vagy után **képernyőmegosztásos ellenőrzés** kötelező lehet.
      • Az ellenőrzés elkerülése **bant** eredményezhet.
