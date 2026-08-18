@@ -48,11 +48,15 @@ function sanitizeQuestions(input) {
   if (!Array.isArray(input)) return [];
   return input
     .map((q, idx) => {
-      const type = ["text", "select", "checkbox"].includes(q?.type) ? q.type : "text";
+      const type = ["text", "select", "checkbox", "section"].includes(q?.type) ? q.type : "text";
       const label = String(q?.label || "").trim();
       if (!label) return null;
-      const required = q?.required !== false;
-      const base = { id: q?.id || `q_${Date.now()}_${idx}`, type, label, required };
+      const base = { id: q?.id || `q_${Date.now()}_${idx}`, type, label };
+      if (type === "section") {
+        base.description = String(q?.description || "").trim();
+        return base;
+      }
+      base.required = q?.required !== false;
       if (type === "select" || type === "checkbox") {
         base.options = Array.isArray(q?.options)
           ? q.options.map((o) => String(o || "").trim()).filter(Boolean)

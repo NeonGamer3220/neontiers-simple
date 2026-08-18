@@ -204,54 +204,70 @@ export default function JelentkezesPage() {
                 </div>
               </section>
 
-              {(form.questions || []).length > 0 && (
-                <section className="jfSection">
-                  <h2 className="jfSectionTitle">Kérdések</h2>
-                  {(form.questions || []).map((q) => (
-                    <div className="jfField" key={q.id}>
-                      <label className="jfLabel">
-                        {q.label} {q.required && <span className="jfRequired">*</span>}
-                      </label>
+              {(() => {
+                const items = form.questions || [];
+                const groups = [];
+                let current = { key: "default", title: null, description: "", items: [] };
+                for (const q of items) {
+                  if (q.type === "section") {
+                    if (current.items.length > 0 || current.title) groups.push(current);
+                    current = { key: q.id, title: q.label, description: q.description || "", items: [] };
+                  } else {
+                    current.items.push(q);
+                  }
+                }
+                if (current.items.length > 0 || current.title) groups.push(current);
 
-                      {q.type === "text" && (
-                        <input
-                          type="text"
-                          className="jfInput"
-                          value={answers[q.id] || ""}
-                          onChange={(e) => setAnswer(q.id, e.target.value)}
-                        />
-                      )}
+                return groups.map((group) => (
+                  <section className="jfSection" key={group.key}>
+                    <h2 className="jfSectionTitle">{group.title || "Kérdések"}</h2>
+                    {group.description && <p className="jfSectionNote">{group.description}</p>}
+                    {group.items.map((q) => (
+                      <div className="jfField" key={q.id}>
+                        <label className="jfLabel">
+                          {q.label} {q.required && <span className="jfRequired">*</span>}
+                        </label>
 
-                      {q.type === "select" && (
-                        <CustomSelect
-                          value={answers[q.id] || ""}
-                          options={q.options || []}
-                          onChange={(val) => setAnswer(q.id, val)}
-                        />
-                      )}
+                        {q.type === "text" && (
+                          <input
+                            type="text"
+                            className="jfInput"
+                            value={answers[q.id] || ""}
+                            onChange={(e) => setAnswer(q.id, e.target.value)}
+                          />
+                        )}
 
-                      {q.type === "checkbox" && (
-                        <div className="jfCheckboxGroup">
-                          {(q.options || []).map((opt) => {
-                            const checked = Array.isArray(answers[q.id]) && answers[q.id].includes(opt);
-                            return (
-                              <button
-                                type="button"
-                                key={opt}
-                                className={`jfCheckbox ${checked ? "checked" : ""}`}
-                                onClick={() => toggleCheckboxOption(q.id, opt)}
-                              >
-                                <span className="jfCheckboxBox">{checked && "✓"}</span>
-                                <span>{opt}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </section>
-              )}
+                        {q.type === "select" && (
+                          <CustomSelect
+                            value={answers[q.id] || ""}
+                            options={q.options || []}
+                            onChange={(val) => setAnswer(q.id, val)}
+                          />
+                        )}
+
+                        {q.type === "checkbox" && (
+                          <div className="jfCheckboxGroup">
+                            {(q.options || []).map((opt) => {
+                              const checked = Array.isArray(answers[q.id]) && answers[q.id].includes(opt);
+                              return (
+                                <button
+                                  type="button"
+                                  key={opt}
+                                  className={`jfCheckbox ${checked ? "checked" : ""}`}
+                                  onClick={() => toggleCheckboxOption(q.id, opt)}
+                                >
+                                  <span className="jfCheckboxBox">{checked && "✓"}</span>
+                                  <span>{opt}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </section>
+                ));
+              })()}
 
               {/* Honeypot — hidden from real users */}
               <div className="jfHp" aria-hidden="true">

@@ -91,6 +91,7 @@ export async function POST(req, { params }) {
   const answers = {};
 
   for (const q of questions) {
+    if (q.type === "section") continue;
     const val = rawAnswers[q.id];
     if (q.type === "checkbox") {
       const arr = Array.isArray(val) ? val.map((v) => String(v)).filter(Boolean) : [];

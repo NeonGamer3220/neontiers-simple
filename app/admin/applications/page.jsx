@@ -26,6 +26,15 @@ function emptyQuestion() {
   };
 }
 
+function emptySection() {
+  return {
+    id: `s_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    type: "section",
+    label: "",
+    description: "",
+  };
+}
+
 export default function AdminApplicationsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -120,6 +129,7 @@ export default function AdminApplicationsPage() {
       (Array.isArray(form.questions) ? form.questions : []).map((q) => ({
         ...q,
         options: Array.isArray(q.options) ? q.options : [],
+        description: q.description || "",
       }))
     );
     setSlugTouched(true);
@@ -140,9 +150,19 @@ export default function AdminApplicationsPage() {
   };
 
   const addQuestion = () => setBQuestions((qs) => [...qs, emptyQuestion()]);
+  const addSection = () => setBQuestions((qs) => [...qs, emptySection()]);
   const removeQuestion = (id) => setBQuestions((qs) => qs.filter((q) => q.id !== id));
   const updateQuestion = (id, patch) =>
     setBQuestions((qs) => qs.map((q) => (q.id === id ? { ...q, ...patch } : q)));
+  const moveItem = (id, dir) =>
+    setBQuestions((qs) => {
+      const idx = qs.findIndex((q) => q.id === id);
+      const target = idx + dir;
+      if (idx === -1 || target < 0 || target >= qs.length) return qs;
+      const next = [...qs];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
 
   const addOption = (id) =>
     setBQuestions((qs) => qs.map((q) => (q.id === id ? { ...q, options: [...q.options, ""] } : q)));
@@ -171,10 +191,10 @@ export default function AdminApplicationsPage() {
     }
     for (const q of bQuestions) {
       if (!q.label.trim()) {
-        setToast({ type: "error", text: "Minden kérdésnek legyen szövege" });
+        setToast({ type: "error", text: q.type === "section" ? "Minden szekciónak legyen címe" : "Minden kérdésnek legyen szövege" });
         return;
       }
-      if ((q.type === "select" || q.type === "checkbox") && q.options.filter((o) => o.trim()).length < 2) {
+      if (q.type !== "section" && (q.type === "select" || q.type === "checkbox") && q.options.filter((o) => o.trim()).length < 2) {
         setToast({ type: "error", text: `"${q.label}" — legalább 2 opció szükséges` });
         return;
       }
@@ -186,13 +206,17 @@ export default function AdminApplicationsPage() {
         title: bTitle.trim(),
         slug: bSlug.trim(),
         is_open: bOpen,
-        questions: bQuestions.map((q) => ({
-          id: q.id,
-          type: q.type,
-          label: q.label.trim(),
-          required: q.required,
-          options: q.options.map((o) => o.trim()).filter(Boolean),
-        })),
+        questions: bQuestions.map((q) =>
+          q.type === "section"
+            ? { id: q.id, type: "section", label: q.label.trim(), description: (q.description || "").trim() }
+            : {
+                id: q.id,
+                type: q.type,
+                label: q.label.trim(),
+                required: q.required,
+                options: q.options.map((o) => o.trim()).filter(Boolean),
+              }
+        ),
       };
 
       const res = await fetch(
@@ -454,96 +478,181 @@ export default function AdminApplicationsPage() {
               csak az elérhetőségedet kéri be. A tényleges kérdések a szóbeli beszélgetésen jönnek, ezért itt
               csak azt töltsd ki, hogy kivel és mikor tudunk beszélni. A pozíció magyar nyelvű.” majd egy
               Kapcsolat szekció, ahol a Discord felhasználónevet és az elérhetőséget kérjük be. Az alábbi
-              kérdések ez után jelennek meg.
+              kérdések és szekciók ez után jelennek meg — pontosan úgy, mint a Kapcsolat, szekciókkal
+              csoportosíthatod a kérdéseket, egy szekcióhoz nem kell azonnal kérdést rendelned, és mind a
+              kérdések, mind a szekciók sorrendje a nyilakkal állítható.
             </div>
 
             <div className="japQuestionsHead">
-              <h3>Kérdések</h3>
-              <button type="button" className="japBtn japBtnSmall" onClick={addQuestion}>
-                + Kérdés hozzáadása
-              </button>
+              <h3>Kérdések és szekciók</h3>
+              <div className="japQuestionsHeadBtns">
+                <button type="button" className="japBtn japBtnSmall" onClick={addSection}>
+                  + Szekció hozzáadása
+                </button>
+                <button type="button" className="japBtn japBtnSmall" onClick={addQuestion}>
+                  + Kérdés hozzáadása
+                </button>
+              </div>
             </div>
 
             {bQuestions.length === 0 ? (
-              <div className="japEmpty">Nincs egyedi kérdés hozzáadva. (Nem kötelező.)</div>
+              <div className="japEmpty">Nincs egyedi kérdés vagy szekció hozzáadva. (Nem kötelező.)</div>
             ) : (
               <div className="japQuestionList">
-                {bQuestions.map((q, idx) => (
-                  <div key={q.id} className="japQuestionCard">
-                    <div className="japQuestionTop">
-                      <span className="japQuestionIndex">{idx + 1}.</span>
-                      <input
-                        type="text"
-                        className="japInput japQuestionLabelInput"
-                        placeholder="Kérdés szövege..."
-                        value={q.label}
-                        onChange={(e) => updateQuestion(q.id, { label: e.target.value })}
-                      />
-                      <button
-                        type="button"
-                        className="japIconBtn delete"
-                        title="Kérdés törlése"
-                        onClick={() => removeQuestion(q.id)}
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="japQuestionRow">
-                      <div className="japField japFieldGrow">
-                        <label className="japLabel">Típus</label>
-                        <AdminDropdown
-                          value={q.type}
-                          onChange={(val) => updateQuestion(q.id, { type: val })}
-                          options={TYPE_OPTIONS}
-                        />
-                      </div>
-                      <div className="japField">
-                        <label className="japLabel">Kötelező</label>
-                        <button
-                          type="button"
-                          className={`japSwitch small ${q.required ? "on" : ""}`}
-                          onClick={() => updateQuestion(q.id, { required: !q.required })}
-                        >
-                          <span className="japSwitchKnob" />
-                          <span className="japSwitchText">{q.required ? "Kötelező" : "Opcionális"}</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {(q.type === "select" || q.type === "checkbox") && (
-                      <div className="japOptionsBox">
-                        <label className="japLabel">
-                          {q.type === "select" ? "Választható opciók" : "Kipipálható dobozok"}
-                        </label>
-                        {q.options.length === 0 && (
-                          <div className="japOptionsHint">Adj hozzá legalább 2 opciót.</div>
-                        )}
-                        {q.options.map((opt, oi) => (
-                          <div key={oi} className="japOptionRow">
-                            <input
-                              type="text"
-                              className="japInput"
-                              placeholder={`Opció #${oi + 1}`}
-                              value={opt}
-                              onChange={(e) => updateOption(q.id, oi, e.target.value)}
-                            />
+                {bQuestions.map((q, idx) => {
+                  if (q.type === "section") {
+                    return (
+                      <div key={q.id} className="japSectionCard">
+                        <div className="japQuestionTop">
+                          <span className="japQuestionIndex">§</span>
+                          <input
+                            type="text"
+                            className="japInput japQuestionLabelInput"
+                            placeholder="Szekció címe... (pl. Elérhetőség)"
+                            value={q.label}
+                            onChange={(e) => updateQuestion(q.id, { label: e.target.value })}
+                          />
+                          <div className="japMoveBtns">
                             <button
                               type="button"
-                              className="japIconBtn delete"
-                              onClick={() => removeOption(q.id, oi)}
+                              className="japIconBtn"
+                              title="Mozgatás felfelé"
+                              disabled={idx === 0}
+                              onClick={() => moveItem(q.id, -1)}
                             >
-                              ✕
+                              ▲
+                            </button>
+                            <button
+                              type="button"
+                              className="japIconBtn"
+                              title="Mozgatás lefelé"
+                              disabled={idx === bQuestions.length - 1}
+                              onClick={() => moveItem(q.id, 1)}
+                            >
+                              ▼
                             </button>
                           </div>
-                        ))}
-                        <button type="button" className="japBtn japBtnSmall" onClick={() => addOption(q.id)}>
-                          + Opció
+                          <button
+                            type="button"
+                            className="japIconBtn delete"
+                            title="Szekció törlése"
+                            onClick={() => removeQuestion(q.id)}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          className="japInput"
+                          placeholder="Rövid leírás / megjegyzés a szekcióhoz (opcionális)"
+                          value={q.description || ""}
+                          onChange={(e) => updateQuestion(q.id, { description: e.target.value })}
+                        />
+                        <div className="japSectionHint">
+                          Ez egy szekció-elválasztó — az utána következő kérdések ez alá kerülnek, amíg egy
+                          másik szekció nem következik. Nem kell hozzá azonnal kérdést felvenni.
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={q.id} className="japQuestionCard">
+                      <div className="japQuestionTop">
+                        <span className="japQuestionIndex">{idx + 1}.</span>
+                        <input
+                          type="text"
+                          className="japInput japQuestionLabelInput"
+                          placeholder="Kérdés szövege..."
+                          value={q.label}
+                          onChange={(e) => updateQuestion(q.id, { label: e.target.value })}
+                        />
+                        <div className="japMoveBtns">
+                          <button
+                            type="button"
+                            className="japIconBtn"
+                            title="Mozgatás felfelé"
+                            disabled={idx === 0}
+                            onClick={() => moveItem(q.id, -1)}
+                          >
+                            ▲
+                          </button>
+                          <button
+                            type="button"
+                            className="japIconBtn"
+                            title="Mozgatás lefelé"
+                            disabled={idx === bQuestions.length - 1}
+                            onClick={() => moveItem(q.id, 1)}
+                          >
+                            ▼
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          className="japIconBtn delete"
+                          title="Kérdés törlése"
+                          onClick={() => removeQuestion(q.id)}
+                        >
+                          ✕
                         </button>
                       </div>
-                    )}
-                  </div>
-                ))}
+
+                      <div className="japQuestionRow">
+                        <div className="japField japFieldGrow">
+                          <label className="japLabel">Típus</label>
+                          <AdminDropdown
+                            value={q.type}
+                            onChange={(val) => updateQuestion(q.id, { type: val })}
+                            options={TYPE_OPTIONS}
+                          />
+                        </div>
+                        <div className="japField">
+                          <label className="japLabel">Kötelező</label>
+                          <button
+                            type="button"
+                            className={`japSwitch small ${q.required ? "on" : ""}`}
+                            onClick={() => updateQuestion(q.id, { required: !q.required })}
+                          >
+                            <span className="japSwitchKnob" />
+                            <span className="japSwitchText">{q.required ? "Kötelező" : "Opcionális"}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {(q.type === "select" || q.type === "checkbox") && (
+                        <div className="japOptionsBox">
+                          <label className="japLabel">
+                            {q.type === "select" ? "Választható opciók" : "Kipipálható dobozok"}
+                          </label>
+                          {q.options.length === 0 && (
+                            <div className="japOptionsHint">Adj hozzá legalább 2 opciót.</div>
+                          )}
+                          {q.options.map((opt, oi) => (
+                            <div key={oi} className="japOptionRow">
+                              <input
+                                type="text"
+                                className="japInput"
+                                placeholder={`Opció #${oi + 1}`}
+                                value={opt}
+                                onChange={(e) => updateOption(q.id, oi, e.target.value)}
+                              />
+                              <button
+                                type="button"
+                                className="japIconBtn delete"
+                                onClick={() => removeOption(q.id, oi)}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                          <button type="button" className="japBtn japBtnSmall" onClick={() => addOption(q.id)}>
+                            + Opció
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
@@ -608,6 +717,13 @@ export default function AdminApplicationsPage() {
                           </div>
 
                           {(activeForm.questions || []).map((q) => {
+                            if (q.type === "section") {
+                              return (
+                                <div className="japAnswerSectionDivider" key={q.id}>
+                                  {q.label}
+                                </div>
+                              );
+                            }
                             const val = resp.answers ? resp.answers[q.id] : undefined;
                             let display;
                             if (q.type === "checkbox") {
@@ -976,6 +1092,12 @@ export default function AdminApplicationsPage() {
           align-items: center;
           justify-content: space-between;
           margin-bottom: 12px;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .japQuestionsHeadBtns {
+          display: flex;
+          gap: 8px;
         }
         .japQuestionsHead h3 {
           margin: 0;
@@ -992,6 +1114,43 @@ export default function AdminApplicationsPage() {
           border-radius: 14px;
           padding: 16px;
           background: rgba(255, 255, 255, 0.02);
+        }
+        .japSectionCard {
+          border: 1px solid rgba(143, 124, 255, 0.3);
+          border-radius: 14px;
+          padding: 16px;
+          background: rgba(143, 124, 255, 0.06);
+          display: grid;
+          gap: 10px;
+        }
+        .japSectionHint {
+          font-size: 11.5px;
+          color: rgba(255, 255, 255, 0.4);
+          line-height: 1.5;
+        }
+        .japMoveBtns {
+          display: flex;
+          gap: 4px;
+          flex: 0 0 auto;
+        }
+        .japMoveBtns .japIconBtn {
+          width: 30px;
+          height: 30px;
+          font-size: 11px;
+        }
+        .japIconBtn:disabled {
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+        .japAnswerSectionDivider {
+          margin-top: 6px;
+          padding: 8px 4px 4px;
+          font-size: 12px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: #d7d0ff;
+          border-top: 1px dashed rgba(143, 124, 255, 0.3);
         }
         .japQuestionTop {
           display: flex;
