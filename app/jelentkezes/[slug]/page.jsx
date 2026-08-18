@@ -289,7 +289,8 @@ export default function JelentkezesPage() {
           position: relative;
           background: #05060a;
           color: #fff;
-          font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+          font-family: inherit;
+          font-weight: 800;
           display: flex;
           justify-content: center;
           padding: 48px 20px 80px;
@@ -533,6 +534,7 @@ export default function JelentkezesPage() {
           border: none;
           border-radius: 14px;
           color: #fff;
+          font-family: inherit;
           font-weight: 900;
           font-size: 15px;
           cursor: pointer;
