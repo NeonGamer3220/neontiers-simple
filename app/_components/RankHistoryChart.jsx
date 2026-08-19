@@ -81,51 +81,6 @@ export default function RankHistoryChart({ history, height = 220 }) {
         </div>
       )}
 
-      <style jsx>{`
-        .rhcWrap {
-          position: relative;
-          width: 100%;
-        }
-        .rhcSvg {
-          width: 100%;
-          height: auto;
-          display: block;
-        }
-        .rhcEmpty {
-          padding: 24px 12px;
-          text-align: center;
-          color: var(--muted);
-          font-size: 13px;
-          font-weight: 600;
-        }
-        .rhcTooltip {
-          position: absolute;
-          top: -6px;
-          transform: translate(-50%, -100%);
-          background: #11161ffa;
-          border: 1px solid #ffffff1f;
-          border-radius: 10px;
-          padding: 6px 10px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 2px;
-          font-size: 12px;
-          font-weight: 700;
-          white-space: nowrap;
-          pointer-events: none;
-          box-shadow: 0 12px 28px #00000060;
-        }
-        .rhcTooltip span {
-          color: var(--muted);
-          font-size: 10px;
-        }
-        @media (max-width: 760px) {
-          .rhcWrap {
-            overflow-x: auto;
-          }
-        }
-      `}</style>
     </div>
   );
 }

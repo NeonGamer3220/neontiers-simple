@@ -1056,6 +1056,33 @@ export default function AdminDashboard() {
 
 const handleSaveEntry = async (entry) => {
     try {
+      // "Rangsorolatlan" (unranked) has no tier value — /api/tests always
+      // requires a rank, so saving an empty one here used to fail with
+      // "Missing username/gamemode/rank". An empty rank really means
+      // "remove this entry", so route it to /api/tests/remove instead.
+      if (!entry.rank) {
+        const res = await fetch("/api/tests/remove", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            username: selectedPlayer.username,
+            gamemode: entry.gamemode,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setToast({ type: "error", text: data.error || "Hiba a mentés során" });
+          return;
+        }
+
+        const freshTests = await loadTests();
+        const refreshed = getPlayerData(selectedPlayer.username, showUntested, freshTests);
+        setSelectedPlayer(refreshed);
+        setToast({ type: "ok", text: "Mentve!" });
+        return;
+      }
+
       const points = getPointsForRating(entry.rank);
       const payload = {
         username: selectedPlayer.username,

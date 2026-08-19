@@ -508,8 +508,8 @@ const closePlayerDetail = () => {
                     const sortedModes = [...REAL_MODES].sort((a, b) => {
                       const ra = entryMap[a];
                       const rb = entryMap[b];
-                      const pa = ra ? (ra.points != null ? safeInt(ra.points, 0) : getPointsForElo(ra.rank)) : -1;
-                      const pb = rb ? (rb.points != null ? safeInt(rb.points, 0) : getPointsForElo(rb.rank)) : -1;
+                      const pa = ra ? (ra.points != null ? safeInt(ra.points, 0) : getPointsForElo(ra.rank)) + (ra.retired ? 0.5 : 0) : -1;
+                      const pb = rb ? (rb.points != null ? safeInt(rb.points, 0) : getPointsForElo(rb.rank)) + (rb.retired ? 0.5 : 0) : -1;
                       return pb - pa;
                     });
                     return (

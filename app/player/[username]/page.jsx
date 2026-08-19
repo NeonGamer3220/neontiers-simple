@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import RankHistoryChart from "../../_components/RankHistoryChart";
 import { useLang, LangToggle } from "../../_lib/i18n";
+import "./player.css";
 import {
   MODE_ICONS, displayMode, rankBadgeColor, eloRankLabel, hexToRgba,
   skinUrl, getPointsForElo, safeInt, entriesForUser, totalPointsForEntries,
@@ -97,90 +98,6 @@ function PlayerPanel({ username, tests, history, onRemove, compact }) {
         </>
       )}
 
-      <style jsx>{`
-        .ppPanel {
-          background: var(--bg-panel);
-          border: 1px solid var(--border);
-          border-radius: 22px;
-          padding: 22px;
-          position: relative;
-          flex: 1;
-          min-width: 0;
-        }
-        .ppRemoveBtn {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          width: 28px;
-          height: 28px;
-          border-radius: 999px;
-          border: none;
-          background: #ffffff14;
-          color: #ffffffc2;
-          cursor: pointer;
-          font-size: 16px;
-          line-height: 1;
-        }
-        .ppRemoveBtn:hover { background: #ffffff24; }
-        .ppHeader {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          margin-bottom: 18px;
-        }
-        .ppAvatar {
-          border-radius: 14px;
-          image-rendering: pixelated;
-        }
-        .ppUsername {
-          font-size: 24px;
-          font-weight: 800;
-          color: var(--text);
-          word-break: break-word;
-        }
-        .ppTotal { font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 4px; }
-        .ppMuted { opacity: 0.6; }
-        .ppTiers {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 18px;
-        }
-        .ppTierBadge {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: var(--tier-surface);
-          border: 1px solid var(--tier-border);
-          border-radius: 999px;
-          padding: 6px 10px;
-          font-size: 12px;
-          font-weight: 800;
-          cursor: pointer;
-          opacity: 0.75;
-        }
-        .ppTierBadgeActive, .ppTierBadge:hover { opacity: 1; }
-        .ppTierLabel { color: inherit; }
-        .ppChartCard {
-          background: #ffffff05;
-          border: 1px solid #ffffff0f;
-          border-radius: 16px;
-          padding: 16px;
-        }
-        .ppChartTitle {
-          font-size: 12px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: var(--muted);
-          margin-bottom: 10px;
-        }
-        @media (max-width: 640px) {
-          .ppPanel { padding: 16px; border-radius: 18px; }
-          .ppAvatar { width: 56px; height: 56px; }
-          .ppUsername { font-size: 19px; }
-        }
-      `}</style>
     </div>
   );
 }
@@ -309,68 +226,6 @@ export default function PlayerProfilePage() {
         )}
       </main>
 
-      <style jsx global>{`
-        .ppPage { min-height: 100vh; position: relative; }
-        .bg { position: fixed; inset: 0; background: var(--bg); z-index: -1; }
-        .ppTopBar { max-width: 1100px; margin: 0 auto; padding: 24px 20px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .ppBackLink { color: var(--muted); text-decoration: none; font-weight: 700; font-size: 14px; }
-        .ppBackLink:hover { color: var(--text); }
-        .ppMain { max-width: 1100px; margin: 0 auto; padding: 18px 20px 80px; }
-        .ppLoading { padding: 80px 0; text-align: center; color: var(--muted); }
-        .ppPanelRow { display: flex; gap: 18px; }
-        .ppPanelRowCompare .ppPanel { max-width: none; }
-        .ppCompareBox { margin-top: 20px; max-width: 360px; }
-        .ppCompareLabel {
-          display: block;
-          font-size: 11px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.06em;
-          color: var(--muted);
-          margin-bottom: 8px;
-        }
-        .ppCompareSearchWrap { position: relative; }
-        .ppCompareInput {
-          width: 100%;
-          background: #ffffff0a;
-          border: 1px solid #ffffff1a;
-          border-radius: 10px;
-          padding: 10px 12px;
-          color: var(--text);
-          font-size: 14px;
-        }
-        .ppCompareDropdown {
-          position: absolute;
-          top: calc(100% + 6px);
-          left: 0;
-          right: 0;
-          background: #14161f;
-          border: 1px solid #ffffff1f;
-          border-radius: 12px;
-          overflow: hidden;
-          z-index: 10;
-          max-height: 220px;
-          overflow-y: auto;
-        }
-        .ppCompareItem {
-          display: block;
-          width: 100%;
-          text-align: left;
-          padding: 10px 12px;
-          background: transparent;
-          border: none;
-          border-bottom: 1px solid #ffffff0d;
-          color: var(--text);
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-        }
-        .ppCompareItem:hover { background: #ffffff0c; }
-
-        @media (max-width: 760px) {
-          .ppPanelRow { flex-direction: column; }
-        }
-      `}</style>
     </div>
   );
 }
