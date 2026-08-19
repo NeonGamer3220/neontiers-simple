@@ -262,7 +262,7 @@ export default function DocsPage() {
         <p>© {new Date().getFullYear()} NeonTiers.hu</p>
       </footer>
 
-      <style jsx>{`
+      <style jsx global>{`
         .docsPage {
           min-height: 100vh;
           position: relative;
