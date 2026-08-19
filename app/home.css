@@ -620,6 +620,38 @@
           line-height: 1;
         }
 
+        .tierBadgeEmpty {
+          cursor: default;
+        }
+
+        .tierIconEmpty {
+          box-sizing: border-box;
+          border: 2px dotted #ffffff26;
+          background: #141a2480;
+          border-radius: 999px;
+          width: 41px;
+          height: 41px;
+          display: block;
+        }
+
+        .tierLabelEmpty {
+          background: #ffffff0f;
+          min-height: 19px;
+          min-width: 22px;
+          border-radius: 999px;
+          display: inline-flex;
+          margin-top: -3px;
+        }
+
+        .tierBadgeEmpty:hover .tierTooltip,
+        .tierBadgeEmpty:focus-visible .tierTooltip {
+          display: flex;
+        }
+
+        .tierBadgeEmpty .tierTooltipRank {
+          color: var(--muted);
+        }
+
         .tierTooltip {
           display: none;
           position: absolute;

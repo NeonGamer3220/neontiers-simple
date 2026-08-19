@@ -15,6 +15,8 @@ const MODE_LIST = [
 "Boxing", "Combo", "Bridge", "No Debuff", "OP", "Soup", "Fireball Fight",
 ];
 
+const REAL_MODES = MODE_LIST.filter((m) => m !== "Összes");
+
 const MODE_ICONS = {
 "Összes": "/images/overall.png",
 "Boxing": "/images/boxing.png",
@@ -499,7 +501,11 @@ const closePlayerDetail = () => {
                    <div className="emptySub">Még nincs mentett teszt eredmény.</div>
                  </div>
                   ) : (
-                  leaderboard.map((p, idx) => (
+                  leaderboard.map((p, idx) => {
+                    const entryMap = Object.fromEntries(
+                      (p.entries || []).map((r) => [displayMode(r.gamemode), r])
+                    );
+                    return (
                     <div
                       key={p.username}
                       id={p.username}
@@ -537,10 +543,28 @@ const closePlayerDetail = () => {
                       </svg>
                     </span>
 <span className="rowTiers">
-                       {p.entries.map((r) => {
+                       {REAL_MODES.map((modeName) => {
+                         const r = entryMap[modeName];
+                         if (!r) {
+                           return (
+                             <span
+                               key={`empty:${modeName}`}
+                               className="tierBadge tierBadgeEmpty"
+                               data-gamemode={modeName.toLowerCase()}
+                               aria-label={`${modeName} nincs rangsorolva`}
+                             >
+                               <span className="tierIcon tierIconEmpty" aria-hidden="true" />
+                               <span className="tierLabel tierLabelEmpty" aria-hidden="true" />
+                               <span className="tierTooltip" aria-hidden="true">
+                                 <span className="tierTooltipRank">—</span>
+                                 <span>{modeName}</span>
+                                 <span>Nincs rangsorolva</span>
+                               </span>
+                             </span>
+                           );
+                         }
                          const baseColor = rankBadgeColor(r.rank, r.retired);
                          const pts = r.points != null ? safeInt(r.points, 0) : getPointsForElo(r.rank);
-                         const modeName = displayMode(r.gamemode);
                          const displayRank = r.retired ? `R${eloRankLabel(r.rank)}` : eloRankLabel(r.rank);
                          return (
                            <span
@@ -578,7 +602,8 @@ const closePlayerDetail = () => {
                        })}
                      </span>
                    </div>
-                 ))
+                 );
+                })
                )}
                 </>
               ) : (
