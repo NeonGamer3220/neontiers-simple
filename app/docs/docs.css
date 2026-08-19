@@ -1,0 +1,604 @@
+        .docsPage {
+          min-height: 100vh;
+          position: relative;
+          padding-bottom: 60px;
+        }
+
+        .bg {
+          position: fixed;
+          inset: 0;
+          z-index: -1;
+          background: var(--bg);
+        }
+
+        /* Navbar (matches main site) */
+        .navbar {
+          max-width: 1480px;
+          margin: 0 auto;
+          padding-left: 20px;
+          padding-right: 20px;
+          padding-top: 18px;
+        }
+
+        .navInner {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+          min-height: 78px;
+          padding: 14px 24px;
+          background: var(--bg-panel-strong);
+          border: 1px solid var(--border);
+          border-radius: 18px;
+          box-shadow: 0 16px 42px #0000004d;
+        }
+
+        .navLogo {
+          display: flex;
+          align-items: center;
+          font-size: 20px;
+          font-weight: 700;
+          letter-spacing: -0.04em;
+        }
+
+        .navLogo a {
+          color: var(--text);
+          text-decoration: none;
+        }
+
+        .navLinks {
+          display: flex;
+          gap: 4px;
+          list-style: none;
+          margin: 0 0 0 8px;
+          padding: 0;
+        }
+
+        .navLink {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          text-decoration: none;
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 15px;
+          padding: 8px 14px;
+          border-radius: 6px;
+          transition: color 0.15s, background 0.15s;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-family: inherit;
+        }
+
+        .navLink:hover, .navLink.active {
+          color: white;
+          background: rgba(255, 255, 255, 0.06);
+        }
+
+        .navLinkIcon {
+          width: 20px;
+          height: 20px;
+          flex-shrink: 0;
+        }
+
+        /* Docs layout */
+        .docsMain {
+          max-width: 1480px;
+          margin: 28px auto 0;
+          padding: 0 20px;
+        }
+
+        .docsShell {
+          display: grid;
+          grid-template-columns: 260px 1fr;
+          gap: 20px;
+          align-items: start;
+        }
+
+        .docsSidebar {
+          position: sticky;
+          top: 24px;
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+          border-radius: 18px;
+          padding: 18px 14px;
+        }
+
+        .docsSidebarLabel {
+          margin: 4px 8px 12px;
+          font-size: 13px;
+          font-weight: 800;
+          color: var(--text);
+        }
+
+        .docsSidebarNav {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .docsSideBtn {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-align: left;
+          padding: 11px 12px;
+          border-radius: 10px;
+          background: transparent;
+          border: 1px solid transparent;
+          color: rgba(255, 255, 255, 0.65);
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        .docsSideBtn:hover {
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+        }
+
+        .docsSideBtn.active {
+          background: var(--accent-soft);
+          border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+          color: #fff;
+        }
+
+        .docsSideIcon {
+          font-size: 17px;
+        }
+
+        .docsPanel {
+          background: var(--bg-panel);
+          border: 1px solid var(--border);
+          border-radius: 20px;
+          padding: 28px 32px 36px;
+          min-height: 60vh;
+        }
+
+        .docsPanelHead {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding-bottom: 18px;
+          margin-bottom: 20px;
+          border-bottom: 1px solid var(--border);
+        }
+
+        .docsPanelIcon {
+          font-size: 22px;
+        }
+
+        .docsPanelTitle {
+          font-size: 19px;
+          font-weight: 900;
+          color: var(--text);
+          margin: 0;
+        }
+
+        .docSectionsPageTitle {
+          font-size: 24px;
+          font-weight: 900;
+          color: #f8fafc;
+          margin: 0 0 20px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .docSections {
+          display: grid;
+          gap: 18px;
+        }
+
+        .docSectionCard {
+          background: linear-gradient(180deg, #ffffff08, #ffffff02);
+          border: 1px solid rgba(148, 163, 184, 0.16);
+          border-radius: 18px;
+          padding: 22px 24px 24px;
+          box-shadow: 0 14px 32px #00000030;
+          transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .docSectionCard:hover {
+          border-color: rgba(217, 45, 32, 0.32);
+          box-shadow: 0 18px 40px #00000045;
+        }
+
+        .docSectionHead {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding-bottom: 16px;
+          margin-bottom: 16px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .docSectionIcon {
+          flex-shrink: 0;
+          width: 38px;
+          height: 38px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 12px;
+          background: rgba(217, 45, 32, 0.12);
+          border: 1px solid rgba(217, 45, 32, 0.28);
+          color: #f87171;
+        }
+
+        .docSectionIconSvg {
+          width: 19px;
+          height: 19px;
+          flex-shrink: 0;
+          display: block;
+        }
+
+        .docSectionHeadText {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          min-width: 0;
+        }
+
+        .docSectionIndex {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: rgba(248, 113, 113, 0.75);
+        }
+
+        .docSectionTitle {
+          font-size: 17px;
+          font-weight: 800;
+          color: #f8fafc;
+          margin: 0;
+        }
+
+        .docSectionBody .mdH3 {
+          font-size: 14px;
+          font-weight: 800;
+          color: #fca5a5;
+          margin: 18px 0 8px;
+        }
+        .docSectionBody .mdH3:first-child {
+          margin-top: 0;
+        }
+
+        .docsContent .mdH1 {
+          font-size: 24px;
+          font-weight: 900;
+          color: #f8fafc;
+          margin: 0 0 18px;
+          padding-bottom: 16px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        }
+        .docsContent .mdH3 {
+          font-size: 14px;
+          font-weight: 800;
+          color: #fca5a5;
+          margin: 18px 0 10px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+        .docsContent .mdP {
+          font-size: 14px;
+          line-height: 1.8;
+          color: rgba(226, 232, 240, 0.82);
+          margin: 8px 0;
+        }
+        .docsContent .mdItalic {
+          font-size: 12.5px;
+          font-style: italic;
+          color: rgba(226, 232, 240, 0.5);
+          margin: 8px 0;
+        }
+        .docsContent .mdList {
+          margin: 8px 0 6px;
+          padding-left: 4px;
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .docsContent .mdList li {
+          position: relative;
+          padding-left: 18px;
+          font-size: 14px;
+          line-height: 1.75;
+          color: rgba(226, 232, 240, 0.82);
+        }
+        .docsContent .mdList li::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 8px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #c41e3a;
+        }
+        .docsContent .mdInlineCode {
+          background: rgba(148, 163, 184, 0.16);
+          padding: 2px 7px;
+          border-radius: 6px;
+          font-size: 12.5px;
+          color: #fca5a5;
+        }
+        .docsContent strong {
+          color: #f8fafc;
+        }
+        .docsContent .mdTierBadge {
+          display: inline-block;
+          padding: 1px 8px;
+          border-radius: 6px;
+          font-size: 12px;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+          white-space: nowrap;
+        }
+
+        /* Result grids (e.g. "Eredmény szerinti tier" subsections) */
+        .docsContent .mdResultsGrid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 14px;
+          margin: 10px 0 6px;
+        }
+        .docsContent .mdResultCard {
+          background: rgba(255, 255, 255, 0.025);
+          border: 1px solid rgba(148, 163, 184, 0.14);
+          border-radius: 14px;
+          padding: 14px 16px 16px;
+        }
+        .docsContent .mdResultCard .mdH3 {
+          margin-top: 0;
+        }
+        .docsContent .mdResultCard .mdTableWrap {
+          margin-bottom: 8px;
+        }
+
+        /* Tables */
+        .docsContent .mdTableWrap {
+          margin: 14px 0 20px;
+          overflow-x: auto;
+          border: 1px solid rgba(148, 163, 184, 0.16);
+          border-radius: 14px;
+        }
+        .docsContent .mdTable {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 13.5px;
+        }
+        .docsContent .mdTable thead {
+          background: rgba(196, 30, 58, 0.12);
+        }
+        .docsContent .mdTable th {
+          text-align: left;
+          padding: 12px 16px;
+          font-size: 12.5px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          color: #fca5a5;
+          white-space: nowrap;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+        }
+        .docsContent .mdTable td {
+          padding: 12px 16px;
+          color: rgba(226, 232, 240, 0.86);
+          border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+          line-height: 1.6;
+        }
+        .docsContent .mdTable tbody tr:last-child td {
+          border-bottom: none;
+        }
+        .docsContent .mdTable tbody tr:hover {
+          background: rgba(255, 255, 255, 0.03);
+        }
+        .docsContent .mdTable tbody tr:nth-child(even) {
+          background: rgba(255, 255, 255, 0.015);
+        }
+
+        /* Tournament picker */
+        .tourPickerGrid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+
+        .tourPickerBtn {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 16px;
+          background: rgba(148, 163, 184, 0.08);
+          border: 1px solid rgba(148, 163, 184, 0.16);
+          border-radius: 14px;
+          cursor: pointer;
+          text-align: left;
+          transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .tourPickerBtn:hover {
+          transform: translateY(-2px);
+          background: rgba(255, 255, 255, 0.09);
+          border-color: rgba(196, 30, 58, 0.45);
+        }
+
+        .tourPickerIconWrap {
+          flex-shrink: 0;
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+        }
+
+        .tourPickerIcon {
+          width: 30px;
+          height: 30px;
+          object-fit: contain;
+        }
+
+        .tourPickerIconFallback {
+          font-size: 20px;
+        }
+
+        .tourPickerText {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          min-width: 0;
+        }
+
+        .tourPickerTitle {
+          font-size: 14px;
+          font-weight: 800;
+          color: #f8fafc;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .tourPickerWinner {
+          font-size: 11.5px;
+          color: rgba(226, 232, 240, 0.6);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        /* Tournament detail */
+        .tourDetail {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .tourDetailBack {
+          align-self: flex-start;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: rgba(226, 232, 240, 0.85);
+          font-weight: 700;
+          font-size: 12.5px;
+          cursor: pointer;
+          padding: 7px 13px;
+          border-radius: 10px;
+          margin-bottom: 20px;
+          transition: background 0.15s;
+        }
+
+        .tourDetailBack:hover {
+          background: rgba(255, 255, 255, 0.12);
+        }
+
+        .tourDetailHead {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin-bottom: 24px;
+          padding-bottom: 20px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+
+        .tourDetailIcon {
+          flex-shrink: 0;
+          width: 44px;
+          height: 44px;
+          object-fit: contain;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 6px;
+        }
+
+        .tourDetailTitle {
+          font-size: 19px;
+          font-weight: 900;
+          color: #f8fafc;
+          margin: 0 0 4px;
+        }
+
+        .tourDetailWinner {
+          font-size: 13px;
+          color: rgba(226, 232, 240, 0.7);
+          margin: 0;
+        }
+
+        .tourDetailTiers {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .tourTierBlock {
+          background: rgba(148, 163, 184, 0.06);
+          border: 1px solid rgba(148, 163, 184, 0.12);
+          border-radius: 14px;
+          padding: 14px 16px 16px;
+        }
+
+        .tourTierHead {
+          display: inline-block;
+          font-size: 12.5px;
+          font-weight: 900;
+          letter-spacing: 0.03em;
+          color: var(--tier-color, #94a3b8);
+          background: color-mix(in srgb, var(--tier-color, #94a3b8) 16%, transparent);
+          border: 1px solid color-mix(in srgb, var(--tier-color, #94a3b8) 40%, transparent);
+          padding: 3px 10px;
+          border-radius: 8px;
+          margin-bottom: 10px;
+        }
+
+        .tourNamesGrid {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 7px;
+        }
+
+        .tourNamePill {
+          font-size: 12.5px;
+          font-weight: 600;
+          color: rgba(226, 232, 240, 0.9);
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 5px 11px;
+          border-radius: 20px;
+        }
+
+        .docsFooter {
+          max-width: 1480px;
+          margin: 40px auto 0;
+          padding: 0 20px;
+          text-align: center;
+          font-size: 12.5px;
+          color: rgba(255, 255, 255, 0.35);
+        }
+
+        @media (max-width: 860px) {
+          .docsShell {
+            grid-template-columns: 1fr;
+          }
+          .docsSidebar {
+            position: static;
+          }
+          .docsSidebarNav {
+            flex-direction: row;
+            flex-wrap: wrap;
+          }
+          .docsSideBtn {
+            flex: 1 1 auto;
+          }
+          .docsPanel {
+            padding: 22px 18px 28px;
+          }
+          .navLinkText {
+            display: none;
+          }
+          .tourPickerGrid {
+            grid-template-columns: 1fr;
+          }
+        }
