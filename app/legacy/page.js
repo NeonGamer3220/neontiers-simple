@@ -505,6 +505,13 @@ const closePlayerDetail = () => {
                     const entryMap = Object.fromEntries(
                       (p.entries || []).map((r) => [displayMode(r.gamemode), r])
                     );
+                    const sortedModes = [...REAL_MODES].sort((a, b) => {
+                      const ra = entryMap[a];
+                      const rb = entryMap[b];
+                      const pa = ra ? (ra.points != null ? safeInt(ra.points, 0) : getPointsForElo(ra.rank)) : -1;
+                      const pb = rb ? (rb.points != null ? safeInt(rb.points, 0) : getPointsForElo(rb.rank)) : -1;
+                      return pb - pa;
+                    });
                     return (
                     <div
                       key={p.username}
@@ -543,7 +550,7 @@ const closePlayerDetail = () => {
                       </svg>
                     </span>
 <span className="rowTiers">
-                       {REAL_MODES.map((modeName) => {
+                       {sortedModes.map((modeName) => {
                          const r = entryMap[modeName];
                          if (!r) {
                            return (
