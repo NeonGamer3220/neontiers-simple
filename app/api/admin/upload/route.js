@@ -53,7 +53,9 @@ export async function POST(req) {
   const admin = await requireAdmin();
   if (!admin) return json({ error: "Nincs bejelentkezve" }, 401);
   const role = String(admin.role || "").toLowerCase();
-  if (role !== "owner") return json({ error: "Csak az Owner rang jogosult képet feltölteni" }, 403);
+  if (role !== "owner" && role !== "regulator") {
+    return json({ error: "Csak az Owner vagy Regulator rang jogosult képet feltölteni" }, 403);
+  }
 
   let form;
   try {
