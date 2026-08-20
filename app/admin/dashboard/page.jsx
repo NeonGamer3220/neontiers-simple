@@ -1572,22 +1572,20 @@ const freshTests = await loadTests();
                             {staff.has_passkey && (
                               <button
                                 type="button"
-                                className="staffIconBtn"
-                                title="Passkey törlése"
+                                className="staffLabelBtn"
                                 disabled={busy}
                                 onClick={() => handleDeleteStaffPasskey(staff.id, staff.admin_name)}
                               >
-                                🔑✕
+                                Passkey törlése
                               </button>
                             )}
                             <button
                               type="button"
-                              className="staffIconBtn delete"
-                              title="Staff törlése"
+                              className="staffLabelBtn delete"
                               disabled={busy}
                               onClick={() => handleDeleteStaff(staff.id, staff.admin_name)}
                             >
-                              🗑
+                              Staff törlése
                             </button>
                           </div>
                         </div>
@@ -2207,36 +2205,40 @@ const freshTests = await loadTests();
 
         .staffCardActions {
           display: flex;
+          flex-wrap: wrap;
           gap: 6px;
           flex: 0 0 auto;
           margin-left: auto;
         }
 
-        .staffIconBtn {
-          display: grid;
-          place-items: center;
-          width: 30px;
+        .staffLabelBtn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           height: 30px;
+          padding: 0 12px;
           border-radius: 9px;
           border: 1px solid rgba(255, 255, 255, 0.1);
           background: rgba(255, 255, 255, 0.05);
           color: rgba(255, 255, 255, 0.75);
           cursor: pointer;
-          font-size: 13px;
+          font-size: 12.5px;
+          font-weight: 600;
+          white-space: nowrap;
           transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
         }
 
-        .staffIconBtn:disabled {
+        .staffLabelBtn:disabled {
           opacity: 0.5;
           cursor: not-allowed;
         }
 
-        .staffIconBtn:hover:not(:disabled) {
+        .staffLabelBtn:hover:not(:disabled) {
           border-color: rgba(143, 124, 255, 0.5);
           background: rgba(143, 124, 255, 0.14);
         }
 
-        .staffIconBtn.delete:hover:not(:disabled) {
+        .staffLabelBtn.delete:hover:not(:disabled) {
           border-color: rgba(214, 71, 71, 0.5);
           background: rgba(214, 71, 71, 0.16);
           color: #ffb4b4;
