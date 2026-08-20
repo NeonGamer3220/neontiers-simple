@@ -2025,7 +2025,7 @@ const freshTests = await loadTests();
 
         .staffSplitSection {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 3fr 1fr;
           gap: 18px;
           align-items: start;
         }
@@ -2042,6 +2042,7 @@ const freshTests = await loadTests();
           border-radius: 20px;
           padding: 20px 22px;
           box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
+          order: 2;
         }
 
         .playerDetailsHalf {
@@ -2049,6 +2050,7 @@ const freshTests = await loadTests();
           background: none;
           border: none;
           box-shadow: none;
+          order: 1;
         }
 
         .playerDetailsHalf .playerDetailsSection {
@@ -2127,8 +2129,9 @@ const freshTests = await loadTests();
 
         .staffCardItemTop {
           display: flex;
-          align-items: center;
-          gap: 12px;
+          flex-wrap: wrap;
+          align-items: flex-start;
+          gap: 10px;
         }
 
         .staffCardAvatar {
@@ -2145,7 +2148,7 @@ const freshTests = await loadTests();
           display: flex;
           flex-direction: column;
           gap: 5px;
-          min-width: 0;
+          min-width: 90px;
           flex: 1;
         }
 
@@ -2206,6 +2209,7 @@ const freshTests = await loadTests();
           display: flex;
           gap: 6px;
           flex: 0 0 auto;
+          margin-left: auto;
         }
 
         .staffIconBtn {
@@ -2240,11 +2244,12 @@ const freshTests = await loadTests();
 
         .staffCardPasswordRow {
           display: flex;
+          flex-wrap: wrap;
           gap: 8px;
         }
 
         .staffPasswordInput {
-          flex: 1;
+          flex: 1 1 100px;
           min-width: 0;
           border-radius: 10px;
           border: 1px solid rgba(255, 255, 255, 0.12);

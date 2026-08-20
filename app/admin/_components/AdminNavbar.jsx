@@ -21,7 +21,6 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
     { href: "/admin/high-test", label: "Magas Eredmény Kezelő", show: true },
     { href: "/admin/ban", label: "Ban Kezelő", show: isOwner },
     { href: "/admin/logs", label: "Logok", show: isOwner },
-    { href: "/admin/staff", label: "Staff fiókok", show: isOwner },
     { href: "/admin/applications", label: "Jelentkezések", show: isOwner },
   ].filter((l) => l.show);
 
