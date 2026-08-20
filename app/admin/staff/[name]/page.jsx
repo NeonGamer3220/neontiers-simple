@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import AdminNavbar from "../../_components/AdminNavbar";
 import "../../admin-theme.css";
+import { actionLabelFor, actionMetaFor } from "../../_lib/auditActions";
 
 function fmtDate(iso) {
   try {
@@ -211,8 +212,11 @@ export default function RegulatorProfilePage() {
             <div className="rpLogList">
               {visibleLogs.map((log, idx) => (
                 <div className="rpLogRow" key={`${log.created_at}-${idx}`}>
-                  <span className={`rpLogAction ${log.action === "high_score_save" ? "high" : ""}`}>
-                    {log.action === "high_score_save" ? "🏆 Magas eredmény" : log.action === "tier_save" ? "📝 Tier mentés" : log.action}
+                  <span
+                    className={`rpLogAction ${log.action === "high_score_save" ? "high" : ""}`}
+                    style={{ "--badge-color": actionMetaFor(log.action).color }}
+                  >
+                    {actionMetaFor(log.action).icon} {actionLabelFor(log.action)}
                   </span>
                   <span className="rpLogPlayer">{log.target_username || "—"}</span>
                   <span className="rpLogMode">{log.gamemode || "—"}</span>
@@ -443,7 +447,7 @@ export default function RegulatorProfilePage() {
         }
         .rpLogAction {
           font-weight: 800;
-          color: rgba(255, 255, 255, 0.75);
+          color: var(--badge-color, rgba(255, 255, 255, 0.75));
         }
         .rpLogAction.high {
           color: #e8cf8a;

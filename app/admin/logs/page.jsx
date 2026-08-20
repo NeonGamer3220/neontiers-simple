@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminNavbar from "../_components/AdminNavbar";
 import "../admin-theme.css";
+import { actionLabelFor, actionMetaFor } from "../_lib/auditActions";
 
 const TIER_TO_POINTS = {
   LT5: 1, HT5: 2, LT4: 3, HT4: 4,
@@ -24,52 +25,6 @@ const KNOWN_TIERS = ["LT5","HT5","LT4","HT4","LT3","HT3","LT2","HT2","LT1","HT1"
 function eloToTierLabel(value) {
   if (value === null || value === undefined || value === "") return "";
   return String(value).trim().toUpperCase();
-}
-
-// Friendly, human-readable labels for every audit action this site writes.
-// Anything not listed here still gets a readable fallback instead of a raw
-// snake_case slug like "admin_login_password_step".
-const ACTION_LABELS = {
-  tier_save: "Mentés",
-  tier_delete: "Törlés",
-  player_remove: "Játékos eltávolítás",
-  player_add: "Játékos hozzáadása",
-  admin_login: "Bejelentkezés",
-  high_score_save: "Magas eredmény",
-  player_rename: "Név változtatás",
-  admin_login_password_step: "Bejelentkezés (jelszó lépés)",
-  passkey_registered: "Passkey beállítva",
-  admin_login_passkey_step: "Bejelentkezés (passkey lépés)",
-  admin_passkey_failed: "Sikertelen passkey próbálkozás",
-};
-
-const ACTION_META = {
-  tier_save: { icon: "✓", color: "#4ade80" },
-  tier_delete: { icon: "✕", color: "#f87171" },
-  player_remove: { icon: "🗑", color: "#f87171" },
-  player_add: { icon: "＋", color: "#4ade80" },
-  admin_login: { icon: "🔑", color: "#8f7cff" },
-  high_score_save: { icon: "🏆", color: "#fbbf24" },
-  player_rename: { icon: "✎", color: "#38bdf8" },
-  admin_login_password_step: { icon: "🔒", color: "#8f7cff" },
-  passkey_registered: { icon: "🔐", color: "#4ade80" },
-  admin_login_passkey_step: { icon: "🔓", color: "#8f7cff" },
-  admin_passkey_failed: { icon: "⚠", color: "#f87171" },
-};
-
-function actionMetaFor(action) {
-  return ACTION_META[action] || { icon: "•", color: "#94a3b8" };
-}
-
-function actionLabelFor(action) {
-  if (ACTION_LABELS[action]) return ACTION_LABELS[action];
-  // Fallback: turn any unmapped snake_case action into readable words
-  // instead of showing the raw slug.
-  return String(action || "")
-    .split("_")
-    .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(" ");
 }
 
 // Renders a short, human-readable summary line for an audit log's `details`

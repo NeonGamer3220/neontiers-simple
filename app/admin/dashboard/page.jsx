@@ -153,7 +153,8 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
           title="Mentés"
           aria-label="Mentés"
         >
-          ✓
+          <span className="adminSaveButtonIcon">✓</span>
+          <span className="adminSaveButtonText">Mentés</span>
         </button>
       )}
 
@@ -238,8 +239,8 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
         }
 
         .adminSaveButton {
-          width: 38px;
-          height: 38px;
+          height: 44px;
+          padding: 0 16px;
           border-radius: 12px;
           border: 1px solid rgba(120, 200, 150, 0.35);
           background: rgba(80, 200, 140, 0.14);
@@ -247,9 +248,9 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
           display: flex;
           align-items: center;
           justify-content: center;
+          gap: 7px;
           cursor: pointer;
-          font-size: 16px;
-          font-weight: 900;
+          font-family: Montserrat, inherit;
           flex: 0 0 auto;
           transition: background 0.15s, transform 0.1s;
         }
@@ -257,6 +258,18 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
         .adminSaveButton:hover {
           background: rgba(80, 200, 140, 0.24);
           transform: translateY(-1px);
+        }
+
+        .adminSaveButtonIcon {
+          font-size: 16px;
+          font-weight: 900;
+        }
+
+        .adminSaveButtonText {
+          font-size: 13px;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+          white-space: nowrap;
         }
 
         .adminRankMenu {
@@ -1951,15 +1964,14 @@ const freshTests = await loadTests();
           gap: 14px;
           padding: 14px 16px;
           border-radius: 14px;
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(255,255,255,0.035);
           border: 1px solid rgba(255, 255, 255, 0.08);
           min-width: 0;
-          transition: background 0.18s ease, border-color 0.18s ease;
+          transition: border-color 0.15s ease;
         }
 
         .tierEntryCard:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.14);
+          border-color: rgba(255, 255, 255, 0.16);
         }
 
         .tierEntryCard.retired {
@@ -2467,18 +2479,16 @@ const freshTests = await loadTests();
           gap: 14px;
           padding: 10px 16px;
           border-radius: 14px;
-          background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02));
+          background: rgba(255,255,255,0.035);
           border: 1px solid rgba(255,255,255,0.08);
-          transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+          transition: border-color 0.15s;
           width: 100%;
           box-sizing: border-box;
           position: relative;
         }
 
         .tierEntryCard:hover {
-          border-color: rgba(143, 124, 255, 0.3);
-          background: rgba(255,255,255,0.06);
-          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+          border-color: rgba(255,255,255,0.16);
         }
 
         .tierEntryCard.retired {
