@@ -1618,13 +1618,8 @@ const freshTests = await loadTests();
               )}
             </div>
 
-            <div className="staffCardHalf staffCardHalfPlaceholder" />
-          </div>
-        )}
-
-
-
-        {selectedPlayer && (
+            <div className="staffCardHalf playerDetailsHalf">
+              {selectedPlayer ? (
           <div className="playerDetailsSection">
             <button className="closeDetailsBtn" onClick={() => setSelectedPlayer(null)}>
               ✕ Bezárás
@@ -1765,7 +1760,15 @@ const freshTests = await loadTests();
               </div>
             </div>
           </div>
+              ) : (
+                <div className="playerDetailsPlaceholder">
+                  <span>Keress rá egy játékosra a szerkesztéshez.</span>
+                </div>
+              )}
+            </div>
+          </div>
         )}
+
       </main>
 
 
@@ -2031,9 +2034,6 @@ const freshTests = await loadTests();
           .staffSplitSection {
             grid-template-columns: 1fr;
           }
-          .staffCardHalfPlaceholder {
-            display: none;
-          }
         }
 
         .staffCardHalf {
@@ -2044,10 +2044,33 @@ const freshTests = await loadTests();
           box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
         }
 
-        .staffCardHalfPlaceholder {
-          border-style: dashed;
-          background: rgba(255, 255, 255, 0.015);
-          min-height: 120px;
+        .playerDetailsHalf {
+          padding: 0;
+          background: none;
+          border: none;
+          box-shadow: none;
+        }
+
+        .playerDetailsHalf .playerDetailsSection {
+          margin: 0;
+        }
+
+        .playerDetailsPlaceholder {
+          height: 100%;
+          min-height: 220px;
+          border-radius: 20px;
+          border: 1px dashed rgba(255, 255, 255, 0.24);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+          display: grid;
+          place-items: center;
+          text-align: center;
+          padding: 24px;
+        }
+
+        .playerDetailsPlaceholder span {
+          color: rgba(255, 255, 255, 0.55);
+          font-size: 14px;
+          font-weight: 600;
         }
 
         .staffCardHeader {
@@ -2055,6 +2078,7 @@ const freshTests = await loadTests();
           align-items: center;
           justify-content: space-between;
           gap: 10px;
+
           margin-bottom: 14px;
         }
 
