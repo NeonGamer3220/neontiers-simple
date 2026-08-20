@@ -708,6 +708,27 @@ export default function AdminDashboard() {
   const [bannedUsernames, setBannedUsernames] = useState(new Set());
   const [unbanning, setUnbanning] = useState(false);
 
+  // ─── Embedded "Kitiltás" (ban) modal ───
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [banDuration, setBanDuration] = useState("1w");
+  const [banReason, setBanReason] = useState("");
+  const [banImageFile, setBanImageFile] = useState(null);
+  const [banImagePreviewUrl, setBanImagePreviewUrl] = useState("");
+  const [banDiscordId, setBanDiscordId] = useState("");
+  const [banSubmitting, setBanSubmitting] = useState(false);
+
+  const BAN_DURATIONS = [
+    { value: "1d", label: "1 nap" },
+    { value: "3d", label: "3 nap" },
+    { value: "1w", label: "1 hét" },
+    { value: "2w", label: "2 hét" },
+    { value: "1m", label: "1 hónap" },
+    { value: "3m", label: "3 hónap" },
+    { value: "6m", label: "6 hónap" },
+    { value: "1y", label: "1 év" },
+    { value: "perm", label: "Végleges" },
+  ];
+
   // --- Staff fiókok (csak Owner-nek) ---
   const [staffList, setStaffList] = useState([]);
   const [staffPasswordDrafts, setStaffPasswordDrafts] = useState({});
@@ -909,6 +930,94 @@ export default function AdminDashboard() {
     } catch {
       setToast({ type: "error", text: "Hálózati hiba" });
       setUnbanning(false);
+    }
+  };
+
+  const openBanModal = () => {
+    if (!selectedPlayer) return;
+    setBanDuration("1w");
+    setBanReason("");
+    setBanImageFile(null);
+    setBanImagePreviewUrl("");
+    setBanDiscordId("");
+    setBanModalOpen(true);
+    // Resolve the player's Discord ID from linked accounts.
+    fetch(`/api/admin/linked-accounts?q=${encodeURIComponent(selectedPlayer.username || "")}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const match = (d?.accounts || d?.results || []).find(
+          (a) => String(a.minecraftName || a.username || "").toLowerCase() === String(selectedPlayer.username || "").toLowerCase()
+        );
+        if (match?.discordId) setBanDiscordId(match.discordId);
+      })
+      .catch(() => {});
+  };
+
+  const closeBanModal = () => {
+    if (banSubmitting) return;
+    setBanModalOpen(false);
+  };
+
+  const handleBanImageChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setBanImageFile(file);
+    setBanImagePreviewUrl(file ? URL.createObjectURL(file) : "");
+  };
+
+  const banDurationLabel = (value) => BAN_DURATIONS.find((d) => d.value === value)?.label || value;
+
+  const submitBan = async () => {
+    if (!selectedPlayer) return;
+    if (!banDiscordId) {
+      setToast({ type: "error", text: "Nem található linkelt Discord fiók ehhez a játékoshoz — a kitiltáshoz ez szükséges." });
+      return;
+    }
+    if (!banReason.trim()) {
+      setToast({ type: "error", text: "Az indoklás megadása kötelező" });
+      return;
+    }
+
+    setBanSubmitting(true);
+    try {
+      let imageUrl = "";
+      if (banImageFile) {
+        const form = new FormData();
+        form.append("file", banImageFile);
+        const upRes = await fetch("/api/admin/upload", { method: "POST", body: form });
+        const upData = await upRes.json();
+        if (!upRes.ok) {
+          setToast({ type: "error", text: upData.error || "Hiba a kép feltöltése során" });
+          setBanSubmitting(false);
+          return;
+        }
+        imageUrl = upData.url || "";
+      }
+
+      const res = await fetch("/api/admin/ban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player: { minecraftName: selectedPlayer.username, discordId: banDiscordId },
+          uuid: selectedPlayerUUID || "",
+          reason: banReason.trim(),
+          duration: banDuration,
+          imageUrl,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Hiba a kitiltás során" });
+        setBanSubmitting(false);
+        return;
+      }
+
+      await loadBans();
+      setToast({ type: "ok", text: "Játékos kitiltva!" });
+      setBanSubmitting(false);
+      setBanModalOpen(false);
+    } catch {
+      setToast({ type: "error", text: "Hálózati hiba" });
+      setBanSubmitting(false);
     }
   };
 
@@ -1483,6 +1592,98 @@ const freshTests = await loadTests();
         </div>
       )}
 
+      {banModalOpen && selectedPlayer && (
+        <div className="modalOverlay" onClick={closeBanModal}>
+          <div className="modalContent banModalContent" onClick={(e) => e.stopPropagation()}>
+            <h3 className="modalTitle">Játékos kitiltása — {selectedPlayer.username}</h3>
+
+            {!banDiscordId && (
+              <span className="htqWarn">
+                Nincs linkelt Discord fiók ehhez a játékoshoz — a kitiltáshoz ez szükséges.
+              </span>
+            )}
+
+            <label className="htLabel">
+              Időtartam
+              <select
+                className="htSelect"
+                value={banDuration}
+                onChange={(e) => setBanDuration(e.target.value)}
+                disabled={banSubmitting}
+              >
+                {BAN_DURATIONS.map((d) => (
+                  <option key={d.value} value={d.value}>
+                    {d.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="htLabel">
+              Indoklás
+              <textarea
+                className="htInput htTextarea"
+                placeholder="Miért lesz kitiltva a játékos?"
+                value={banReason}
+                onChange={(e) => setBanReason(e.target.value)}
+                disabled={banSubmitting}
+                rows={4}
+              />
+            </label>
+
+            <label className="htLabel">
+              Bizonyíték kép (opcionális, PNG/JPG/WEBP/GIF, max 8MB)
+              <div className="banUploadDrop">
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  onChange={handleBanImageChange}
+                  disabled={banSubmitting}
+                />
+                {banImagePreviewUrl ? (
+                  <img src={banImagePreviewUrl} alt="Bizonyíték előnézet" className="banUploadPreview" />
+                ) : (
+                  <span className="banUploadHint">Válassz egy képet…</span>
+                )}
+              </div>
+            </label>
+
+            <div className="htLabel">
+              Discord üzenet előnézet
+              <div className="htDiscordBubble">
+                <div className="htDiscordLine">
+                  <strong>{banDiscordId ? `<@${banDiscordId}>` : "<@ismeretlen>"}</strong> -{" "}
+                  <code>{selectedPlayer.username}</code>
+                  {selectedPlayerUUID ? <code> ({selectedPlayerUUID})</code> : null}
+                </div>
+                {(banReason || "Indoklás…").split("\n").map((line, i) => (
+                  <div className="htDiscordQuote" key={i}>
+                    {line || " "}
+                  </div>
+                ))}
+                <div className="htDiscordLine">
+                  <strong>Lejárat:</strong> {banDuration === "perm" ? "Sosem (végleges)" : `${banDurationLabel(banDuration)} múlva`}
+                </div>
+                {banImagePreviewUrl && (
+                  <div className="htDiscordLine">
+                    <strong>Bizonyíték:</strong> csatolt kép
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="modalActions">
+              <button className="modalBtn modalBtnCancel" onClick={closeBanModal} disabled={banSubmitting}>
+                Mégse
+              </button>
+              <button className="modalBtn modalBtnConfirm" onClick={submitBan} disabled={banSubmitting}>
+                {banSubmitting ? "Kitiltás..." : "Kitiltás véglegesítése"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <AdminNavbar adminName={adminName} adminRole={adminRole} onLogout={handleLogout} />
 
       <header className="adminHeader">
@@ -1651,6 +1852,11 @@ const freshTests = await loadTests();
                     </button>
                   </div>
                   <div className="pdActionBtns">
+                    {!isSelectedPlayerBanned && (
+                      <button className="pdBanBtn" onClick={openBanModal}>
+                        Kitiltás
+                      </button>
+                    )}
                     {adminRole !== "regulator" && (
                       <button className="pdRemoveBtn" onClick={handleRemovePlayer}>
                         Eltávolítás
@@ -2959,6 +3165,24 @@ const freshTests = await loadTests();
           border-color: rgba(214,71,71,0.95);
         }
 
+        .pdBanBtn {
+          padding: 8px 18px;
+          border-radius: 8px;
+          border: 1px solid rgba(214, 158, 71, 0.7);
+          background: rgba(214, 158, 71, 0.15);
+          color: #f0cf8f;
+          font-weight: 800;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.15s;
+          font-family: inherit;
+        }
+
+        .pdBanBtn:hover {
+          background: rgba(214, 158, 71, 0.28);
+          border-color: rgba(214, 158, 71, 0.95);
+        }
+
         /* ─── Stat bubbles ─── */
         .pdBubbles {
           display: flex;
@@ -3104,6 +3328,225 @@ const freshTests = await loadTests();
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── Kitiltás (ban) modal ─── */
+        .banModalContent {
+          width: 100%;
+          max-width: 520px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .htLabel {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.65);
+        }
+
+        .htSelect,
+        .htInput {
+          font-family: inherit;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: #fff;
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 9px;
+          padding: 10px 12px;
+          outline: none;
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .htSelect:focus,
+        .htInput:focus {
+          border-color: rgba(143, 124, 255, 0.6);
+          background: rgba(143, 124, 255, 0.08);
+        }
+
+        .htTextarea {
+          resize: vertical;
+          min-height: 80px;
+          font-family: inherit;
+        }
+
+        .htqWarn {
+          display: block;
+          font-size: 12.5px;
+          font-weight: 700;
+          color: #f0cf8f;
+          background: rgba(214, 158, 71, 0.14);
+          border: 1px solid rgba(214, 158, 71, 0.4);
+          border-radius: 9px;
+          padding: 8px 12px;
+        }
+
+        .banUploadDrop {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 90px;
+          border-radius: 10px;
+          border: 1px dashed rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.04);
+          overflow: hidden;
+        }
+
+        .banUploadDrop input[type="file"] {
+          position: absolute;
+          inset: 0;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        .banUploadHint {
+          font-size: 12.5px;
+          color: rgba(255, 255, 255, 0.4);
+          pointer-events: none;
+        }
+
+        .banUploadPreview {
+          max-width: 100%;
+          max-height: 160px;
+          border-radius: 8px;
+          object-fit: contain;
+          pointer-events: none;
+        }
+
+        .htDiscordBubble {
+          background: #2b2d31;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 10px;
+          padding: 12px 14px;
+          font-size: 12.5px;
+          color: #dcddde;
+          line-height: 1.5;
+        }
+
+        .htDiscordLine {
+          margin-bottom: 4px;
+        }
+
+        .htDiscordQuote {
+          border-left: 3px solid rgba(255, 255, 255, 0.2);
+          padding-left: 8px;
+          margin: 4px 0;
+          color: #b9bbbe;
+        }
+
+        /* ═══════════════════════════════════════════════
+           MOBILE — admin panel responsive overrides
+           ═══════════════════════════════════════════════ */
+        @media (max-width: 720px) {
+          .adminContent {
+            padding: 14px 12px 40px;
+          }
+
+          .adminHeader {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 16px;
+          }
+
+          .headerStats {
+            width: 100%;
+            justify-content: space-between;
+            gap: 10px;
+          }
+
+          .headerStat {
+            flex: 1;
+          }
+
+          .searchSection {
+            width: 100%;
+          }
+
+          .staffSplitSection {
+            gap: 14px;
+          }
+
+          .staffCardHalf {
+            padding: 14px 14px;
+            border-radius: 14px;
+          }
+
+          .staffCardItemTop {
+            flex-wrap: wrap;
+          }
+
+          .staffCardActions {
+            width: 100%;
+            justify-content: flex-start;
+          }
+
+          .staffLabelBtn {
+            flex: 1 1 auto;
+          }
+
+          .pdRowHead {
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+          }
+
+          .playerDetailsSkin {
+            width: 72px;
+            height: 72px;
+          }
+
+          .pdBubbles {
+            flex-direction: column;
+          }
+
+          .pdBubble {
+            width: 100%;
+          }
+
+          .pdActionBtns {
+            width: 100%;
+          }
+
+          .pdRemoveBtn,
+          .pdBanBtn {
+            flex: 1;
+          }
+
+          .pdNameRefresh {
+            flex-direction: column;
+            align-items: stretch;
+          }
+
+          .tiersSectionHeader {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+
+          .modalContent {
+            width: calc(100% - 24px);
+            max-width: calc(100% - 24px);
+            margin: 0 12px;
+            max-height: 85vh;
+            overflow-y: auto;
+          }
+
+          .banModalContent {
+            max-width: 100%;
+          }
+
+          .modalActions {
+            flex-direction: column-reverse;
+          }
+
+          .modalBtn {
+            width: 100%;
+          }
         }
       `}</style>
     </div>
