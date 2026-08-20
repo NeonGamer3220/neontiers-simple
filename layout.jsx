@@ -1,0 +1,58 @@
+import "./globals.css";
+import { Montserrat } from "next/font/google";
+import { LangProvider } from "./_lib/i18n";
+
+const montserrat = Montserrat({
+  weight: ["800"],
+  style: ["normal"],
+  subsets: ["latin", "latin-ext"],
+  // Self-hosted via next/font and preloaded on every page, so it's ready
+  // before first paint almost all the time. "optional" tells the browser to
+  // just use it if it's available in time and not swap fonts mid-render
+  // otherwise — this is what kills the visible text "jump" on reload that
+  // "swap" causes when the fallback font has different metrics.
+  display: "optional",
+  preload: true,
+  variable: "--font-montserrat",
+});
+
+export const metadata = {
+  title: "NeonTiers – Magyar Minecraft PvP Rangsor",
+  description: "NeonTiers — A legpontosabb magyar Minecraft PvP rangsor, játékmódonkénti tierlistával és pontozással a NeonTiers Tagger mod alapján.",
+  keywords: ["Minecraft", "PvP", "rangsor", "tierlista", "magyar", "játékos", "NeonTiers Tagger"],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "NeonTiers – Magyar Minecraft PvP Rangsor",
+    description: "A legpontosabb magyar Minecraft PvP rangsor játékmódonkénti tierlistával.",
+    siteName: "NeonTiers",
+    type: "website",
+    locale: "hu_HU",
+  },
+  icons: {
+    icon: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>",
+    apple: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏆</text></svg>",
+  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#d92d20",
+  colorScheme: "dark",
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html
+      lang="hu"
+      className={`${montserrat.className} ${montserrat.variable}`}
+      style={{ fontWeight: 800 }}
+    >
+      <body suppressHydrationWarning>
+        <LangProvider>{children}</LangProvider>
+      </body>
+    </html>
+  );
+}
