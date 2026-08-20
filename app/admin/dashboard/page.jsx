@@ -3443,8 +3443,14 @@ const freshTests = await loadTests();
            MOBILE — admin panel responsive overrides
            ═══════════════════════════════════════════════ */
         @media (max-width: 720px) {
+          .adminDashboard {
+            overflow-x: hidden;
+            width: 100%;
+          }
+
           .adminContent {
             padding: 14px 12px 40px;
+            max-width: 100%;
           }
 
           .adminHeader {
@@ -3526,6 +3532,55 @@ const freshTests = await loadTests();
           .tiersSectionHeader {
             flex-direction: column;
             align-items: flex-start;
+          }
+
+          .tierEntryCard {
+            flex-wrap: wrap;
+            justify-content: flex-start;
+          }
+
+          .tierModeCircle {
+            flex: 1 1 100%;
+          }
+
+          .tierEntryControls {
+            flex: 1 1 100%;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+          }
+
+          .adminModeControls {
+            width: 100%;
+            flex-wrap: wrap;
+          }
+
+          .adminRankPicker {
+            flex: 1 1 auto;
+            min-width: 0;
+          }
+
+          .adminRankButton {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+          }
+
+          .adminSaveButton {
+            flex: 0 0 auto;
+          }
+
+          .adminRankMenu {
+            width: min(250px, calc(100vw - 48px));
+            right: auto;
+            left: 0;
+          }
+
+          .playerDetailStat {
+            grid-template-columns: 1fr;
+          }
+
+          .tierEntryActions {
+            grid-template-columns: 1fr;
           }
 
           .modalContent {
