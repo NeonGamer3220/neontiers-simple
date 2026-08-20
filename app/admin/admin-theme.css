@@ -10,6 +10,15 @@
   min-height: 100vh;
 }
 
+/* Prevent any overflowing child (fixed-width buttons, long rows) from
+   pushing the page sideways on narrow/mobile viewports. */
+@media (max-width: 720px) {
+  .admin-panel {
+    overflow-x: hidden;
+    width: 100%;
+  }
+}
+
 /* ---- Force Montserrat ExtraBold everywhere in the admin panel ---- */
 .admin-panel,
 .admin-panel * {
