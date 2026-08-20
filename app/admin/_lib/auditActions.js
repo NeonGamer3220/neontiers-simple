@@ -19,6 +19,8 @@ export const ACTION_LABELS = {
   staff_create: "Regulátor létrehozva",
   staff_update: "Regulátor módosítva",
   staff_delete: "Regulátor törölve",
+  tester_role_granted: "Tester rang megadva",
+  tester_role_revoked: "Tester rang elvéve",
 };
 
 export const ACTION_META = {
@@ -39,6 +41,8 @@ export const ACTION_META = {
   staff_create: { icon: "＋", color: "#4ade80" },
   staff_update: { icon: "✎", color: "#38bdf8" },
   staff_delete: { icon: "🗑", color: "#f87171" },
+  tester_role_granted: { icon: "🧪", color: "#4ade80" },
+  tester_role_revoked: { icon: "🧪", color: "#f87171" },
 };
 
 export function actionLabelFor(action) {

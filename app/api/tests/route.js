@@ -175,7 +175,7 @@ export async function GET(req) {
 
   let { data, error } = await supabase
     .from("tests")
-    .select("id,username,gamemode,rank,points,created_at,retired")
+    .select("id,username,gamemode,rank,points,created_at,retired,is_tester")
     .order("points", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(limit);

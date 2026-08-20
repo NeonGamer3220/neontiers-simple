@@ -997,6 +997,7 @@ export default function AdminDashboard() {
           points: t.points || 0,
           id: t.id,
           created_at: t.created_at || null,
+          isTester: t.is_tester === true,
         };
       });
       let entries = [...mapped];
@@ -1013,6 +1014,7 @@ export default function AdminDashboard() {
             id: null,
             created_at: null,
             isUntested: true,
+            isTester: false,
           });
         }
       }
@@ -1126,6 +1128,54 @@ const handleSaveEntry = async (entry) => {
       setSelectedPlayer(refreshed);
       setToast({ type: "ok", text: "Mentve!" });
     } catch (err) {
+      setToast({ type: "error", text: "Hálózati hiba" });
+    }
+  };
+
+  const handleToggleTester = async (entry, index) => {
+    if (!selectedPlayer || entry.isUntested) return;
+    const nextValue = !entry.isTester;
+
+    // Optimistic UI update.
+    setSelectedPlayer((prev) => {
+      if (!prev) return prev;
+      const entries = [...prev.entries];
+      entries[index] = { ...entries[index], isTester: nextValue };
+      return { ...prev, entries };
+    });
+
+    try {
+      const res = await fetch("/api/admin/set-tester", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          username: selectedPlayer.username,
+          gamemode: entry.gamemode,
+          is_tester: nextValue,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // Revert on failure.
+        setSelectedPlayer((prev) => {
+          if (!prev) return prev;
+          const entries = [...prev.entries];
+          entries[index] = { ...entries[index], isTester: !nextValue };
+          return { ...prev, entries };
+        });
+        setToast({ type: "error", text: data.error || "Hiba a Tester jelölő mentésekor" });
+        return;
+      }
+
+      setToast({ type: "ok", text: nextValue ? "Tester rang megadva" : "Tester rang elvéve" });
+    } catch (err) {
+      setSelectedPlayer((prev) => {
+        if (!prev) return prev;
+        const entries = [...prev.entries];
+        entries[index] = { ...entries[index], isTester: !nextValue };
+        return { ...prev, entries };
+      });
       setToast({ type: "error", text: "Hálózati hiba" });
     }
   };
@@ -1483,6 +1533,20 @@ const freshTests = await loadTests();
                       </div>
 
                       <div className="tierEntryControls">
+                        {adminRole === "owner" && (
+                          <label
+                            className={`testerCheckbox ${isUntested ? "disabled" : ""}`}
+                            title={isUntested ? "Nincs mentett teszt ehhez a módhoz" : "Tester rang ebben a módban"}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={!!entry.isTester}
+                              disabled={isUntested}
+                              onChange={() => handleToggleTester(entry, index)}
+                            />
+                            <span className="testerCheckboxLabel">Tester</span>
+                          </label>
+                        )}
                         <AdminRankPicker
                           value={displayRank}
                           retired={isRetired}
@@ -1995,8 +2059,45 @@ const freshTests = await loadTests();
           display: flex;
           align-items: center;
           justify-content: flex-end;
+          gap: 10px;
           min-width: 0;
           flex: 0 0 auto;
+        }
+
+        .testerCheckbox {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          cursor: pointer;
+          padding: 6px 10px;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.03);
+          user-select: none;
+        }
+
+        .testerCheckbox input {
+          accent-color: #8f7cff;
+          width: 14px;
+          height: 14px;
+          cursor: pointer;
+        }
+
+        .testerCheckboxLabel {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.7);
+        }
+
+        .testerCheckbox.disabled {
+          opacity: 0.4;
+        }
+
+        .testerCheckbox.disabled input,
+        .testerCheckbox.disabled {
+          cursor: not-allowed;
         }
 
         .tierPointsBadge {
