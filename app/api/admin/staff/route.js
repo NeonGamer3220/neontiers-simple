@@ -82,10 +82,17 @@ export async function GET(req) {
       .order("created_at", { ascending: true });
 
     if (error) return json({ error: error.message }, 500);
+
+    const { data: passkeyRows } = await supabase.from("admin_passkeys").select("admin_name");
+    const passkeyNames = new Set(
+      (Array.isArray(passkeyRows) ? passkeyRows : []).map((r) => String(r.admin_name || "").toLowerCase())
+    );
+
     const staff = Array.isArray(data)
       ? data.map((row) => ({
           ...row,
           role: String(row.role || "").toLowerCase(),
+          has_passkey: passkeyNames.has(String(row.admin_name || "").toLowerCase()),
         }))
       : [];
     return json({ staff });
@@ -229,6 +236,42 @@ export async function POST(req) {
       admin_name: resolvedName,
       action: "staff_delete",
       target_username: target?.admin_name || "unknown",
+      gamemode: null,
+      old_rank: null,
+      new_rank: null,
+      old_points: null,
+      new_points: null,
+      details: null,
+      created_at: new Date().toISOString(),
+    });
+
+    return json({ ok: true });
+  }
+
+  if (action === "delete_passkey") {
+    const { id } = body;
+
+    if (!id) return json({ error: "Missing id" }, 400);
+
+    const { data: target } = await supabase
+      .from("admins")
+      .select("admin_name")
+      .eq("id", id)
+      .single();
+
+    if (!target?.admin_name) return json({ error: "Staff fiók nem található" }, 404);
+
+    const { error } = await supabase
+      .from("admin_passkeys")
+      .delete()
+      .eq("admin_name", target.admin_name);
+
+    if (error) return json({ error: error.message }, 500);
+
+    await supabase.from("audit_logs").insert({
+      admin_name: resolvedName,
+      action: "passkey_deleted",
+      target_username: target.admin_name,
       gamemode: null,
       old_rank: null,
       new_rank: null,

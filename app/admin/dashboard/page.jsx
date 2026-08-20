@@ -708,6 +708,11 @@ export default function AdminDashboard() {
   const [bannedUsernames, setBannedUsernames] = useState(new Set());
   const [unbanning, setUnbanning] = useState(false);
 
+  // --- Staff fiókok (csak Owner-nek) ---
+  const [staffList, setStaffList] = useState([]);
+  const [staffPasswordDrafts, setStaffPasswordDrafts] = useState({});
+  const [staffBusyId, setStaffBusyId] = useState(null);
+
   // ─── Embedded "Magas Eredmény Kezelő" quick-panel ───
   // Opens inline under a gamemode row when the admin saves a HT3+ (and not
   // retired) tier, instead of persisting the tier immediately — the panel
@@ -938,9 +943,102 @@ export default function AdminDashboard() {
       if (data.admin_name) setAdminName(String(data.admin_name));
       setTests(Array.isArray(testsData?.tests) ? testsData.tests : []);
       setLoading(false);
+      if (String(data.role || "").toLowerCase() === "owner") {
+        loadStaff();
+      }
     };
     checkAuth();
   }, [router]);
+
+  const loadStaff = async () => {
+    try {
+      const res = await fetch("/api/admin/staff?action=list");
+      if (!res.ok) return;
+      const data = await res.json();
+      setStaffList(Array.isArray(data?.staff) ? data.staff : []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteStaff = async (id, name) => {
+    const ok = await showConfirm(`Biztos hogy törlöd a "${name}" staff fiókot?`);
+    if (!ok) return;
+    setStaffBusyId(id);
+    try {
+      const res = await fetch("/api/admin/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Staff törlése sikertelen" });
+        return;
+      }
+      await loadStaff();
+      setToast({ type: "ok", text: "Staff törölve" });
+    } catch (err) {
+      console.error(err);
+      setToast({ type: "error", text: "Hálózati hiba" });
+    } finally {
+      setStaffBusyId(null);
+    }
+  };
+
+  const handleDeleteStaffPasskey = async (id, name) => {
+    const ok = await showConfirm(`Biztos hogy törlöd "${name}" passkey-jét? Legközelebbi belépéskor újat kell beállítania.`);
+    if (!ok) return;
+    setStaffBusyId(id);
+    try {
+      const res = await fetch("/api/admin/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete_passkey", id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Passkey törlése sikertelen" });
+        return;
+      }
+      await loadStaff();
+      setToast({ type: "ok", text: "Passkey törölve" });
+    } catch (err) {
+      console.error(err);
+      setToast({ type: "error", text: "Hálózati hiba" });
+    } finally {
+      setStaffBusyId(null);
+    }
+  };
+
+  const handleChangeStaffPassword = async (id, name) => {
+    const newPassword = String(staffPasswordDrafts[id] || "").trim();
+    if (!newPassword) {
+      setToast({ type: "error", text: "Adj meg egy új jelszót" });
+      return;
+    }
+    setStaffBusyId(id);
+    try {
+      const res = await fetch("/api/admin/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "update", id, admin_password: newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Jelszó módosítása sikertelen" });
+        return;
+      }
+      setStaffPasswordDrafts((prev) => ({ ...prev, [id]: "" }));
+      setToast({ type: "ok", text: `Jelszó frissítve (${name})` });
+    } catch (err) {
+      console.error(err);
+      setToast({ type: "error", text: "Hálózati hiba" });
+    } finally {
+      setStaffBusyId(null);
+    }
+  };
+
 
   // Auto-dismiss toast after 2 s
   useEffect(() => {
@@ -1433,6 +1531,99 @@ const freshTests = await loadTests();
 
 
 
+        {adminRole === "owner" && (
+          <div className="staffSplitSection">
+            <div className="staffCardHalf">
+              <div className="staffCardHeader">
+                <h2>Staff fiókok</h2>
+                <span className="staffCount">{staffList.length} fiók</span>
+              </div>
+
+              {staffList.length === 0 ? (
+                <div className="staffEmpty">Nincs még létrehozott staff fiók.</div>
+              ) : (
+                <div className="staffCardList">
+                  {staffList.map((staff) => {
+                    const normalizedRole = String(staff.role || "").toLowerCase();
+                    const busy = staffBusyId === staff.id;
+                    return (
+                      <div key={staff.id} className="staffCardItem">
+                        <div className="staffCardItemTop">
+                          <img
+                            className="staffCardAvatar"
+                            src={`https://mc-heads.net/avatar/${encodeURIComponent(staff.admin_name || "MHF_Question")}/40`}
+                            alt=""
+                            width={34}
+                            height={34}
+                          />
+                          <div className="staffCardInfo">
+                            <span className="staffCardName">{staff.admin_name}</span>
+                            <div className="staffCardBadges">
+                              <span className={`staffCardRole role-${normalizedRole}`}>
+                                {normalizedRole === "owner" ? "★ " : ""}
+                                {normalizedRole.toUpperCase()}
+                              </span>
+                              <span className={`staffCardStatus ${staff.has_passkey ? "ok" : "warn"}`}>
+                                {staff.has_passkey ? "Van passkey" : "Nincs passkey"}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="staffCardActions">
+                            {staff.has_passkey && (
+                              <button
+                                type="button"
+                                className="staffIconBtn"
+                                title="Passkey törlése"
+                                disabled={busy}
+                                onClick={() => handleDeleteStaffPasskey(staff.id, staff.admin_name)}
+                              >
+                                🔑✕
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="staffIconBtn delete"
+                              title="Staff törlése"
+                              disabled={busy}
+                              onClick={() => handleDeleteStaff(staff.id, staff.admin_name)}
+                            >
+                              🗑
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="staffCardPasswordRow">
+                          <input
+                            type="text"
+                            className="staffPasswordInput"
+                            placeholder="Új jelszó..."
+                            value={staffPasswordDrafts[staff.id] || ""}
+                            onChange={(e) =>
+                              setStaffPasswordDrafts((prev) => ({ ...prev, [staff.id]: e.target.value }))
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="staffPasswordBtn"
+                            disabled={busy || !String(staffPasswordDrafts[staff.id] || "").trim()}
+                            onClick={() => handleChangeStaffPassword(staff.id, staff.admin_name)}
+                          >
+                            Csere
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="staffCardHalf staffCardHalfPlaceholder" />
+          </div>
+        )}
+
+
+
         {selectedPlayer && (
           <div className="playerDetailsSection">
             <button className="closeDetailsBtn" onClick={() => setSelectedPlayer(null)}>
@@ -1827,6 +2018,245 @@ const freshTests = await loadTests();
         .searchResultItem:hover {
           background: rgba(255, 255, 255, 0.08);
           border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .staffSplitSection {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+          align-items: start;
+        }
+
+        @media (max-width: 900px) {
+          .staffSplitSection {
+            grid-template-columns: 1fr;
+          }
+          .staffCardHalfPlaceholder {
+            display: none;
+          }
+        }
+
+        .staffCardHalf {
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 20px 22px;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .staffCardHalfPlaceholder {
+          border-style: dashed;
+          background: rgba(255, 255, 255, 0.015);
+          min-height: 120px;
+        }
+
+        .staffCardHeader {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+
+        .staffCardHeader h2 {
+          margin: 0;
+          font-size: 13px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.85);
+        }
+
+        .staffCount {
+          padding: 6px 12px;
+          border-radius: 999px;
+          background: rgba(143, 124, 255, 0.14);
+          border: 1px solid rgba(143, 124, 255, 0.35);
+          color: #d7d0ff;
+          font-size: 11.5px;
+          font-weight: 800;
+        }
+
+        .staffEmpty {
+          padding: 20px;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px dashed rgba(255, 255, 255, 0.14);
+          text-align: center;
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 13.5px;
+        }
+
+        .staffCardList {
+          display: grid;
+          gap: 10px;
+        }
+
+        .staffCardItem {
+          border-radius: 14px;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(255, 255, 255, 0.025);
+          padding: 12px 14px;
+          display: grid;
+          gap: 10px;
+        }
+
+        .staffCardItemTop {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .staffCardAvatar {
+          width: 34px;
+          height: 34px;
+          border-radius: 9px;
+          object-fit: cover;
+          image-rendering: pixelated;
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+          flex: 0 0 auto;
+        }
+
+        .staffCardInfo {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          min-width: 0;
+          flex: 1;
+        }
+
+        .staffCardName {
+          font-weight: 800;
+          font-size: 13.5px;
+          color: #fff;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .staffCardBadges {
+          display: flex;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+
+        .staffCardRole {
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: 0.04em;
+          padding: 3px 8px;
+          border-radius: 999px;
+          background: rgba(143, 124, 255, 0.16);
+          border: 1px solid rgba(143, 124, 255, 0.35);
+          color: #d7d0ff;
+        }
+
+        .staffCardRole.role-owner {
+          background: rgba(213, 179, 85, 0.18);
+          border-color: rgba(213, 179, 85, 0.45);
+          color: #e8cf8a;
+        }
+
+        .staffCardStatus {
+          font-size: 10px;
+          font-weight: 800;
+          padding: 3px 8px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          color: rgba(255, 255, 255, 0.65);
+        }
+
+        .staffCardStatus.ok {
+          background: rgba(52, 211, 153, 0.12);
+          border-color: rgba(52, 211, 153, 0.4);
+          color: #8ff0c9;
+        }
+
+        .staffCardStatus.warn {
+          background: rgba(214, 158, 71, 0.14);
+          border-color: rgba(214, 158, 71, 0.4);
+          color: #f0cf8f;
+        }
+
+        .staffCardActions {
+          display: flex;
+          gap: 6px;
+          flex: 0 0 auto;
+        }
+
+        .staffIconBtn {
+          display: grid;
+          place-items: center;
+          width: 30px;
+          height: 30px;
+          border-radius: 9px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.75);
+          cursor: pointer;
+          font-size: 13px;
+          transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .staffIconBtn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .staffIconBtn:hover:not(:disabled) {
+          border-color: rgba(143, 124, 255, 0.5);
+          background: rgba(143, 124, 255, 0.14);
+        }
+
+        .staffIconBtn.delete:hover:not(:disabled) {
+          border-color: rgba(214, 71, 71, 0.5);
+          background: rgba(214, 71, 71, 0.16);
+          color: #ffb4b4;
+        }
+
+        .staffCardPasswordRow {
+          display: flex;
+          gap: 8px;
+        }
+
+        .staffPasswordInput {
+          flex: 1;
+          min-width: 0;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          padding: 8px 12px;
+          font-size: 13px;
+          font-family: inherit;
+        }
+
+        .staffPasswordInput:focus {
+          outline: none;
+          border-color: #8f7cff;
+        }
+
+        .staffPasswordBtn {
+          flex: 0 0 auto;
+          padding: 8px 14px;
+          border-radius: 10px;
+          border: none;
+          font-weight: 800;
+          font-size: 12.5px;
+          cursor: pointer;
+          background: linear-gradient(135deg, #8f7cff, #6f5cd6);
+          color: #fff;
+          transition: transform 0.1s ease, box-shadow 0.15s ease;
+        }
+
+        .staffPasswordBtn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .staffPasswordBtn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 8px 20px rgba(143, 124, 255, 0.35);
         }
 
         .modalOverlay {
