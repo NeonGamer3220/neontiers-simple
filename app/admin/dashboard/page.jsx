@@ -2190,8 +2190,19 @@ const freshTests = await loadTests();
                         <AdminRankPicker
                           value={displayRank}
                           retired={isRetired}
-                          onChange={(rank, retired) => updateEntryRank(index, rank, retired)}
-                          onSave={() => handleSaveEntryGuarded(entry, index)}
+                          onChange={(rank, retired) => {
+                            updateEntryRank(index, rank, retired);
+                            if (rank && !retired && HIGH_TIERS.includes(rank)) {
+                              openHighTestPanel(index, { ...entry, rank, retired });
+                            } else if (highTestPanel && highTestPanel.index === index) {
+                              closeHighTestPanel();
+                            }
+                          }}
+                          onSave={
+                            highTestPanel && highTestPanel.index === index
+                              ? null
+                              : () => handleSaveEntryGuarded(entry, index)
+                          }
                         />
                       </div>
 
