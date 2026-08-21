@@ -85,20 +85,27 @@ export async function GET(req) {
   // and gradually catches up — a full backfill can also be triggered from
   // the admin panel via /api/admin/linked-accounts/refresh-discord-names.
   const missing = normalized.filter((r) => r.discordId && !r.discordUsername).slice(0, 60);
+  const debugInfo = { totalRows: rows.length, missingCount: missing.length, resolvedCount: 0, writeErrors: [] };
   if (missing.length > 0) {
     const resolved = await resolveDiscordUsernames(missing.map((r) => r.discordId));
+    debugInfo.resolvedCount = resolved.size;
     if (resolved.size > 0) {
       normalized = normalized.map((r) =>
         resolved.has(r.discordId) ? { ...r, discordUsername: resolved.get(r.discordId) } : r
       );
       // Persist so we don't have to re-resolve these on the next search.
-      await Promise.all(
+      const writeResults = await Promise.all(
         missing
           .filter((r) => resolved.has(r.discordId))
-          .map((r) =>
-            supabase.from("linked_accounts").update({ discord_username: resolved.get(r.discordId) }).eq("id", r.id)
-          )
+          .map(async (r) => {
+            const { error: writeErr } = await supabase
+              .from("linked_accounts")
+              .update({ discord_username: resolved.get(r.discordId) })
+              .eq("id", r.id);
+            return { id: r.id, discordId: r.discordId, error: writeErr?.message || null };
+          })
       );
+      debugInfo.writeErrors = writeResults.filter((w) => w.error);
     }
   }
 
@@ -113,7 +120,8 @@ export async function GET(req) {
     })
     .slice(0, 15);
 
-  return json({ results: matches });
+  const wantDebug = searchParams.get("debug") === "1";
+  return json(wantDebug ? { results: matches, debug: debugInfo } : { results: matches });
 }
 
 export async function DELETE(req) {
