@@ -2578,7 +2578,7 @@ const freshTests = await loadTests();
           transition: border-color 0.15s ease, background 0.15s ease;
         }
         .plcSearchInput:focus {
-          border-color: rgba(196, 30, 58, 0.55);
+          border-color: rgba(143, 124, 255, 0.55);
           background: rgba(255, 255, 255, 0.07);
         }
         .plcSearchInput::placeholder {
@@ -2589,7 +2589,7 @@ const freshTests = await loadTests();
           padding: 0 22px;
           border-radius: 12px;
           border: none;
-          background: #c41e3a;
+          background: #8f7cff;
           color: #fff;
           font-size: 14px;
           font-weight: 800;
@@ -2597,7 +2597,7 @@ const freshTests = await loadTests();
           transition: background 0.15s ease;
         }
         .plcOpenBtn:hover {
-          background: #a91830;
+          background: #7a68e6;
         }
 
         .adminNavbar {
@@ -3435,8 +3435,8 @@ const freshTests = await loadTests();
         }
 
         .retireCheckbox input:checked ~ .checkboxLabel {
-          background: rgba(196, 30, 58, 0.2);
-          border-color: rgba(196, 30, 58, 0.5);
+          background: rgba(143, 124, 255, 0.2);
+          border-color: rgba(143, 124, 255, 0.5);
           color: #ff6b6b;
         }
 
@@ -3519,11 +3519,11 @@ const freshTests = await loadTests();
         }
 
         .deleteEntryBtn {
-          background: rgba(196, 30, 58, 0.85);
+          background: rgba(143, 124, 255, 0.85);
         }
 
         .deleteEntryBtn:hover {
-          background: rgba(196, 30, 58, 1);
+          background: rgba(143, 124, 255, 1);
         }
 
         .loadingState {
@@ -3570,7 +3570,7 @@ const freshTests = await loadTests();
           left: 0;
           width: 0;
           height: 2px;
-          background: #c41e3a;
+          background: #8f7cff;
           transition: width 0.3s ease;
         }
 
@@ -3592,12 +3592,12 @@ const freshTests = await loadTests();
         }
 
         .tierInputCompact:focus {
-          box-shadow: 0 0 0 2px rgba(196, 30, 58, 0.2);
+          box-shadow: 0 0 0 2px rgba(143, 124, 255, 0.2);
         }
 
         .retireCheckbox:hover .checkboxLabel {
-          border-color: rgba(196, 30, 58, 0.4);
-          background: rgba(196, 30, 58, 0.1);
+          border-color: rgba(143, 124, 255, 0.4);
+          background: rgba(143, 124, 255, 0.1);
         }
 
         .tiersSectionHeader {
