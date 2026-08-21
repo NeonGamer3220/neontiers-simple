@@ -55,6 +55,158 @@ function normalizeRankToTier(value) {
   return "";
 }
 
+// Generic custom dropdown, styled to match AdminRankPicker (dark bubble,
+// chevron, floating menu with checkmark on the selected option). Used for
+// the ban-duration select so it matches the rest of the admin panel's
+// custom controls instead of a native <select>.
+function CustomDropdown({ value, options, onChange, disabled = false, align = "left" }) {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef(null);
+  const current = options.find((o) => o.value === value) || options[0] || { label: "" };
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div className="customDropdown" ref={ref} style={{ position: "relative" }}>
+      <button
+        type="button"
+        className="customDropdownButton"
+        onClick={() => !disabled && setOpen((v) => !v)}
+        aria-expanded={open && !disabled}
+        disabled={disabled}
+      >
+        <span className="customDropdownButtonText">{current.label}</span>
+        <span className="customDropdownChevron">{open && !disabled ? "▴" : "▾"}</span>
+      </button>
+
+      {open && !disabled && (
+        <div className={`customDropdownMenu ${align === "right" ? "alignRight" : ""}`}>
+          {options.map((o) => (
+            <button
+              type="button"
+              key={o.value}
+              className={`customDropdownOption ${o.value === value ? "selected" : ""}`}
+              onClick={() => {
+                onChange(o.value);
+                setOpen(false);
+              }}
+            >
+              <span>{o.label}</span>
+              {o.value === value && <span className="customDropdownCheck">✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <style jsx global>{`
+        .customDropdown {
+          width: 100%;
+        }
+
+        .customDropdownButton {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          width: 100%;
+          box-sizing: border-box;
+          padding: 10px 12px;
+          border-radius: 9px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.06);
+          color: #fff;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 13.5px;
+          font-weight: 700;
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .customDropdownButton:hover:not(:disabled) {
+          background: rgba(255, 255, 255, 0.09);
+          border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .customDropdownButton[disabled] {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .customDropdownChevron {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.45);
+          flex: 0 0 auto;
+        }
+
+        .customDropdownMenu {
+          position: absolute;
+          top: calc(100% + 6px);
+          left: 0;
+          z-index: 60;
+          width: 100%;
+          min-width: 220px;
+          box-sizing: border-box;
+          background: #14161e;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 14px;
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+          padding: 6px;
+          max-height: 320px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          animation: fadeIn 0.1s ease-out;
+        }
+
+        .customDropdownMenu.alignRight {
+          left: auto;
+          right: 0;
+        }
+
+        .customDropdownOption {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 9px 12px;
+          border-radius: 9px;
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.8);
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 700;
+          text-align: left;
+          cursor: pointer;
+          transition: background 0.12s ease;
+        }
+
+        .customDropdownOption:hover {
+          background: rgba(255, 255, 255, 0.07);
+        }
+
+        .customDropdownOption.selected {
+          color: #fff;
+          background: rgba(143, 124, 255, 0.18);
+        }
+
+        .customDropdownCheck {
+          color: #8f7cff;
+          font-weight: 900;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 function AdminRankPicker({ value, retired = false, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
   const pickerRef = React.useRef(null);
@@ -1643,18 +1795,12 @@ const freshTests = await loadTests();
 
             <label className="htLabel">
               Időtartam
-              <select
-                className="htSelect"
+              <CustomDropdown
                 value={banDuration}
-                onChange={(e) => setBanDuration(e.target.value)}
+                options={BAN_DURATIONS}
+                onChange={(v) => setBanDuration(v)}
                 disabled={banSubmitting}
-              >
-                {BAN_DURATIONS.map((d) => (
-                  <option key={d.value} value={d.value}>
-                    {d.label}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
 
             {banDuration === "custom" && (

@@ -18,7 +18,6 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
 
   const links = [
     { href: "/admin/dashboard", label: "Játékos kezelő", show: true },
-    { href: "/admin/high-test", label: "Magas Eredmény Kezelő", show: true },
     { href: "/admin/logs", label: "Logok", show: isOwner },
     { href: "/admin/applications", label: "Jelentkezések", show: isOwner },
   ].filter((l) => l.show);
