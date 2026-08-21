@@ -1014,6 +1014,8 @@ export default function AdminDashboard() {
   const [confirmState, setConfirmState] = useState(null);
   const [bannedUsernames, setBannedUsernames] = useState(new Set());
   const [unbanning, setUnbanning] = useState(false);
+  const [selectedPlayerDiscord, setSelectedPlayerDiscord] = useState(null);
+  const [unlinkingDiscord, setUnlinkingDiscord] = useState(false);
 
   // ─── Embedded "Kitiltás" (ban) modal ───
   const [banModalOpen, setBanModalOpen] = useState(false);
@@ -1889,6 +1891,44 @@ const freshTests = await loadTests();
     return () => ac.abort();
   }, [selectedPlayer]);
 
+  // ── Linked Discord account for the selected player ──
+  useEffect(() => {
+    setSelectedPlayerDiscord(null);
+    if (!selectedPlayer?.username) return;
+    const ac = new AbortController();
+    fetch(`/api/admin/linked-accounts?q=${encodeURIComponent(selectedPlayer.username)}`, { signal: ac.signal })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const match = (d?.results || []).find(
+          (r) => r.minecraftName?.toLowerCase() === selectedPlayer.username.toLowerCase()
+        );
+        setSelectedPlayerDiscord(match || null);
+      })
+      .catch(() => {});
+    return () => ac.abort();
+  }, [selectedPlayer?.username]);
+
+  const handleUnlinkDiscord = async () => {
+    if (!selectedPlayerDiscord?.id) return;
+    setUnlinkingDiscord(true);
+    try {
+      const res = await fetch(`/api/admin/linked-accounts?id=${encodeURIComponent(selectedPlayerDiscord.id)}`, {
+        method: "DELETE",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setToast({ type: "error", text: data?.error || "Nem sikerült törölni az összekötést." });
+        return;
+      }
+      setSelectedPlayerDiscord(null);
+      setToast({ type: "ok", text: "Discord összekötés törölve." });
+    } catch {
+      setToast({ type: "error", text: "Nem sikerült törölni az összekötést." });
+    } finally {
+      setUnlinkingDiscord(false);
+    }
+  };
+
   function formatUUID(raw) {
     const clean = raw.replace(/-/g, "");
     return `${clean.slice(0,8)}-${clean.slice(8,12)}-${clean.slice(12,16)}-${clean.slice(16,20)}-${clean.slice(20)}`;
@@ -2384,6 +2424,12 @@ const freshTests = await loadTests();
                   <span className="pdBubbleLabel">Tesztelt módok</span>
                   <span className="pdBubbleValue">{selectedPlayer.totalModes}</span>
                 </div>
+                <div className="pdBubble">
+                  <span className="pdBubbleLabel">Teszter módok</span>
+                  <span className="pdBubbleValue">
+                    {(selectedPlayer.entries || []).filter((e) => e.isTester).length}
+                  </span>
+                </div>
 <div className="pdBubble">
                        <span className="pdBubbleLabel">Legjobb Tier</span>
                        <span className="pdBubbleValue tierBadgeInline">{selectedPlayer.bestRank}</span>
@@ -2405,6 +2451,27 @@ const freshTests = await loadTests();
                   )}
                 </div>
               </div>
+
+              {/* ─── DISCORD KAPCSOLAT ─── */}
+              {selectedPlayerDiscord && (
+                <div className="pdRow">
+                  <div className="pdDiscordBox">
+                    <span className="pdDiscordLabel">Discord kapcsolat</span>
+                    <span className="pdDiscordName">
+                      @{selectedPlayerDiscord.discordUsername || "ismeretlen"}
+                    </span>
+                    <span className="pdDiscordId">{selectedPlayerDiscord.discordId}</span>
+                    <button
+                      type="button"
+                      className="pdUnlinkDiscordBtn"
+                      onClick={handleUnlinkDiscord}
+                      disabled={unlinkingDiscord}
+                    >
+                      {unlinkingDiscord ? "Törlés..." : "Összekötés törlése"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ─── GAMEMODE TIER MANAGEMENT ─── */}
@@ -3875,6 +3942,64 @@ const freshTests = await loadTests();
           padding: 3px 10px;
           border-radius: 6px;
           font-size: 16px;
+        }
+
+        /* ─── Discord kapcsolat box ─── */
+        .pdDiscordBox {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+          padding: 14px 18px;
+          border-radius: 14px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          width: 100%;
+        }
+
+        .pdDiscordLabel {
+          font-size: 10.5px;
+          font-weight: 800;
+          color: rgba(255,255,255,0.55);
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+        }
+
+        .pdDiscordName {
+          font-size: 16px;
+          font-weight: 800;
+          color: #c9befa;
+        }
+
+        .pdDiscordId {
+          font-size: 12px;
+          font-weight: 600;
+          color: rgba(255,255,255,0.5);
+          font-family: monospace;
+        }
+
+        .pdUnlinkDiscordBtn {
+          margin-top: 8px;
+          padding: 7px 16px;
+          border-radius: 8px;
+          border: 1px solid rgba(143,124,255,0.7);
+          background: rgba(143,124,255,0.15);
+          color: #c9befa;
+          font-weight: 800;
+          font-size: 13px;
+          cursor: pointer;
+          transition: all 0.15s;
+          font-family: inherit;
+        }
+
+        .pdUnlinkDiscordBtn:hover {
+          background: rgba(143,124,255,0.28);
+          border-color: rgba(143,124,255,0.95);
+        }
+
+        .pdUnlinkDiscordBtn:disabled {
+          opacity: 0.6;
+          cursor: default;
         }
 
         /* ─── Gamemode circles ─── */

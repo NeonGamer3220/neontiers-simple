@@ -115,3 +115,21 @@ export async function GET(req) {
 
   return json({ results: matches });
 }
+
+export async function DELETE(req) {
+  if (!supabase) {
+    return json({ error: "Supabase nincs konfigurálva", need_env: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"] }, 500);
+  }
+
+  const admin = await requireAdmin();
+  if (!admin) return json({ error: "Nincs bejelentkezve" }, 401);
+
+  const { searchParams } = new URL(req.url);
+  const id = (searchParams.get("id") || "").trim();
+  if (!id) return json({ error: "Hiányzó id" }, 400);
+
+  const { error } = await supabase.from("linked_accounts").delete().eq("id", id);
+  if (error) return json({ error: error.message }, 500);
+
+  return json({ success: true });
+}
