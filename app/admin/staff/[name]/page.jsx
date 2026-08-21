@@ -498,4 +498,4 @@ export default function RegulatorProfilePage() {
       `}</style>
     </div>
   );
-      }
+}
