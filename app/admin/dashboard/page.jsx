@@ -1698,7 +1698,7 @@ export default function AdminDashboard() {
     const playerData = getPlayerData(username, showUntested);
     if (playerData) {
       setSelectedPlayer(playerData);
-      setNewNameInput("");
+      setNewNameInput(playerData.username || "");
     }
     setSearchQuery("");
     setSearchedPlayers([]);
@@ -2387,18 +2387,6 @@ const freshTests = await loadTests();
                 <div className="pdNameBlock">
                   <h2 className="playerDetailsName">{selectedPlayer.username}</h2>
                   <span className="pdUuid">{selectedPlayerUUID || "Minecraft UUID betöltése…"}</span>
-                  <div className="pdNameRefresh">
-                    <input
-                      type="text"
-                      className="pdNameInput"
-                      placeholder="Minecraft név frissítése…"
-                      value={newNameInput}
-                      onChange={(e) => setNewNameInput(e.target.value)}
-                    />
-                    <button className="pdRefreshBtn" onClick={handleRefreshName}>
-                      Név frissítése
-                    </button>
-                  </div>
                   <div className="pdActionBtns">
                     {!isSelectedPlayerBanned && (
                       <button className="pdBanBtn" onClick={openBanModal}>
@@ -2452,9 +2440,9 @@ const freshTests = await loadTests();
                 </div>
               </div>
 
-              {/* ─── DISCORD KAPCSOLAT ─── */}
-              {selectedPlayerDiscord && (
-                <div className="pdRow">
+              {/* ─── DISCORD KAPCSOLAT + MINECRAFT NÉV ─── */}
+              <div className="pdRow pdTwoBoxRow">
+                {selectedPlayerDiscord && (
                   <div className="pdDiscordBox">
                     <span className="pdDiscordLabel">Discord kapcsolat</span>
                     <span className="pdDiscordName">
@@ -2470,8 +2458,24 @@ const freshTests = await loadTests();
                       {unlinkingDiscord ? "Törlés..." : "Összekötés törlése"}
                     </button>
                   </div>
+                )}
+
+                <div className="pdNameBox">
+                  <span className="pdDiscordLabel">Minecraft név</span>
+                  <div className="pdNameBoxRow">
+                    <input
+                      type="text"
+                      className="pdNameBoxInput"
+                      placeholder="Minecraft név frissítése…"
+                      value={newNameInput}
+                      onChange={(e) => setNewNameInput(e.target.value)}
+                    />
+                    <button className="pdNameBoxBtn" onClick={handleRefreshName}>
+                      Név frissítése
+                    </button>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
 
             {/* ─── GAMEMODE TIER MANAGEMENT ─── */}
@@ -3793,47 +3797,6 @@ const freshTests = await loadTests();
           letter-spacing: 0.04em;
         }
 
-        .pdNameRefresh {
-          display: flex;
-          gap: 8px;
-          align-items: center;
-          flex-wrap: wrap;
-        }
-
-        .pdNameInput {
-          padding: 7px 12px;
-          font-size: 13px;
-          border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.12);
-          background: rgba(255,255,255,0.05);
-          color: #fff;
-          font-family: inherit;
-          outline: none;
-          min-width: 200px;
-          transition: border-color 0.15s;
-        }
-
-        .pdNameInput:focus {
-          border-color: rgba(255,255,255,0.25);
-        }
-
-        .pdRefreshBtn {
-          padding: 7px 16px;
-          border-radius: 8px;
-          border: none;
-          background: #8f7cff;
-          color: #fff;
-          font-weight: 800;
-          font-size: 13px;
-          cursor: pointer;
-          transition: background 0.15s;
-          font-family: inherit;
-        }
-
-        .pdRefreshBtn:hover {
-          background: #7a68e6;
-        }
-
         .pdActionBtns {
           display: flex;
           gap: 10px;
@@ -3843,37 +3806,35 @@ const freshTests = await loadTests();
         .pdRemoveBtn {
           padding: 8px 18px;
           border-radius: 8px;
-          border: 1px solid rgba(143,124,255,0.7);
-          background: rgba(143,124,255,0.15);
-          color: #c9befa;
+          border: none;
+          background: #ff5c5c;
+          color: #fff;
           font-weight: 800;
           font-size: 13px;
           cursor: pointer;
-          transition: all 0.15s;
+          transition: background 0.15s ease;
           font-family: inherit;
         }
 
         .pdRemoveBtn:hover {
-          background: rgba(143,124,255,0.28);
-          border-color: rgba(143,124,255,0.95);
+          background: #e64545;
         }
 
         .pdBanBtn {
           padding: 8px 18px;
           border-radius: 8px;
-          border: 1px solid rgba(214, 158, 71, 0.7);
-          background: rgba(214, 158, 71, 0.15);
-          color: #f0cf8f;
+          border: none;
+          background: #ff5c5c;
+          color: #fff;
           font-weight: 800;
           font-size: 13px;
           cursor: pointer;
-          transition: all 0.15s;
+          transition: background 0.15s ease;
           font-family: inherit;
         }
 
         .pdBanBtn:hover {
-          background: rgba(214, 158, 71, 0.28);
-          border-color: rgba(214, 158, 71, 0.95);
+          background: #e64545;
         }
 
         /* ─── Stat bubbles ─── */
@@ -3944,7 +3905,13 @@ const freshTests = await loadTests();
           font-size: 16px;
         }
 
-        /* ─── Discord kapcsolat box ─── */
+        /* ─── Discord kapcsolat + Minecraft név boxes ─── */
+        .pdTwoBoxRow {
+          align-items: stretch;
+          gap: 14px;
+          flex-wrap: wrap;
+        }
+
         .pdDiscordBox {
           display: flex;
           flex-direction: column;
@@ -3954,7 +3921,68 @@ const freshTests = await loadTests();
           border-radius: 14px;
           background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.1);
+          flex: 1 1 260px;
+        }
+
+        .pdNameBox {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+          padding: 14px 18px;
+          border-radius: 14px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          flex: 1 1 260px;
+        }
+
+        .pdNameBoxRow {
+          display: flex;
+          gap: 8px;
+          align-items: center;
           width: 100%;
+        }
+
+        .pdNameBoxInput {
+          flex: 1;
+          min-width: 0;
+          padding: 12px 14px;
+          font-size: 14px;
+          border-radius: 12px;
+          border: 1px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.05);
+          color: #fff;
+          font-family: inherit;
+          outline: none;
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .pdNameBoxInput:focus {
+          border-color: rgba(143, 124, 255, 0.55);
+          background: rgba(255, 255, 255, 0.07);
+        }
+
+        .pdNameBoxInput::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+
+        .pdNameBoxBtn {
+          flex: 0 0 auto;
+          padding: 0 22px;
+          height: 44px;
+          border-radius: 12px;
+          border: none;
+          background: #8f7cff;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background 0.15s ease;
+          font-family: inherit;
+        }
+
+        .pdNameBoxBtn:hover {
+          background: #7a68e6;
         }
 
         .pdDiscordLabel {
@@ -4296,9 +4324,17 @@ const freshTests = await loadTests();
             flex: 1;
           }
 
-          .pdNameRefresh {
+          .pdTwoBoxRow {
+            flex-direction: column;
+          }
+
+          .pdNameBoxRow {
             flex-direction: column;
             align-items: stretch;
+          }
+
+          .pdNameBoxBtn {
+            width: 100%;
           }
 
           .tiersSectionHeader {
