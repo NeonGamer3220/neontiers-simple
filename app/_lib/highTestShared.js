@@ -57,11 +57,12 @@ export function resolveTierFromTest(testedTier, passed) {
 }
 
 let rowIdSeq = 1;
-export function makeFightRow(category, gamemode) {
+export function makeFightRow(category, gamemode, tier) {
   const won = true;
   const opts = scoreOptionsFor(category, gamemode, won);
   return {
     id: rowIdSeq++,
+    tier,
     won,
     score: opts[0] || "",
     opponent: "",

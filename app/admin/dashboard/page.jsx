@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminNavbar from "../_components/AdminNavbar";
 import "../admin-theme.css";
 import {
-  HIGH_TIERS, categoryForGamemode, scoreOptionsFor, resolveTierFromTest, makeFightRow,
+  HIGH_TIERS, categoryForGamemode, scoreOptionsFor, resolveTierFromTest, makeFightRow, getFT,
 } from "../../_lib/highTestShared";
 
 const RANKS = [
@@ -670,6 +670,17 @@ const MODE_ICONS = {
 function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, onSetTestedTier, onAddFight, onUpdateFight, onRemoveFight, onCancel, onSave }) {
   const { entry, testedTier, category, passed, fights } = panel;
   const resolvedTier = resolveTierFromTest(testedTier, passed);
+  const failTier = resolveTierFromTest(testedTier, false);
+  const ft = getFT(category, entry.gamemode);
+
+  // Fights are logged against one of two tiers: the tier being tested
+  // (testedTier) and — if it exists — the tier the player falls back to on
+  // a failed test (failTier). Each gets its own labelled section so admins
+  // can't accidentally log a fight against the wrong tier.
+  const fightGroups = [
+    failTier ? { tier: failTier, label: `${failTier} FIGHTOK` } : null,
+    { tier: testedTier, label: `${testedTier} FIGHTOK` },
+  ].filter(Boolean);
 
   const PASS_OPTIONS = [
     { value: true, label: "Sikeres" },
@@ -710,46 +721,54 @@ function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, 
         )}
       </span>
 
-      <div className="htqFights">
-        {fights.map((f) => {
-          const scoreOpts = scoreOptionsFor(category, entry.gamemode, f.won).map((s) => ({ value: s, label: s }));
-          return (
-            <div key={f.id} className="htqFightRow">
-              <button
-                type="button"
-                className={`htqWonBtn ${f.won ? "won" : "lost"}`}
-                onClick={() => onUpdateFight(f.id, { won: !f.won })}
-              >
-                {f.won ? "Győzelem" : "Vereség"}
-              </button>
-              <div className="htqScoreDropdown">
-                <CustomDropdown
-                  value={f.score}
-                  options={scoreOpts}
-                  onChange={(v) => onUpdateFight(f.id, { score: v })}
-                />
-              </div>
-              <div className="htqOpponentSearch">
-                <PlayerSearchInput
-                  value={f.opponent}
-                  usernames={usernames}
-                  onChange={(v) => onUpdateFight(f.id, { opponent: v })}
-                />
-              </div>
-              <input
-                className="htqInput htqComment"
-                placeholder="Megjegyzés (opcionális)"
-                value={f.comment}
-                onChange={(e) => onUpdateFight(f.id, { comment: e.target.value })}
-              />
-              {fights.length > 1 && (
-                <button type="button" className="htqRemoveBtn" onClick={() => onRemoveFight(f.id)} aria-label="Eltávolítás">×</button>
-              )}
+      {fightGroups.map((group) => {
+        const groupFights = fights.filter((f) => f.tier === group.tier);
+        return (
+          <div className="htqFightGroup" key={group.tier}>
+            <div className="htqGroupHeader">
+              {group.label}{ft ? ` · FT${ft}` : ""}
             </div>
-          );
-        })}
-        <button type="button" className="htqAddBtn" onClick={onAddFight}>+ Fight hozzáadása</button>
-      </div>
+            <div className="htqFights">
+              {groupFights.map((f) => {
+                const scoreOpts = scoreOptionsFor(category, entry.gamemode, f.won).map((s) => ({ value: s, label: s }));
+                return (
+                  <div key={f.id} className="htqFightRow">
+                    <button
+                      type="button"
+                      className={`htqWonBtn ${f.won ? "won" : "lost"}`}
+                      onClick={() => onUpdateFight(f.id, { won: !f.won })}
+                    >
+                      {f.won ? "Győzelem" : "Vereség"}
+                    </button>
+                    <div className="htqScoreDropdown">
+                      <CustomDropdown
+                        value={f.score}
+                        options={scoreOpts}
+                        onChange={(v) => onUpdateFight(f.id, { score: v })}
+                      />
+                    </div>
+                    <div className="htqOpponentSearch">
+                      <PlayerSearchInput
+                        value={f.opponent}
+                        usernames={usernames}
+                        onChange={(v) => onUpdateFight(f.id, { opponent: v })}
+                      />
+                    </div>
+                    <input
+                      className="htqInput htqComment"
+                      placeholder="Megjegyzés (opcionális)"
+                      value={f.comment}
+                      onChange={(e) => onUpdateFight(f.id, { comment: e.target.value })}
+                    />
+                    <button type="button" className="htqRemoveBtn" onClick={() => onRemoveFight(f.id)} aria-label="Eltávolítás">×</button>
+                  </div>
+                );
+              })}
+              <button type="button" className="htqAddBtn" onClick={() => onAddFight(group.tier)}>+ Fight hozzáadása</button>
+            </div>
+          </div>
+        );
+      })}
 
       <div className="htqFooter">
         <button type="button" className="htqCancelBtn" onClick={onCancel} disabled={saving}>Mégse</button>
@@ -808,10 +827,20 @@ function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, 
           font-weight: 700;
           margin-bottom: 14px;
         }
+        .htqFightGroup {
+          margin-bottom: 16px;
+        }
+        .htqGroupHeader {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.5);
+          margin-bottom: 8px;
+        }
         .htqFights {
           display: grid;
           gap: 8px;
-          margin-bottom: 14px;
         }
         .htqFightRow {
           display: flex;
@@ -1027,7 +1056,7 @@ export default function AdminDashboard() {
       testedTier: entry.rank,
       category,
       passed: true,
-      fights: [makeFightRow(category, entry.gamemode)],
+      fights: [makeFightRow(category, entry.gamemode, entry.rank)],
     });
     setHighTestDiscordId("");
     // Resolve the player's Discord ID from linked accounts, needed for the
@@ -1045,10 +1074,11 @@ export default function AdminDashboard() {
 
   const closeHighTestPanel = () => setHighTestPanel(null);
 
-  const addHighTestFight = () => {
+  const addHighTestFight = (tier) => {
     setHighTestPanel((prev) => {
       if (!prev) return prev;
-      return { ...prev, fights: [...prev.fights, makeFightRow(prev.category, prev.entry.gamemode)] };
+      const rowTier = tier || prev.testedTier;
+      return { ...prev, fights: [...prev.fights, makeFightRow(prev.category, prev.entry.gamemode, rowTier)] };
     });
   };
 
@@ -1073,7 +1103,6 @@ export default function AdminDashboard() {
   const removeHighTestFight = (fightId) => {
     setHighTestPanel((prev) => {
       if (!prev) return prev;
-      if (prev.fights.length <= 1) return prev; // keep at least one row
       return { ...prev, fights: prev.fights.filter((f) => f.id !== fightId) };
     });
   };
@@ -1088,6 +1117,10 @@ export default function AdminDashboard() {
     }
     if (fights.some((f) => !f.opponent.trim())) {
       setToast({ type: "error", text: "Minden fighthoz add meg az ellenfelet" });
+      return;
+    }
+    if (!fights.some((f) => f.tier === testedTier)) {
+      setToast({ type: "error", text: `${testedTier} vagy afeletti tierhez legalább egy fight sort meg kell adni.` });
       return;
     }
 
@@ -1105,7 +1138,7 @@ export default function AdminDashboard() {
           overallWon: passed,
           player: { minecraftName: selectedPlayer.username, discordId: highTestDiscordId },
           fights: fights.map((f) => ({
-            tier: testedTier,
+            tier: f.tier || testedTier,
             won: f.won,
             score: f.score,
             opponent: f.opponent.trim(),
