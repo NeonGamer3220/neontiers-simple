@@ -4,6 +4,7 @@ export const revalidate = 0;
 
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { resolveDiscordUsernames } from "../../../_lib/discord";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -76,8 +77,32 @@ export async function GET(req) {
   if (error) return json({ error: error.message }, 500);
 
   const rows = Array.isArray(data) ? data : [];
-  const matches = rows
-    .map(normalizeRow)
+  let normalized = rows.map(normalizeRow);
+
+  // discord_username isn't always cached yet (e.g. never resolved before, or
+  // the account was linked before we started storing it). Backfill a chunk
+  // of the missing ones on the fly so search-by-Discord-name keeps working
+  // and gradually catches up — a full backfill can also be triggered from
+  // the admin panel via /api/admin/linked-accounts/refresh-discord-names.
+  const missing = normalized.filter((r) => r.discordId && !r.discordUsername).slice(0, 60);
+  if (missing.length > 0) {
+    const resolved = await resolveDiscordUsernames(missing.map((r) => r.discordId));
+    if (resolved.size > 0) {
+      normalized = normalized.map((r) =>
+        resolved.has(r.discordId) ? { ...r, discordUsername: resolved.get(r.discordId) } : r
+      );
+      // Persist so we don't have to re-resolve these on the next search.
+      await Promise.all(
+        missing
+          .filter((r) => resolved.has(r.discordId))
+          .map((r) =>
+            supabase.from("linked_accounts").update({ discord_username: resolved.get(r.discordId) }).eq("id", r.id)
+          )
+      );
+    }
+  }
+
+  const matches = normalized
     .filter((r) => {
       if (!r.minecraftName && !r.discordUsername && !r.discordId) return false;
       return (

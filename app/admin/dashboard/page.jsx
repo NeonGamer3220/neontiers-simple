@@ -1002,6 +1002,7 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedPlayers, setSearchedPlayers] = useState([]);
   const [searchMode, setSearchMode] = useState("minecraft"); // "minecraft" | "discord"
+  const [refreshingDiscordNames, setRefreshingDiscordNames] = useState(false);
   const searchReqId = React.useRef(0);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showUntested, setShowUntested] = useState(true);
@@ -1655,6 +1656,27 @@ export default function AdminDashboard() {
      setSearchedPlayers(filtered);
    };
 
+  const handleRefreshDiscordNames = async () => {
+    setRefreshingDiscordNames(true);
+    try {
+      const res = await fetch("/api/admin/linked-accounts/refresh-discord-names", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setToast({ type: "error", text: data?.error || "Nem sikerült frissíteni a Discord neveket." });
+      } else {
+        setToast({
+          type: "success",
+          text: data.resolved > 0 ? `${data.resolved} Discord név frissítve.` : "Minden Discord név már friss volt.",
+        });
+        if (searchQuery.trim()) handleSearch(searchQuery);
+      }
+    } catch {
+      setToast({ type: "error", text: "Nem sikerült frissíteni a Discord neveket." });
+    } finally {
+      setRefreshingDiscordNames(false);
+    }
+  };
+
   const handleSetSearchMode = (mode) => {
     setSearchMode(mode);
     setSearchQuery("");
@@ -2177,6 +2199,17 @@ const freshTests = await loadTests();
             </button>
           </div>
 
+          {searchMode === "discord" && (
+            <button
+              type="button"
+              className="plcRefreshDiscordBtn"
+              disabled={refreshingDiscordNames}
+              onClick={handleRefreshDiscordNames}
+            >
+              {refreshingDiscordNames ? "Frissítés..." : "Discord nevek frissítése"}
+            </button>
+          )}
+
           <div className="plcSearchRow">
             <input
               type="text"
@@ -2506,8 +2539,27 @@ const freshTests = await loadTests();
           color: rgba(255, 255, 255, 0.8);
         }
         .plcModeBtn.active {
-          background: #c41e3a;
+          background: #8f7cff;
           color: #fff;
+        }
+        .plcRefreshDiscordBtn {
+          margin-top: 10px;
+          padding: 7px 14px;
+          border-radius: 999px;
+          border: 1px solid rgba(143, 124, 255, 0.35);
+          background: rgba(143, 124, 255, 0.1);
+          color: #cfc7ff;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: background 0.15s ease, opacity 0.15s ease;
+        }
+        .plcRefreshDiscordBtn:hover:not(:disabled) {
+          background: rgba(143, 124, 255, 0.18);
+        }
+        .plcRefreshDiscordBtn:disabled {
+          opacity: 0.6;
+          cursor: default;
         }
         .plcSearchRow {
           display: flex;
