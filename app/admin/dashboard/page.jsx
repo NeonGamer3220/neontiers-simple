@@ -3754,7 +3754,7 @@ const freshTests = await loadTests();
           padding: 7px 16px;
           border-radius: 8px;
           border: none;
-          background: #d64747;
+          background: #8f7cff;
           color: #fff;
           font-weight: 800;
           font-size: 13px;
@@ -3764,7 +3764,7 @@ const freshTests = await loadTests();
         }
 
         .pdRefreshBtn:hover {
-          background: #c93f3f;
+          background: #7a68e6;
         }
 
         .pdActionBtns {
@@ -3776,9 +3776,9 @@ const freshTests = await loadTests();
         .pdRemoveBtn {
           padding: 8px 18px;
           border-radius: 8px;
-          border: 1px solid rgba(214,71,71,0.7);
-          background: rgba(214,71,71,0.15);
-          color: #f3a3a3;
+          border: 1px solid rgba(143,124,255,0.7);
+          background: rgba(143,124,255,0.15);
+          color: #c9befa;
           font-weight: 800;
           font-size: 13px;
           cursor: pointer;
@@ -3787,8 +3787,8 @@ const freshTests = await loadTests();
         }
 
         .pdRemoveBtn:hover {
-          background: rgba(214,71,71,0.28);
-          border-color: rgba(214,71,71,0.95);
+          background: rgba(143,124,255,0.28);
+          border-color: rgba(143,124,255,0.95);
         }
 
         .pdBanBtn {
@@ -3853,9 +3853,9 @@ const freshTests = await loadTests();
           margin-top: 6px;
           padding: 4px 10px;
           border-radius: 999px;
-          border: 1px solid rgba(255, 107, 107, 0.4);
-          background: rgba(255, 107, 107, 0.12);
-          color: #ff9b9b;
+          border: 1px solid rgba(143, 124, 255, 0.4);
+          background: rgba(143, 124, 255, 0.12);
+          color: #c9befa;
           font-size: 10.5px;
           font-weight: 800;
           cursor: pointer;
@@ -3863,7 +3863,7 @@ const freshTests = await loadTests();
         }
 
         .pdUnbanBtn:hover {
-          background: rgba(255, 107, 107, 0.22);
+          background: rgba(143, 124, 255, 0.22);
         }
 
         .pdUnbanBtn:disabled {
