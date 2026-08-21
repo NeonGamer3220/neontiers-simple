@@ -501,9 +501,9 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
           height: 44px;
           padding: 0 16px;
           border-radius: 12px;
-          border: 1px solid rgba(120, 200, 150, 0.35);
-          background: rgba(80, 200, 140, 0.14);
-          color: #7be3ab;
+          border: none;
+          background: #8f7cff;
+          color: #fff;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -512,10 +512,11 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
           font-family: Montserrat, inherit;
           flex: 0 0 auto;
           transition: background 0.15s, transform 0.1s;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
         }
 
         .adminSaveButton:hover {
-          background: rgba(80, 200, 140, 0.24);
+          background: #7a68e6;
           transform: translateY(-1px);
         }
 
@@ -970,6 +971,7 @@ function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, 
           font-size: 12.5px;
           font-weight: 800;
           cursor: pointer;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
         }
         .htqSaveBtn:disabled, .htqCancelBtn:disabled {
           opacity: 0.6;
@@ -2666,6 +2668,7 @@ const freshTests = await loadTests();
           font-weight: 800;
           cursor: pointer;
           transition: background 0.15s ease;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
         }
         .plcOpenBtn:hover {
           background: #7a68e6;
@@ -3814,6 +3817,7 @@ const freshTests = await loadTests();
           cursor: pointer;
           transition: background 0.15s ease;
           font-family: inherit;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
         }
 
         .pdRemoveBtn:hover {
@@ -3831,6 +3835,7 @@ const freshTests = await loadTests();
           cursor: pointer;
           transition: background 0.15s ease;
           font-family: inherit;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
         }
 
         .pdBanBtn:hover {
@@ -3979,6 +3984,7 @@ const freshTests = await loadTests();
           cursor: pointer;
           transition: background 0.15s ease;
           font-family: inherit;
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
         }
 
         .pdNameBoxBtn:hover {
