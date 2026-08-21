@@ -316,7 +316,28 @@ function PlayerSearchInput({ value, onChange, usernames, placeholder = "Ellenfé
 
 function AdminRankPicker({ value, retired = false, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
+  const [saveState, setSaveState] = useState("idle"); // idle | pending | saved
   const pickerRef = React.useRef(null);
+  const savedTimeoutRef = React.useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    };
+  }, []);
+
+  const handleSaveClick = async () => {
+    if (!onSave || saveState === "pending") return;
+    setSaveState("pending");
+    const result = await onSave();
+    if (result === false) {
+      setSaveState("idle");
+      return;
+    }
+    setSaveState("saved");
+    if (savedTimeoutRef.current) clearTimeout(savedTimeoutRef.current);
+    savedTimeoutRef.current = setTimeout(() => setSaveState("idle"), 2000);
+  };
 
   const tierKey = normalizeRankToTier(value);
   const current =
@@ -407,13 +428,14 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
       {onSave && (
         <button
           type="button"
-          className="adminSaveButton"
-          onClick={onSave}
+          className={`adminSaveButton ${saveState === "saved" ? "isSaved" : ""}`}
+          onClick={handleSaveClick}
+          disabled={saveState === "pending"}
           title="Mentés"
           aria-label="Mentés"
         >
           <span className="adminSaveButtonIcon">✓</span>
-          <span className="adminSaveButtonText">Mentés</span>
+          <span className="adminSaveButtonText">{saveState === "saved" ? "Mentve!" : "Mentés"}</span>
         </button>
       )}
 
@@ -518,6 +540,19 @@ function AdminRankPicker({ value, retired = false, onChange, disabled = false, o
         .adminSaveButton:hover {
           background: #7a68e6;
           transform: translateY(-1px);
+        }
+
+        .adminSaveButton:disabled {
+          cursor: default;
+        }
+
+        .adminSaveButton.isSaved {
+          background: #2fbf6f;
+        }
+
+        .adminSaveButton.isSaved:hover {
+          background: #2fbf6f;
+          transform: none;
         }
 
         .adminSaveButtonIcon {
@@ -1069,6 +1104,10 @@ export default function AdminDashboard() {
   const [staffList, setStaffList] = useState([]);
   const [staffPasswordDrafts, setStaffPasswordDrafts] = useState({});
   const [staffBusyId, setStaffBusyId] = useState(null);
+  const [newStaffName, setNewStaffName] = useState("");
+  const [newStaffPassword, setNewStaffPassword] = useState("");
+  const [newStaffRole, setNewStaffRole] = useState("regulator");
+  const [creatingStaff, setCreatingStaff] = useState(false);
 
   // Unique usernames across all loaded tests — used for the opponent
   // search-dropdown in the Magas Eredmény Kezelő panel.
@@ -1235,9 +1274,9 @@ export default function AdminDashboard() {
   const handleSaveEntryGuarded = (entry, index) => {
     if (entry.rank && !entry.retired && HIGH_TIERS.includes(entry.rank)) {
       openHighTestPanel(index, entry);
-      return;
+      return false;
     }
-    handleSaveEntry(entry);
+    return handleSaveEntry(entry);
   };
 
   const loadBans = async () => {
@@ -1431,6 +1470,43 @@ export default function AdminDashboard() {
       setStaffList(Array.isArray(data?.staff) ? data.staff : []);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleCreateStaff = async () => {
+    const name = newStaffName.trim();
+    const password = newStaffPassword.trim();
+    if (!name || !password) {
+      setToast({ type: "error", text: "Add meg a staff nevét és jelszavát" });
+      return;
+    }
+    setCreatingStaff(true);
+    try {
+      const res = await fetch("/api/admin/staff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "create",
+          admin_name: name,
+          admin_password: password,
+          role: newStaffRole,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setToast({ type: "error", text: data.error || "Fiók létrehozása sikertelen" });
+        return;
+      }
+      await loadStaff();
+      setNewStaffName("");
+      setNewStaffPassword("");
+      setNewStaffRole("regulator");
+      setToast({ type: "ok", text: "Staff fiók létrehozva" });
+    } catch (err) {
+      console.error(err);
+      setToast({ type: "error", text: "Hálózati hiba" });
+    } finally {
+      setCreatingStaff(false);
     }
   };
 
@@ -1725,14 +1801,13 @@ const handleSaveEntry = async (entry) => {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           setToast({ type: "error", text: data.error || "Hiba a mentés során" });
-          return;
+          return false;
         }
 
         const freshTests = await loadTests();
         const refreshed = getPlayerData(selectedPlayer.username, showUntested, freshTests);
         setSelectedPlayer(refreshed);
-        setToast({ type: "ok", text: "Mentve!" });
-        return;
+        return true;
       }
 
       const points = getPointsForRating(entry.rank);
@@ -1757,15 +1832,16 @@ const handleSaveEntry = async (entry) => {
        if (!res.ok) {
         const data = await res.json();
         setToast({ type: "error", text: data.error || "Hiba a mentés során" });
-        return;
+        return false;
       }
 
       const freshTests = await loadTests();
       const refreshed = getPlayerData(selectedPlayer.username, showUntested, freshTests);
       setSelectedPlayer(refreshed);
-      setToast({ type: "ok", text: "Mentve!" });
+      return true;
     } catch (err) {
       setToast({ type: "error", text: "Hálózati hiba" });
+      return false;
     }
   };
 
@@ -2288,6 +2364,47 @@ const freshTests = await loadTests();
               <div className="staffCardHeader">
                 <h2>Staff fiókok</h2>
                 <span className="staffCount">{staffList.length} fiók</span>
+              </div>
+
+              <div className="staffCreateRow">
+                <input
+                  type="text"
+                  className="staffCreateInput"
+                  placeholder="Staff név"
+                  value={newStaffName}
+                  onChange={(e) => setNewStaffName(e.target.value)}
+                  disabled={creatingStaff}
+                  autoComplete="off"
+                />
+                <input
+                  type="password"
+                  className="staffCreateInput"
+                  placeholder="Staff jelszó"
+                  value={newStaffPassword}
+                  onChange={(e) => setNewStaffPassword(e.target.value)}
+                  disabled={creatingStaff}
+                  autoComplete="new-password"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreateStaff();
+                  }}
+                />
+                <CustomDropdown
+                  value={newStaffRole}
+                  onChange={setNewStaffRole}
+                  disabled={creatingStaff}
+                  options={[
+                    { value: "owner", label: "Owner" },
+                    { value: "regulator", label: "Regulator" },
+                  ]}
+                />
+                <button
+                  type="button"
+                  className="staffCreateBtn"
+                  onClick={handleCreateStaff}
+                  disabled={creatingStaff || !newStaffName.trim() || !newStaffPassword.trim()}
+                >
+                  {creatingStaff ? "Létrehozás..." : "Fiók létrehozása"}
+                </button>
               </div>
 
               {staffList.length === 0 ? (
@@ -3148,6 +3265,56 @@ const freshTests = await loadTests();
           border-color: rgba(214, 71, 71, 0.5);
           background: rgba(214, 71, 71, 0.16);
           color: #ffb4b4;
+        }
+
+        .staffCreateRow {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 14px;
+          padding-bottom: 14px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .staffCreateInput {
+          flex: 1 1 140px;
+          min-width: 0;
+          border-radius: 10px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.05);
+          color: #fff;
+          padding: 9px 12px;
+          font-size: 13px;
+          font-family: inherit;
+        }
+
+        .staffCreateInput:focus {
+          outline: none;
+          border-color: #8f7cff;
+        }
+
+        .staffCreateBtn {
+          flex: 1 1 100%;
+          border-radius: 10px;
+          border: 1px solid rgba(143, 124, 255, 0.4);
+          background: rgba(143, 124, 255, 0.18);
+          color: #fff;
+          padding: 9px 14px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          font-family: inherit;
+          transition: background 0.15s ease, opacity 0.15s ease;
+        }
+
+        .staffCreateBtn:hover:not(:disabled) {
+          background: rgba(143, 124, 255, 0.3);
+        }
+
+        .staffCreateBtn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
         }
 
         .staffCardPasswordRow {
