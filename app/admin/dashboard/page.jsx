@@ -253,6 +253,7 @@ function PlayerSearchInput({ value, onChange, usernames, placeholder = "Ellenfé
         placeholder={placeholder}
         value={value}
         disabled={disabled}
+        autoComplete="off"
         onChange={(e) => {
           onChange(e.target.value);
           setOpen(true);
@@ -278,6 +279,10 @@ function PlayerSearchInput({ value, onChange, usernames, placeholder = "Ellenfé
       )}
 
       <style jsx global>{`
+        .playerSearchInput {
+          display: block;
+          width: 100%;
+        }
         .playerSearchMenu {
           width: 100%;
           min-width: 0;
@@ -886,6 +891,13 @@ function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, 
           min-width: 100px;
           width: 100%;
           box-sizing: border-box;
+          outline: none;
+          font-family: inherit;
+        }
+        .htqInput:focus {
+          outline: none;
+          border-color: rgba(143, 124, 255, 0.55);
+          background: rgba(255,255,255,0.07);
         }
         .htqComment {
           flex: 1 1 160px;
