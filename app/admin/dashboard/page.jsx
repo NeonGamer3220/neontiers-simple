@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import AdminNavbar from "../_components/AdminNavbar";
 import "../admin-theme.css";
@@ -59,10 +59,11 @@ function normalizeRankToTier(value) {
 // chevron, floating menu with checkmark on the selected option). Used for
 // the ban-duration select so it matches the rest of the admin panel's
 // custom controls instead of a native <select>.
-function CustomDropdown({ value, options, onChange, disabled = false, align = "left" }) {
+function CustomDropdown({ value, options, groups, onChange, disabled = false, align = "left" }) {
   const [open, setOpen] = useState(false);
   const ref = React.useRef(null);
-  const current = options.find((o) => o.value === value) || options[0] || { label: "" };
+  const flatOptions = groups ? groups.flatMap((g) => g.options) : options || [];
+  const current = flatOptions.find((o) => o.value === value) || flatOptions[0] || { label: "" };
 
   useEffect(() => {
     if (!open) return;
@@ -72,6 +73,21 @@ function CustomDropdown({ value, options, onChange, disabled = false, align = "l
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
+
+  const renderOption = (o) => (
+    <button
+      type="button"
+      key={String(o.value)}
+      className={`customDropdownOption ${o.value === value ? "selected" : ""}`}
+      onClick={() => {
+        onChange(o.value);
+        setOpen(false);
+      }}
+    >
+      <span>{o.label}</span>
+      {o.value === value && <span className="customDropdownCheck">✓</span>}
+    </button>
+  );
 
   return (
     <div className="customDropdown" ref={ref} style={{ position: "relative" }}>
@@ -88,20 +104,14 @@ function CustomDropdown({ value, options, onChange, disabled = false, align = "l
 
       {open && !disabled && (
         <div className={`customDropdownMenu ${align === "right" ? "alignRight" : ""}`}>
-          {options.map((o) => (
-            <button
-              type="button"
-              key={o.value}
-              className={`customDropdownOption ${o.value === value ? "selected" : ""}`}
-              onClick={() => {
-                onChange(o.value);
-                setOpen(false);
-              }}
-            >
-              <span>{o.label}</span>
-              {o.value === value && <span className="customDropdownCheck">✓</span>}
-            </button>
-          ))}
+          {groups
+            ? groups.map((g) => (
+                <React.Fragment key={g.label}>
+                  <div className="customDropdownGroupLabel">{g.label}</div>
+                  {g.options.map(renderOption)}
+                </React.Fragment>
+              ))
+            : (options || []).map(renderOption)}
         </div>
       )}
 
@@ -201,6 +211,76 @@ function CustomDropdown({ value, options, onChange, disabled = false, align = "l
         .customDropdownCheck {
           color: #8f7cff;
           font-weight: 900;
+        }
+
+        .customDropdownGroupLabel {
+          font-size: 9.5px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.09em;
+          color: rgba(255, 255, 255, 0.32);
+          padding: 8px 10px 4px;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+// Live-search dropdown for picking an opponent by username — filters the
+// already-loaded player list as you type instead of a free-text field.
+function PlayerSearchInput({ value, onChange, usernames, placeholder = "Ellenfél keresése...", disabled = false }) {
+  const [open, setOpen] = useState(false);
+  const ref = React.useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const query = String(value || "").trim().toLowerCase();
+  const matches = query
+    ? usernames.filter((u) => u.toLowerCase().includes(query) && u.toLowerCase() !== query).slice(0, 8)
+    : usernames.slice(0, 8);
+
+  return (
+    <div className="playerSearchInput" ref={ref} style={{ position: "relative" }}>
+      <input
+        className="htqInput"
+        placeholder={placeholder}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+      />
+      {open && !disabled && matches.length > 0 && (
+        <div className="customDropdownMenu playerSearchMenu">
+          {matches.map((u) => (
+            <button
+              type="button"
+              key={u}
+              className="customDropdownOption"
+              onClick={() => {
+                onChange(u);
+                setOpen(false);
+              }}
+            >
+              <span>{u}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <style jsx global>{`
+        .playerSearchMenu {
+          width: 100%;
+          min-width: 0;
         }
       `}</style>
     </div>
@@ -587,46 +667,52 @@ const MODE_ICONS = {
 // Slides down under a gamemode row after the admin picks a HT3+ tier and
 // hits save — logs the fights, then resolves + persists the actual tier
 // (pass → the tested tier, fail → one tier worse).
-function HighTestQuickPanel({ panel, discordId, saving, onSetPassed, onAddFight, onUpdateFight, onRemoveFight, onCancel, onSave }) {
+function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, onSetTestedTier, onAddFight, onUpdateFight, onRemoveFight, onCancel, onSave }) {
   const { entry, testedTier, category, passed, fights } = panel;
   const resolvedTier = resolveTierFromTest(testedTier, passed);
+
+  const PASS_OPTIONS = [
+    { value: true, label: "Sikeres" },
+    { value: false, label: "Sikertelen" },
+  ];
+
+  const TESTED_TIER_GROUPS = [
+    { label: "3. szint", options: [{ value: "HT3", label: "HT3" }] },
+    { label: "2. szint", options: [{ value: "LT2", label: "LT2" }, { value: "HT2", label: "HT2" }] },
+    { label: "1. szint", options: [{ value: "LT1", label: "LT1" }, { value: "HT1", label: "HT1" }] },
+  ];
 
   return (
     <div className="htqPanel">
       <div className="htqHeader">
-        <span className="htqTitle">Magas Eredmény Kezelő — {entry.gamemode} · {testedTier} teszt</span>
+        <span className="htqTitle">Magas Eredmény Kezelő — {entry.gamemode}</span>
         {!discordId && (
           <span className="htqWarn">Nincs linkelt Discord fiók ehhez a játékoshoz — a fight-naplózáshoz szükséges.</span>
         )}
       </div>
 
-      <div className="htqPassRow">
-        <button
-          type="button"
-          className={`htqPassBtn ${passed ? "active" : ""}`}
-          onClick={() => onSetPassed(true)}
-        >
-          Sikeres
-        </button>
-        <button
-          type="button"
-          className={`htqPassBtn htqFailBtn ${!passed ? "active" : ""}`}
-          onClick={() => onSetPassed(false)}
-        >
-          Sikertelen
-        </button>
-        <span className="htqResult">
-          {resolvedTier ? (
-            <>Kapott tier: <strong>{resolvedTier}</strong></>
-          ) : (
-            <span style={{ color: "#ff9b9b" }}>Nincs ennél gyengébb tier — a tier nem fog változni.</span>
-          )}
-        </span>
+      <div className="htqFieldsRow">
+        <label className="htqFieldLabel">
+          Eredmény
+          <CustomDropdown value={passed} options={PASS_OPTIONS} onChange={onSetPassed} />
+        </label>
+        <label className="htqFieldLabel">
+          Tesztelt tier
+          <CustomDropdown value={testedTier} groups={TESTED_TIER_GROUPS} onChange={onSetTestedTier} />
+        </label>
       </div>
+
+      <span className="htqResult">
+        {resolvedTier ? (
+          <>Kapott tier: <strong>{resolvedTier}</strong></>
+        ) : (
+          <span style={{ color: "#ff9b9b" }}>Nincs ennél gyengébb tier — a tier nem fog változni.</span>
+        )}
+      </span>
 
       <div className="htqFights">
         {fights.map((f) => {
-          const scoreOpts = scoreOptionsFor(category, entry.gamemode, f.won);
+          const scoreOpts = scoreOptionsFor(category, entry.gamemode, f.won).map((s) => ({ value: s, label: s }));
           return (
             <div key={f.id} className="htqFightRow">
               <button
@@ -636,21 +722,20 @@ function HighTestQuickPanel({ panel, discordId, saving, onSetPassed, onAddFight,
               >
                 {f.won ? "Győzelem" : "Vereség"}
               </button>
-              <select
-                className="htqSelect"
-                value={f.score}
-                onChange={(e) => onUpdateFight(f.id, { score: e.target.value })}
-              >
-                {scoreOpts.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <input
-                className="htqInput"
-                placeholder="Ellenfél..."
-                value={f.opponent}
-                onChange={(e) => onUpdateFight(f.id, { opponent: e.target.value })}
-              />
+              <div className="htqScoreDropdown">
+                <CustomDropdown
+                  value={f.score}
+                  options={scoreOpts}
+                  onChange={(v) => onUpdateFight(f.id, { score: v })}
+                />
+              </div>
+              <div className="htqOpponentSearch">
+                <PlayerSearchInput
+                  value={f.opponent}
+                  usernames={usernames}
+                  onChange={(v) => onUpdateFight(f.id, { opponent: v })}
+                />
+              </div>
               <input
                 className="htqInput htqComment"
                 placeholder="Megjegyzés (opcionális)"
@@ -698,37 +783,30 @@ function HighTestQuickPanel({ panel, discordId, saving, onSetPassed, onAddFight,
           font-weight: 700;
           color: #ff9b9b;
         }
-        .htqPassRow {
+        .htqFieldsRow {
           display: flex;
-          align-items: center;
           flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 14px;
+          gap: 14px;
+          margin-bottom: 12px;
         }
-        .htqPassBtn {
-          padding: 6px 14px;
-          border-radius: 999px;
-          border: 1px solid rgba(255,255,255,0.16);
-          background: rgba(255,255,255,0.04);
-          color: rgba(255,255,255,0.7);
-          font-size: 12px;
+        .htqFieldLabel {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          flex: 1 1 180px;
+          min-width: 160px;
+          font-size: 11px;
           font-weight: 800;
-          cursor: pointer;
-        }
-        .htqPassBtn.active {
-          background: rgba(52, 211, 153, 0.18);
-          border-color: rgba(52, 211, 153, 0.5);
-          color: #34d399;
-        }
-        .htqFailBtn.active {
-          background: rgba(255, 107, 107, 0.18);
-          border-color: rgba(255, 107, 107, 0.5);
-          color: #ff9b9b;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: rgba(255, 255, 255, 0.45);
         }
         .htqResult {
+          display: block;
           font-size: 12.5px;
           color: rgba(255,255,255,0.75);
           font-weight: 700;
+          margin-bottom: 14px;
         }
         .htqFights {
           display: grid;
@@ -760,20 +838,24 @@ function HighTestQuickPanel({ panel, discordId, saving, onSetPassed, onAddFight,
           color: #ff9b9b;
           border-color: rgba(255, 107, 107, 0.4);
         }
-        .htqSelect, .htqInput {
+        .htqScoreDropdown {
+          flex: 0 0 130px;
+        }
+        .htqOpponentSearch {
+          flex: 1 1 160px;
+          min-width: 140px;
+        }
+        .htqInput {
           background: rgba(255,255,255,0.05);
           border: 1px solid rgba(255,255,255,0.14);
           border-radius: 8px;
           padding: 6px 10px;
           color: #fff;
           font-size: 12.5px;
-        }
-        .htqSelect {
-          flex: 0 0 auto;
-        }
-        .htqInput {
           flex: 1 1 120px;
           min-width: 100px;
+          width: 100%;
+          box-sizing: border-box;
         }
         .htqComment {
           flex: 1 1 160px;
@@ -834,8 +916,14 @@ function HighTestQuickPanel({ panel, discordId, saving, onSetPassed, onAddFight,
             flex-direction: column;
             align-items: stretch;
           }
-          .htqInput, .htqSelect {
+          .htqInput,
+          .htqScoreDropdown,
+          .htqOpponentSearch {
             width: 100%;
+            flex-basis: auto;
+          }
+          .htqFieldsRow {
+            flex-direction: column;
           }
         }
       `}</style>
@@ -910,6 +998,17 @@ export default function AdminDashboard() {
   const [staffList, setStaffList] = useState([]);
   const [staffPasswordDrafts, setStaffPasswordDrafts] = useState({});
   const [staffBusyId, setStaffBusyId] = useState(null);
+
+  // Unique usernames across all loaded tests — used for the opponent
+  // search-dropdown in the Magas Eredmény Kezelő panel.
+  const allUsernames = useMemo(() => {
+    const set = new Set();
+    for (const t of tests) {
+      const name = String(t?.username || "").trim();
+      if (name) set.add(name);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [tests]);
 
   // ─── Embedded "Magas Eredmény Kezelő" quick-panel ───
   // Opens inline under a gamemode row when the admin saves a HT3+ (and not
@@ -2211,7 +2310,9 @@ const freshTests = await loadTests();
                           panel={highTestPanel}
                           discordId={highTestDiscordId}
                           saving={highTestSaving}
+                          usernames={allUsernames}
                           onSetPassed={(passed) => setHighTestPanel((prev) => (prev ? { ...prev, passed } : prev))}
+                          onSetTestedTier={(testedTier) => setHighTestPanel((prev) => (prev ? { ...prev, testedTier } : prev))}
                           onAddFight={addHighTestFight}
                           onUpdateFight={updateHighTestFight}
                           onRemoveFight={removeHighTestFight}
