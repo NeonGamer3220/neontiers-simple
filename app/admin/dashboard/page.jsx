@@ -670,16 +670,17 @@ const MODE_ICONS = {
 function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, onSetTestedTier, onAddFight, onUpdateFight, onRemoveFight, onCancel, onSave }) {
   const { entry, testedTier, category, passed, fights } = panel;
   const resolvedTier = resolveTierFromTest(testedTier, passed);
-  const failTier = resolveTierFromTest(testedTier, false);
+  const failTier = resolveTierFromTest("HT3", false);
   const ft = getFT(category, entry.gamemode);
 
-  // Fights are logged against one of two tiers: the tier being tested
-  // (testedTier) and — if it exists — the tier the player falls back to on
-  // a failed test (failTier). Each gets its own labelled section so admins
-  // can't accidentally log a fight against the wrong tier.
+  // Fights are logged per tier, covering every tier from the base fall-back
+  // (one below HT3) up through the tier actually being tested — e.g.
+  // testing HT2 shows LT3/HT3/LT2/HT2 sections, testing HT3 shows just
+  // LT3/HT3.
+  const testedIdx = HIGH_TIERS.indexOf(testedTier);
   const fightGroups = [
     failTier ? { tier: failTier, label: `${failTier} FIGHTOK` } : null,
-    { tier: testedTier, label: `${testedTier} FIGHTOK` },
+    ...HIGH_TIERS.slice(0, testedIdx + 1).map((t) => ({ tier: t, label: `${t} FIGHTOK` })),
   ].filter(Boolean);
 
   const PASS_OPTIONS = [
@@ -2330,11 +2331,7 @@ const freshTests = await loadTests();
                               closeHighTestPanel();
                             }
                           }}
-                          onSave={
-                            highTestPanel && highTestPanel.index === index
-                              ? null
-                              : () => handleSaveEntryGuarded(entry, index)
-                          }
+                          onSave={() => handleSaveEntryGuarded(entry, index)}
                         />
                       </div>
 
