@@ -247,9 +247,9 @@ function PlayerSearchInput({ value, onChange, usernames, placeholder = "Ellenfé
     : usernames.slice(0, 8);
 
   return (
-    <div className="playerSearchInput" ref={ref} style={{ position: "relative" }}>
+    <div className="playerSearchInput" ref={ref}>
       <input
-        className="htqInput"
+        className="playerSearchInputField"
         placeholder={placeholder}
         value={value}
         disabled={disabled}
@@ -280,8 +280,30 @@ function PlayerSearchInput({ value, onChange, usernames, placeholder = "Ellenfé
 
       <style jsx global>{`
         .playerSearchInput {
+          position: relative;
           display: block;
           width: 100%;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          border-radius: 8px;
+          box-sizing: border-box;
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .playerSearchInput:focus-within {
+          border-color: rgba(143, 124, 255, 0.55);
+          background: rgba(255, 255, 255, 0.07);
+        }
+        .playerSearchInputField {
+          display: block;
+          width: 100%;
+          box-sizing: border-box;
+          background: transparent;
+          border: none;
+          outline: none;
+          padding: 6px 10px;
+          color: #fff;
+          font-size: 12.5px;
+          font-family: inherit;
         }
         .playerSearchMenu {
           width: 100%;
