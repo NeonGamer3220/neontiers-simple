@@ -2591,9 +2591,19 @@ const freshTests = await loadTests();
           width: 100%;
           background: transparent;
           border: none;
+          outline: none;
           color: #fff;
           font-size: 15px;
+          -webkit-appearance: none;
+          appearance: none;
+          box-shadow: none;
+        }
+
+        .searchInput:focus,
+        .searchInput:focus-visible {
+          border: none;
           outline: none;
+          box-shadow: none;
         }
 
         .searchInput::placeholder {

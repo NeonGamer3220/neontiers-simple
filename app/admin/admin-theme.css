@@ -76,6 +76,15 @@
   outline-offset: 2px;
 }
 
+/* Inputs that already draw their own custom focus treatment (a border/
+   box-shadow on a wrapping container) opt out of the generic ring above —
+   otherwise both render at once and look like two stacked rectangles. */
+.admin-panel .searchInput:focus-visible,
+.admin-panel .htqInput:focus-visible,
+.admin-panel .customDropdownButton:focus-visible {
+  outline: none;
+}
+
 /* ---- Selection color to match brand ---- */
 .admin-panel ::selection {
   background: rgba(143, 124, 255, 0.35);
