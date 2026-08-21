@@ -2203,88 +2203,6 @@ const freshTests = await loadTests();
               ))}
             </div>
           )}
-
-          <style jsx>{`
-            .playerLookupCard {
-              background: rgba(255, 255, 255, 0.03);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 16px;
-              padding: 24px;
-              display: grid;
-              gap: 14px;
-            }
-            .plcTitle {
-              margin: 0;
-              font-size: 20px;
-              font-weight: 800;
-              color: #fff;
-            }
-            .plcModeToggle {
-              display: inline-flex;
-              gap: 6px;
-              background: rgba(255, 255, 255, 0.04);
-              border: 1px solid rgba(255, 255, 255, 0.08);
-              border-radius: 999px;
-              padding: 4px;
-              width: fit-content;
-            }
-            .plcModeBtn {
-              padding: 8px 16px;
-              border-radius: 999px;
-              border: none;
-              background: transparent;
-              color: rgba(255, 255, 255, 0.55);
-              font-size: 13px;
-              font-weight: 800;
-              cursor: pointer;
-              transition: background 0.15s ease, color 0.15s ease;
-            }
-            .plcModeBtn:hover {
-              color: rgba(255, 255, 255, 0.8);
-            }
-            .plcModeBtn.active {
-              background: #c41e3a;
-              color: #fff;
-            }
-            .plcSearchRow {
-              display: flex;
-              gap: 10px;
-            }
-            .plcSearchInput {
-              flex: 1;
-              min-width: 0;
-              background: rgba(255, 255, 255, 0.05);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 12px;
-              padding: 14px 16px;
-              color: #fff;
-              font-size: 15px;
-              outline: none;
-              transition: border-color 0.15s ease, background 0.15s ease;
-            }
-            .plcSearchInput:focus {
-              border-color: rgba(196, 30, 58, 0.55);
-              background: rgba(255, 255, 255, 0.07);
-            }
-            .plcSearchInput::placeholder {
-              color: rgba(255, 255, 255, 0.4);
-            }
-            .plcOpenBtn {
-              flex: 0 0 auto;
-              padding: 0 22px;
-              border-radius: 12px;
-              border: none;
-              background: #c41e3a;
-              color: #fff;
-              font-size: 14px;
-              font-weight: 800;
-              cursor: pointer;
-              transition: background 0.15s ease;
-            }
-            .plcOpenBtn:hover {
-              background: #a91830;
-            }
-          `}</style>
         </div>
 
 
@@ -2548,6 +2466,86 @@ const freshTests = await loadTests();
           background: var(--bg, #0b0e14);
           color: var(--text, #fffffff0);
           font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+
+        .playerLookupCard {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 24px;
+          display: grid;
+          gap: 14px;
+        }
+        .plcTitle {
+          margin: 0;
+          font-size: 20px;
+          font-weight: 800;
+          color: #fff;
+        }
+        .plcModeToggle {
+          display: inline-flex;
+          gap: 6px;
+          background: rgba(255, 255, 255, 0.04);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 999px;
+          padding: 4px;
+          width: fit-content;
+        }
+        .plcModeBtn {
+          padding: 8px 16px;
+          border-radius: 999px;
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.55);
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease;
+        }
+        .plcModeBtn:hover {
+          color: rgba(255, 255, 255, 0.8);
+        }
+        .plcModeBtn.active {
+          background: #c41e3a;
+          color: #fff;
+        }
+        .plcSearchRow {
+          display: flex;
+          gap: 10px;
+        }
+        .plcSearchInput {
+          flex: 1;
+          min-width: 0;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 14px 16px;
+          color: #fff;
+          font-size: 15px;
+          outline: none;
+          transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .plcSearchInput:focus {
+          border-color: rgba(196, 30, 58, 0.55);
+          background: rgba(255, 255, 255, 0.07);
+        }
+        .plcSearchInput::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+        .plcOpenBtn {
+          flex: 0 0 auto;
+          padding: 0 22px;
+          border-radius: 12px;
+          border: none;
+          background: #c41e3a;
+          color: #fff;
+          font-size: 14px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: background 0.15s ease;
+        }
+        .plcOpenBtn:hover {
+          background: #a91830;
         }
 
         .adminNavbar {
