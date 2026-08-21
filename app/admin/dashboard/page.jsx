@@ -717,6 +717,13 @@ export default function AdminDashboard() {
   const [banDiscordId, setBanDiscordId] = useState("");
   const [banSubmitting, setBanSubmitting] = useState(false);
 
+  // Egyéni időtartam (Kitiltásnál) — évek/hónapok/napok/órák/percek
+  const [customYears, setCustomYears] = useState(0);
+  const [customMonths, setCustomMonths] = useState(0);
+  const [customDays, setCustomDays] = useState(0);
+  const [customHours, setCustomHours] = useState(0);
+  const [customMinutesVal, setCustomMinutesVal] = useState(0);
+
   const BAN_DURATIONS = [
     { value: "1d", label: "1 nap" },
     { value: "3d", label: "3 nap" },
@@ -727,7 +734,25 @@ export default function AdminDashboard() {
     { value: "6m", label: "6 hónap" },
     { value: "1y", label: "1 év" },
     { value: "perm", label: "Végleges" },
+    { value: "custom", label: "Egyéb (egyéni időtartam)" },
   ];
+
+  const customDurationMinutes =
+    (Number(customYears) || 0) * 365 * 24 * 60 +
+    (Number(customMonths) || 0) * 30 * 24 * 60 +
+    (Number(customDays) || 0) * 24 * 60 +
+    (Number(customHours) || 0) * 60 +
+    (Number(customMinutesVal) || 0);
+
+  const customDurationLabel = () => {
+    const parts = [];
+    if (Number(customYears) > 0) parts.push(`${customYears} év`);
+    if (Number(customMonths) > 0) parts.push(`${customMonths} hónap`);
+    if (Number(customDays) > 0) parts.push(`${customDays} nap`);
+    if (Number(customHours) > 0) parts.push(`${customHours} óra`);
+    if (Number(customMinutesVal) > 0) parts.push(`${customMinutesVal} perc`);
+    return parts.length ? parts.join(" ") : "0 perc";
+  };
 
   // --- Staff fiókok (csak Owner-nek) ---
   const [staffList, setStaffList] = useState([]);
@@ -940,6 +965,11 @@ export default function AdminDashboard() {
     setBanImageFile(null);
     setBanImagePreviewUrl("");
     setBanDiscordId("");
+    setCustomYears(0);
+    setCustomMonths(0);
+    setCustomDays(0);
+    setCustomHours(0);
+    setCustomMinutesVal(0);
     setBanModalOpen(true);
     // Resolve the player's Discord ID from linked accounts.
     fetch(`/api/admin/linked-accounts?q=${encodeURIComponent(selectedPlayer.username || "")}`)
@@ -964,7 +994,8 @@ export default function AdminDashboard() {
     setBanImagePreviewUrl(file ? URL.createObjectURL(file) : "");
   };
 
-  const banDurationLabel = (value) => BAN_DURATIONS.find((d) => d.value === value)?.label || value;
+  const banDurationLabel = (value) =>
+    value === "custom" ? customDurationLabel() : BAN_DURATIONS.find((d) => d.value === value)?.label || value;
 
   const submitBan = async () => {
     if (!selectedPlayer) return;
@@ -974,6 +1005,10 @@ export default function AdminDashboard() {
     }
     if (!banReason.trim()) {
       setToast({ type: "error", text: "Az indoklás megadása kötelező" });
+      return;
+    }
+    if (banDuration === "custom" && customDurationMinutes <= 0) {
+      setToast({ type: "error", text: "Add meg az egyéni időtartamot (legalább 1 percet)" });
       return;
     }
 
@@ -1001,6 +1036,9 @@ export default function AdminDashboard() {
           uuid: selectedPlayerUUID || "",
           reason: banReason.trim(),
           duration: banDuration,
+          ...(banDuration === "custom"
+            ? { customMinutes: customDurationMinutes, customLabel: customDurationLabel() }
+            : {}),
           imageUrl,
         }),
       });
@@ -1618,6 +1656,72 @@ const freshTests = await loadTests();
                 ))}
               </select>
             </label>
+
+            {banDuration === "custom" && (
+              <div className="htLabel">
+                Egyéni időtartam
+                <div className="banCustomDurationGrid">
+                  <label className="banCustomField">
+                    <span>Év</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="htInput"
+                      value={customYears}
+                      onChange={(e) => setCustomYears(Math.max(0, Number(e.target.value) || 0))}
+                      disabled={banSubmitting}
+                    />
+                  </label>
+                  <label className="banCustomField">
+                    <span>Hónap</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="htInput"
+                      value={customMonths}
+                      onChange={(e) => setCustomMonths(Math.max(0, Number(e.target.value) || 0))}
+                      disabled={banSubmitting}
+                    />
+                  </label>
+                  <label className="banCustomField">
+                    <span>Nap</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="htInput"
+                      value={customDays}
+                      onChange={(e) => setCustomDays(Math.max(0, Number(e.target.value) || 0))}
+                      disabled={banSubmitting}
+                    />
+                  </label>
+                  <label className="banCustomField">
+                    <span>Óra</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="htInput"
+                      value={customHours}
+                      onChange={(e) => setCustomHours(Math.max(0, Number(e.target.value) || 0))}
+                      disabled={banSubmitting}
+                    />
+                  </label>
+                  <label className="banCustomField">
+                    <span>Perc</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="htInput"
+                      value={customMinutesVal}
+                      onChange={(e) => setCustomMinutesVal(Math.max(0, Number(e.target.value) || 0))}
+                      disabled={banSubmitting}
+                    />
+                  </label>
+                </div>
+                {customDurationMinutes <= 0 && (
+                  <span className="htqWarn">Add meg legalább az egyik mezőt (pl. napok száma)</span>
+                )}
+              </div>
+            )}
 
             <label className="htLabel">
               Indoklás
@@ -3374,6 +3478,27 @@ const freshTests = await loadTests();
           font-family: inherit;
         }
 
+        .banCustomDurationGrid {
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 8px;
+        }
+
+        .banCustomField {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.5);
+        }
+
+        .banCustomField input {
+          width: 100%;
+          box-sizing: border-box;
+          text-align: center;
+        }
+
         .htqWarn {
           display: block;
           font-size: 12.5px;
@@ -3593,6 +3718,10 @@ const freshTests = await loadTests();
 
           .banModalContent {
             max-width: 100%;
+          }
+
+          .banCustomDurationGrid {
+            grid-template-columns: repeat(3, 1fr);
           }
 
           .modalActions {

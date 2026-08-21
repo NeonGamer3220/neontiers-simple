@@ -82,6 +82,8 @@ export async function POST(req) {
   const reason = String(body.reason || "").trim();
   const durationKey = String(body.duration || "").trim();
   const imageUrl = String(body.imageUrl || "").trim();
+  const customMinutes = Number(body.customMinutes) || 0;
+  const customLabel = String(body.customLabel || "").trim();
 
   if (!minecraftName || !discordId) {
     return json({ error: "Válassz ki egy játékost a linkelt fiókok közül" }, 400);
@@ -89,9 +91,18 @@ export async function POST(req) {
   if (!reason) {
     return json({ error: "Az indoklás megadása kötelező" }, 400);
   }
-  const durationInfo = DURATIONS[durationKey];
-  if (!durationInfo) {
-    return json({ error: "Érvénytelen időtartam" }, 400);
+
+  let durationInfo;
+  if (durationKey === "custom") {
+    if (!customMinutes || customMinutes <= 0) {
+      return json({ error: "Érvénytelen egyéni időtartam" }, 400);
+    }
+    durationInfo = { label: customLabel || `${customMinutes} perc`, days: customMinutes / 1440 };
+  } else {
+    durationInfo = DURATIONS[durationKey];
+    if (!durationInfo) {
+      return json({ error: "Érvénytelen időtartam" }, 400);
+    }
   }
 
   const now = new Date();
