@@ -82,6 +82,7 @@
 .admin-panel .searchInput:focus-visible,
 .admin-panel .htqInput:focus-visible,
 .admin-panel .playerSearchInputField:focus-visible,
+.admin-panel .plcSearchInput:focus-visible,
 .admin-panel .customDropdownButton:focus-visible {
   outline: none;
 }

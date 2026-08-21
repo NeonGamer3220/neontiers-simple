@@ -1001,6 +1001,8 @@ export default function AdminDashboard() {
   const [tests, setTests] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchedPlayers, setSearchedPlayers] = useState([]);
+  const [searchMode, setSearchMode] = useState("minecraft"); // "minecraft" | "discord"
+  const searchReqId = React.useRef(0);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showUntested, setShowUntested] = useState(true);
   const [toast, setToast] = useState(null);
@@ -1612,16 +1614,61 @@ export default function AdminDashboard() {
 
    const handleSearch = (query) => {
      setSearchQuery(query);
-     if (query.trim().length === 0) {
+     const trimmed = query.trim();
+     if (trimmed.length === 0) {
        setSearchedPlayers([]);
        return;
      }
 
+     if (searchMode === "discord") {
+       const reqId = ++searchReqId.current;
+       fetch(`/api/admin/linked-accounts?q=${encodeURIComponent(trimmed)}`)
+         .then((r) => r.json())
+         .then((d) => {
+           if (reqId !== searchReqId.current) return; // stale response, a newer search superseded it
+           const seen = new Set();
+           const results = (d?.results || [])
+             .filter((r) => r.minecraftName)
+             .filter((r) => {
+               const key = r.minecraftName.toLowerCase();
+               if (seen.has(key)) return false;
+               seen.add(key);
+               return true;
+             })
+             .map((r) => ({
+               username: r.minecraftName,
+               label: r.discordUsername ? `${r.discordUsername} · ${r.minecraftName}` : r.minecraftName,
+             }))
+             .slice(0, 10);
+           setSearchedPlayers(results);
+         })
+         .catch(() => setSearchedPlayers([]));
+       return;
+     }
+
      const uniquePlayers = [...new Set(tests.map((t) => String(t?.username || "").trim()))];
-     const filtered = uniquePlayers.filter((p) => p.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 10);
+     const filtered = uniquePlayers
+       .filter((p) => p.toLowerCase().includes(trimmed.toLowerCase()))
+       .slice(0, 10)
+       .map((p) => ({ username: p, label: p }));
 
      setSearchedPlayers(filtered);
    };
+
+  const handleSetSearchMode = (mode) => {
+    setSearchMode(mode);
+    setSearchQuery("");
+    setSearchedPlayers([]);
+  };
+
+  const handleOpenSearch = () => {
+    if (searchedPlayers.length > 0) {
+      selectPlayer(searchedPlayers[0].username);
+      return;
+    }
+    const trimmed = searchQuery.trim();
+    if (trimmed) selectPlayer(trimmed);
+  };
 
   const selectPlayer = async (username) => {
     const playerData = getPlayerData(username, showUntested);
@@ -2104,47 +2151,140 @@ const freshTests = await loadTests();
       <AdminNavbar adminName={adminName} adminRole={adminRole} onLogout={handleLogout} />
 
       <header className="adminHeader">
-          <div className="headerLeft">
-            <p className="headerSubtitle">Áttekintés</p>
-          </div>
-         <div className="headerStats">
-           <div className="headerStat">
-             <span className="headerStatValue">{stats.uniquePlayers}</span>
-             <span className="headerStatLabel">Játékos</span>
-           </div>
-            <div className="headerStat">
-              <span className="headerStatValue">{stats.totalTiers}</span>
-              <span className="headerStatLabel">Tier</span>
-            </div>
-          </div>
-        </header>
+        <div className="headerLeft">
+          <p className="headerSubtitle">Áttekintés</p>
+        </div>
+      </header>
 
       <main className="adminContent">
-        <div className="searchSection">
-          <div className="searchContainer">
-            <svg className="searchIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
+        <div className="playerLookupCard">
+          <h2 className="plcTitle">Játékos kezelése</h2>
+
+          <div className="plcModeToggle">
+            <button
+              type="button"
+              className={`plcModeBtn ${searchMode === "minecraft" ? "active" : ""}`}
+              onClick={() => handleSetSearchMode("minecraft")}
+            >
+              Minecraft név
+            </button>
+            <button
+              type="button"
+              className={`plcModeBtn ${searchMode === "discord" ? "active" : ""}`}
+              onClick={() => handleSetSearchMode("discord")}
+            >
+              Discord név
+            </button>
+          </div>
+
+          <div className="plcSearchRow">
             <input
               type="text"
-              className="searchInput"
+              className="plcSearchInput"
               placeholder="Játékos keresése..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleOpenSearch();
+              }}
               autoComplete="off"
             />
+            <button type="button" className="plcOpenBtn" onClick={handleOpenSearch}>
+              Megnyitás
+            </button>
           </div>
 
           {searchedPlayers.length > 0 && (
             <div className="searchResults">
-              {searchedPlayers.map((player) => (
-                <button key={player} className="searchResultItem" onClick={() => selectPlayer(player)}>
-                  {player}
+              {searchedPlayers.map((r) => (
+                <button key={r.username} className="searchResultItem" onClick={() => selectPlayer(r.username)}>
+                  {r.label}
                 </button>
               ))}
             </div>
           )}
+
+          <style jsx>{`
+            .playerLookupCard {
+              background: rgba(255, 255, 255, 0.03);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 16px;
+              padding: 24px;
+              display: grid;
+              gap: 14px;
+            }
+            .plcTitle {
+              margin: 0;
+              font-size: 20px;
+              font-weight: 800;
+              color: #fff;
+            }
+            .plcModeToggle {
+              display: inline-flex;
+              gap: 6px;
+              background: rgba(255, 255, 255, 0.04);
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              border-radius: 999px;
+              padding: 4px;
+              width: fit-content;
+            }
+            .plcModeBtn {
+              padding: 8px 16px;
+              border-radius: 999px;
+              border: none;
+              background: transparent;
+              color: rgba(255, 255, 255, 0.55);
+              font-size: 13px;
+              font-weight: 800;
+              cursor: pointer;
+              transition: background 0.15s ease, color 0.15s ease;
+            }
+            .plcModeBtn:hover {
+              color: rgba(255, 255, 255, 0.8);
+            }
+            .plcModeBtn.active {
+              background: #c41e3a;
+              color: #fff;
+            }
+            .plcSearchRow {
+              display: flex;
+              gap: 10px;
+            }
+            .plcSearchInput {
+              flex: 1;
+              min-width: 0;
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 14px 16px;
+              color: #fff;
+              font-size: 15px;
+              outline: none;
+              transition: border-color 0.15s ease, background 0.15s ease;
+            }
+            .plcSearchInput:focus {
+              border-color: rgba(196, 30, 58, 0.55);
+              background: rgba(255, 255, 255, 0.07);
+            }
+            .plcSearchInput::placeholder {
+              color: rgba(255, 255, 255, 0.4);
+            }
+            .plcOpenBtn {
+              flex: 0 0 auto;
+              padding: 0 22px;
+              border-radius: 12px;
+              border: none;
+              background: #c41e3a;
+              color: #fff;
+              font-size: 14px;
+              font-weight: 800;
+              cursor: pointer;
+              transition: background 0.15s ease;
+            }
+            .plcOpenBtn:hover {
+              background: #a91830;
+            }
+          `}</style>
         </div>
 
 
