@@ -2674,6 +2674,11 @@ const freshTests = await loadTests();
       <style jsx>{`
         .dashLogsSection {
           margin-top: 32px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 20px 22px;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
         }
       `}</style>
 

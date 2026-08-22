@@ -4,16 +4,16 @@ import React, { useEffect, useState } from "react";
 import AdminNavbar from "./AdminNavbar";
 import DashboardTab from "../_tabs/DashboardTab";
 import ApplicationsTab from "../_tabs/ApplicationsTab";
-import HighTestTab from "../_tabs/HighTestTab";
 import StaffTab from "../_tabs/StaffTab";
 import "../admin-theme.css";
 
 /**
  * The authenticated admin panel: a single page with client-side tab
  * switching instead of separate /admin/dashboard, /admin/applications,
- * /admin/high-test, /admin/staff/[name] routes. Logs (owner-only) are
- * embedded directly inside the Dashboard tab rather than being their own
- * tab — see DashboardTab.jsx.
+ * /admin/staff/[name] routes. Logs (owner-only) are embedded directly
+ * inside the Dashboard tab rather than being their own tab, and the
+ * high-test manager only exists as the quick-panel already built into
+ * the Dashboard's player editor — see DashboardTab.jsx.
  *
  * Only mounted by app/admin/page.jsx once the login+passkey flow has
  * succeeded. Does its own /api/admin/check on mount to resolve
@@ -25,7 +25,7 @@ export default function AdminShell({ onLoggedOut }) {
   const [loading, setLoading] = useState(true);
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard | applications | high-test | staff
+  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard | applications | staff
   const [viewedStaffName, setViewedStaffName] = useState("");
   const [returnToTab, setReturnToTab] = useState("dashboard"); // tab to go back to when leaving the staff view
 
@@ -113,7 +113,6 @@ export default function AdminShell({ onLoggedOut }) {
         <DashboardTab adminRole={adminRole} onViewStaff={handleViewStaff} />
       )}
       {effectiveTab === "applications" && isOwner && <ApplicationsTab />}
-      {effectiveTab === "high-test" && <HighTestTab />}
       {effectiveTab === "staff" && (
         <StaffTab staffName={viewedStaffName} onBack={handleBackFromStaff} />
       )}

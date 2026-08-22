@@ -411,12 +411,6 @@ export default function LogsTab({ onViewStaff }) {
       {toast && <div className={`lgToast ${toast.type === "error" ? "lgToastError" : "lgToastOk"}`}>{toast.text}</div>}
 
       <style jsx global>{`
-        .lgLoadingPage {
-          min-height: 100vh;
-          display: grid;
-          place-items: center;
-          background: #05060a;
-        }
         .lgSpinner {
           width: 40px;
           height: 40px;
@@ -429,15 +423,9 @@ export default function LogsTab({ onViewStaff }) {
           to { transform: rotate(360deg); }
         }
         .lgPage {
-          min-height: 100vh;
-          background: #05060a;
-          color: #fff;
-          font-family: Montserrat, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+          color: inherit;
         }
         .lgContent {
-          max-width: 1180px;
-          margin: 0 auto;
-          padding: 32px 24px 80px;
           display: grid;
           gap: 22px;
         }
@@ -450,8 +438,8 @@ export default function LogsTab({ onViewStaff }) {
         }
         .lgPageHeader h1 {
           margin: 0 0 6px;
-          font-size: 28px;
-          font-weight: 900;
+          font-size: 20px;
+          font-weight: 800;
         }
         .lgPageHeader p {
           margin: 0;

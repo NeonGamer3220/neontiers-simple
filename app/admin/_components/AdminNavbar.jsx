@@ -27,7 +27,6 @@ export default function AdminNavbar({ adminName, adminRole, activeTab, onTabChan
 
   const tabs = [
     { id: "dashboard", label: "Játékos kezelő", show: true },
-    { id: "high-test", label: "Teszt kezelő", show: true },
     { id: "applications", label: "Jelentkezések", show: isOwner },
   ].filter((t) => t.show);
 
