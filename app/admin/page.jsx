@@ -1,10 +1,17 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import AdminShell from "./_components/AdminShell";
 
-export default function AdminLoginPage() {
-  const router = useRouter();
+// The entire admin panel now lives on this single /admin route: this
+// component shows the login form (with the passkey step) until the admin
+// is fully authenticated, then swaps in <AdminShell/>, which renders the
+// tabbed panel (Dashboard / Logs / Applications / High-test / Staff) without
+// any further page navigation.
+export default function AdminPage() {
+  const [authed, setAuthed] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
   const [adminName, setAdminName] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [honeypot, setHoneypot] = useState(""); // hidden field — real users never fill this in
@@ -25,7 +32,8 @@ export default function AdminLoginPage() {
     const checkAuth = async () => {
       const res = await fetch("/api/admin/check");
       if (res.ok) {
-        router.push("/admin/dashboard");
+        setAuthed(true);
+        setCheckingAuth(false);
         return;
       }
       try {
@@ -36,9 +44,31 @@ export default function AdminLoginPage() {
       } catch {
         // not authenticated at all — stay on the login form
       }
+      setCheckingAuth(false);
     };
     checkAuth();
-  }, [router]);
+  }, []);
+
+  // If the panel later discovers the session died (expired, logged out from
+  // another tab, etc.), it calls this to fall back to the login form again.
+  const handleLoggedOut = () => {
+    setAuthed(false);
+    setPasskeyStep(null);
+    setPasskeyValue("");
+    setPasskeyConfirm("");
+  };
+
+  if (authed) {
+    return <AdminShell onLoggedOut={handleLoggedOut} />;
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="adminPage">
+        <div className="adminContainer" />
+      </div>
+    );
+  }
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -102,7 +132,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push("/admin/dashboard");
+      setAuthed(true);
     } catch (e) {
       setPasskeyError("Hálózati hiba történt");
       setPasskeyStatus("error");
@@ -134,7 +164,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      router.push("/admin/dashboard");
+      setAuthed(true);
     } catch (e) {
       setPasskeyError("Hálózati hiba történt");
       setPasskeyStatus("error");

@@ -1,40 +1,58 @@
 "use client";
 
 import React, { useState } from "react";
-import { usePathname } from "next/navigation";
 import "../admin-theme.css";
 
 /**
  * Shared admin panel navigation bar.
  *
+ * Now a pure tab-switcher: all admin sections live under the single
+ * `/admin` route, so navigation is local state (activeTab) instead of
+ * real page navigation. Only "Publikus oldal" leaves the admin panel.
+ *
  * Usage:
- * <AdminNavbar adminName={adminName} adminRole={adminRole} onLogout={handleLogout} />
+ * <AdminNavbar
+ *   adminName={adminName}
+ *   adminRole={adminRole}
+ *   activeTab={activeTab}
+ *   onTabChange={setActiveTab}
+ *   onViewOwnProfile={() => { setViewedStaffName(adminName); setActiveTab("staff"); }}
+ *   onLogout={handleLogout}
+ * />
  */
-export default function AdminNavbar({ adminName, adminRole, onLogout }) {
-  const pathname = usePathname() || "";
+export default function AdminNavbar({ adminName, adminRole, activeTab, onTabChange, onViewOwnProfile, onLogout }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const role = String(adminRole || "").toLowerCase();
   const isOwner = role === "owner";
 
-  const links = [
-    { href: "/admin/dashboard", label: "Játékos kezelő", show: true },
-    { href: "/admin/logs", label: "Logok", show: isOwner },
-    { href: "/admin/applications", label: "Jelentkezések", show: isOwner },
-  ].filter((l) => l.show);
+  const tabs = [
+    { id: "dashboard", label: "Játékos kezelő", show: true },
+    { id: "high-test", label: "Teszt kezelő", show: true },
+    { id: "logs", label: "Logok", show: isOwner },
+    { id: "applications", label: "Jelentkezések", show: isOwner },
+  ].filter((t) => t.show);
 
-  const isActive = (href) => pathname === href || pathname.startsWith(href + "/");
+  const goTab = (id) => {
+    onTabChange?.(id);
+    setMobileOpen(false);
+  };
+
+  const viewOwnProfile = () => {
+    onViewOwnProfile?.();
+    setMobileOpen(false);
+  };
 
   return (
     <header className="anAdminNav">
       <div className="anInner">
         <div className="anBrandRow">
-          <a href="/admin/dashboard" className="anBrand">
+          <button type="button" className="anBrand anBrandBtn" onClick={() => goTab("dashboard")}>
             <span className="anBrandMark">NT</span>
             <span className="anBrandText">
               NeonTiers
               <small>Admin Panel</small>
             </span>
-          </a>
+          </button>
           <button
             type="button"
             className="anBurger"
@@ -49,24 +67,24 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
         </div>
 
         <nav className={`anLinks ${mobileOpen ? "open" : ""}`} aria-label="Admin navigáció">
-          {links.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className={`anLink ${isActive(l.href) ? "active" : ""}`}
-              onClick={() => setMobileOpen(false)}
+          {tabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`anLink anLinkBtn ${activeTab === t.id ? "active" : ""}`}
+              onClick={() => goTab(t.id)}
             >
-              {l.label}
-            </a>
+              {t.label}
+            </button>
           ))}
           <a href="/" className="anLink anLinkGhost" onClick={() => setMobileOpen(false)}>
             Publikus oldal
           </a>
           <div className="anMobileFooter">
-            <a
-              href={`/admin/staff/${encodeURIComponent(adminName || "")}`}
+            <button
+              type="button"
               className="anUserBadge anUserBadgeLink"
-              onClick={() => setMobileOpen(false)}
+              onClick={viewOwnProfile}
               title="Saját profil megnyitása"
             >
               <img
@@ -80,7 +98,7 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
                 <span className="anUserName">{adminName || "Admin"}</span>
                 <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
               </span>
-            </a>
+            </button>
             <button type="button" className="anLogoutBtn" onClick={onLogout}>
               Kijelentkezés
             </button>
@@ -88,9 +106,10 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
         </nav>
 
         <div className="anRight">
-          <a
-            href={`/admin/staff/${encodeURIComponent(adminName || "")}`}
+          <button
+            type="button"
             className="anUserBadge anUserBadgeLink"
+            onClick={viewOwnProfile}
             title="Saját profil megnyitása"
           >
             <img
@@ -104,7 +123,7 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
               <span className="anUserName">{adminName || "Admin"}</span>
               <strong className="anUserRole">{role ? role.toUpperCase() : "OWNER"}</strong>
             </span>
-          </a>
+          </button>
           <button type="button" className="anLogoutBtn" onClick={onLogout}>
             Kijelentkezés
           </button>
@@ -112,6 +131,21 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
       </div>
 
       <style jsx global>{`
+        .anBrandBtn,
+        .anLinkBtn {
+          border: none;
+          background: none;
+          font: inherit;
+          text-align: left;
+          appearance: none;
+          cursor: pointer;
+        }
+        .anUserBadgeLink {
+          border: none;
+          font: inherit;
+          text-align: left;
+          appearance: none;
+        }
         .anAdminNav {
           position: sticky;
           top: 0;
