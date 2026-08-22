@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 
 import "../admin-theme.css";
+import LogsTab from "./LogsTab";
 import {
   HIGH_TIERS, categoryForGamemode, scoreOptionsFor, resolveTierFromTest, makeFightRow, getFT,
 } from "../../_lib/highTestShared";
@@ -1033,7 +1034,7 @@ function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, 
 
 // Dashboard tab — rendered inside AdminShell for any logged-in admin.
 // adminRole comes from the shell (already resolved via /api/admin/check).
-export default function DashboardTab({ adminRole }) {
+export default function DashboardTab({ adminRole, onViewStaff }) {
   const [loading, setLoading] = useState(true);
   const [tests, setTests] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -2662,7 +2663,19 @@ const freshTests = await loadTests();
           </div>
         )}
 
+        {adminRole === "owner" && (
+          <div className="dashLogsSection">
+            <LogsTab onViewStaff={onViewStaff} />
+          </div>
+        )}
+
       </main>
+
+      <style jsx>{`
+        .dashLogsSection {
+          margin-top: 32px;
+        }
+      `}</style>
 
 
       <style jsx>{`

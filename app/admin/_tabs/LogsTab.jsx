@@ -154,15 +154,35 @@ export default function LogsTab({ onViewStaff }) {
 
   if (loading) {
     return (
-      <div className="lgLoadingPage admin-panel">
+      <div className="lgLoadingBlock admin-panel">
         <div className="lgSpinner" />
+        <style jsx>{`
+          .lgLoadingBlock {
+            min-height: 200px;
+            display: grid;
+            place-items: center;
+          }
+          .lgSpinner {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.15);
+            border-top-color: #8f7cff;
+            animation: lgSpin 0.8s linear infinite;
+          }
+          @keyframes lgSpin {
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </div>
     );
   }
 
   return (
     <div className="lgPage admin-panel">
-      <main className="lgContent">
+      <section className="lgContent">
         <header className="lgPageHeader">
           <div>
             <h1>Logok</h1>
@@ -386,7 +406,7 @@ export default function LogsTab({ onViewStaff }) {
             )}
           </section>
         )}
-      </main>
+      </section>
 
       {toast && <div className={`lgToast ${toast.type === "error" ? "lgToastError" : "lgToastOk"}`}>{toast.text}</div>}
 

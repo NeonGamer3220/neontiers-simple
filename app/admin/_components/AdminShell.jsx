@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import AdminNavbar from "./AdminNavbar";
 import DashboardTab from "../_tabs/DashboardTab";
-import LogsTab from "../_tabs/LogsTab";
 import ApplicationsTab from "../_tabs/ApplicationsTab";
 import HighTestTab from "../_tabs/HighTestTab";
 import StaffTab from "../_tabs/StaffTab";
@@ -11,8 +10,10 @@ import "../admin-theme.css";
 
 /**
  * The authenticated admin panel: a single page with client-side tab
- * switching instead of separate /admin/dashboard, /admin/logs,
- * /admin/applications, /admin/high-test, /admin/staff/[name] routes.
+ * switching instead of separate /admin/dashboard, /admin/applications,
+ * /admin/high-test, /admin/staff/[name] routes. Logs (owner-only) are
+ * embedded directly inside the Dashboard tab rather than being their own
+ * tab — see DashboardTab.jsx.
  *
  * Only mounted by app/admin/page.jsx once the login+passkey flow has
  * succeeded. Does its own /api/admin/check on mount to resolve
@@ -24,7 +25,7 @@ export default function AdminShell({ onLoggedOut }) {
   const [loading, setLoading] = useState(true);
   const [adminName, setAdminName] = useState("");
   const [adminRole, setAdminRole] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard | logs | applications | high-test | staff
+  const [activeTab, setActiveTab] = useState("dashboard"); // dashboard | applications | high-test | staff
   const [viewedStaffName, setViewedStaffName] = useState("");
   const [returnToTab, setReturnToTab] = useState("dashboard"); // tab to go back to when leaving the staff view
 
@@ -95,8 +96,7 @@ export default function AdminShell({ onLoggedOut }) {
 
   // Non-owners can't reach owner-only tabs even if activeTab was left in
   // that state (e.g. role changed mid-session) — fall back to dashboard.
-  const effectiveTab =
-    (activeTab === "logs" || activeTab === "applications") && !isOwner ? "dashboard" : activeTab;
+  const effectiveTab = activeTab === "applications" && !isOwner ? "dashboard" : activeTab;
 
   return (
     <div className="admin-panel">
@@ -109,8 +109,9 @@ export default function AdminShell({ onLoggedOut }) {
         onLogout={handleLogout}
       />
 
-      {effectiveTab === "dashboard" && <DashboardTab adminRole={adminRole} />}
-      {effectiveTab === "logs" && isOwner && <LogsTab onViewStaff={handleViewStaff} />}
+      {effectiveTab === "dashboard" && (
+        <DashboardTab adminRole={adminRole} onViewStaff={handleViewStaff} />
+      )}
       {effectiveTab === "applications" && isOwner && <ApplicationsTab />}
       {effectiveTab === "high-test" && <HighTestTab />}
       {effectiveTab === "staff" && (
