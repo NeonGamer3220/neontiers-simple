@@ -57,6 +57,9 @@ export default function LogsTab({ onViewStaff }) {
   const [filterGamemode, setFilterGamemode] = useState("");
   const [filterAdmin, setFilterAdmin] = useState("");
   const [toast, setToast] = useState(null);
+  const PAGE_SIZE = 25;
+  const [visibleTests, setVisibleTests] = useState(PAGE_SIZE);
+  const [visibleAudit, setVisibleAudit] = useState(PAGE_SIZE);
 
   useEffect(() => {
     (async () => {
@@ -96,6 +99,13 @@ export default function LogsTab({ onViewStaff }) {
     const matchAdmin = !filterAdmin || log.admin_name?.toLowerCase().includes(filterAdmin.toLowerCase());
     return matchUsername && matchAdmin;
   });
+
+  // Whenever the filters or the active tab change, the previous "Több"
+  // clicks no longer make sense — start each fresh view back at one page.
+  useEffect(() => {
+    setVisibleTests(PAGE_SIZE);
+    setVisibleAudit(PAGE_SIZE);
+  }, [logType, filterUsername, filterGamemode, filterAdmin]);
 
   const showToast = (type, text) => {
     setToast({ type, text });
@@ -270,7 +280,7 @@ export default function LogsTab({ onViewStaff }) {
                   <span>Tier</span>
                   <span>Pont</span>
                 </div>
-                {filteredTests.map((test, idx) => (
+                {filteredTests.slice(0, visibleTests).map((test, idx) => (
                   <div key={`${test.username}-${test.gamemode}-${idx}`} className="lgTestRow">
                     <span className="lgTestDate">
                       {new Date(test.created_at).toLocaleString("hu-HU", {
@@ -301,6 +311,15 @@ export default function LogsTab({ onViewStaff }) {
                 ))}
               </div>
             )}
+            {filteredTests.length > visibleTests && (
+              <button
+                type="button"
+                className="lgLoadMoreBtn"
+                onClick={() => setVisibleTests((v) => v + PAGE_SIZE)}
+              >
+                Több ({filteredTests.length - visibleTests})
+              </button>
+            )}
           </section>
         )}
 
@@ -315,7 +334,7 @@ export default function LogsTab({ onViewStaff }) {
               </div>
             ) : (
               <div className="lgAuditList">
-                {filteredAudit.map((log, idx) => {
+                {filteredAudit.slice(0, visibleAudit).map((log, idx) => {
                   const actionLabel = actionLabelFor(log.action);
                   const actionMeta = actionMetaFor(log.action);
                   const detailsSummary = detailsSummaryFor(log);
@@ -403,6 +422,15 @@ export default function LogsTab({ onViewStaff }) {
                   );
                 })}
               </div>
+            )}
+            {filteredAudit.length > visibleAudit && (
+              <button
+                type="button"
+                className="lgLoadMoreBtn"
+                onClick={() => setVisibleAudit((v) => v + PAGE_SIZE)}
+              >
+                Több ({filteredAudit.length - visibleAudit})
+              </button>
             )}
           </section>
         )}
@@ -767,6 +795,24 @@ export default function LogsTab({ onViewStaff }) {
           white-space: nowrap;
         }
         .lgRestoreBtn:hover {
+          background: rgba(143, 124, 255, 0.2);
+        }
+
+        .lgLoadMoreBtn {
+          display: block;
+          width: 100%;
+          margin-top: 14px;
+          padding: 10px 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(143, 124, 255, 0.4);
+          background: rgba(143, 124, 255, 0.1);
+          color: #d7d0ff;
+          font-size: 13px;
+          font-weight: 800;
+          cursor: pointer;
+          text-align: center;
+        }
+        .lgLoadMoreBtn:hover {
           background: rgba(143, 124, 255, 0.2);
         }
 
