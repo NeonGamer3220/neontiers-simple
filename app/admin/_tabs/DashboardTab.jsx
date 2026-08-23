@@ -1048,6 +1048,9 @@ export default function DashboardTab({ adminRole, onViewStaff }) {
   const [selectedPlayerUUID, setSelectedPlayerUUID] = useState("");
   const [newNameInput, setNewNameInput] = useState("");
   const [confirmState, setConfirmState] = useState(null);
+  const [testerStats, setTesterStats] = useState(null);
+  const [testerStatsLoading, setTesterStatsLoading] = useState(false);
+  const [selectedTesterGamemode, setSelectedTesterGamemode] = useState("all");
   const [bannedUsernames, setBannedUsernames] = useState(new Set());
   const [unbanning, setUnbanning] = useState(false);
   const [selectedPlayerDiscord, setSelectedPlayerDiscord] = useState(null);
@@ -1444,6 +1447,7 @@ export default function DashboardTab({ adminRole, onViewStaff }) {
       setLoading(false);
       if (String(adminRole || "").toLowerCase() === "owner") {
         loadStaff();
+        loadTesterStats();
       }
     };
     loadInitial();
@@ -1451,6 +1455,20 @@ export default function DashboardTab({ adminRole, onViewStaff }) {
     // stable for the lifetime of this component — intentionally not re-run.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const loadTesterStats = async () => {
+    setTesterStatsLoading(true);
+    try {
+      const res = await fetch("/api/admin/tester-stats");
+      if (!res.ok) return;
+      const data = await res.json();
+      setTesterStats(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTesterStatsLoading(false);
+    }
+  };
 
   const loadStaff = async () => {
     try {
@@ -2664,12 +2682,272 @@ const freshTests = await loadTests();
         )}
 
         {adminRole === "owner" && (
+          <div className="testerStatsSection">
+            <h2 className="testerStatsTitle">Teszterek és tesztek</h2>
+
+            {testerStatsLoading && !testerStats ? (
+              <div className="testerStatsLoading">Betöltés…</div>
+            ) : testerStats ? (
+              <>
+                <div className="testerStatsGrid">
+                  <div className="testerStatBox">
+                    <span className="testerStatLabel">Teszter</span>
+                    <span className="testerStatValue">{testerStats.testerCount}</span>
+                  </div>
+                  <div className="testerStatBox">
+                    <span className="testerStatLabel">Játékmód</span>
+                    <span className="testerStatValue">{testerStats.gamemodeCount}</span>
+                  </div>
+                  <div className="testerStatBox">
+                    <span className="testerStatLabel">Teszt 7 nap</span>
+                    <span className="testerStatValue accent">{testerStats.testsLast7Days}</span>
+                  </div>
+                  <div className="testerStatBox">
+                    <span className="testerStatLabel">Teszt összesen</span>
+                    <span className="testerStatValue">{testerStats.testsTotal}</span>
+                  </div>
+                </div>
+
+                <div className="testerPillRow">
+                  <button
+                    type="button"
+                    className={`testerPill all ${selectedTesterGamemode === "all" ? "active" : ""}`}
+                    onClick={() => setSelectedTesterGamemode("all")}
+                  >
+                    Összes <strong>{testerStats.testerCount}</strong>
+                  </button>
+                  {testerStats.gamemodes.map((g) => (
+                    <button
+                      key={g.gamemode}
+                      type="button"
+                      className={`testerPill ${selectedTesterGamemode === g.gamemode ? "active" : ""}`}
+                      onClick={() => setSelectedTesterGamemode(g.gamemode)}
+                      title={g.gamemode}
+                    >
+                      {MODE_ICONS[g.gamemode] ? (
+                        <img src={MODE_ICONS[g.gamemode]} alt="" className="testerPillIcon" />
+                      ) : (
+                        <span className="testerPillIcon testerPillIconFallback" />
+                      )}
+                      <strong>{g.testerCount}</strong>
+                    </button>
+                  ))}
+                </div>
+
+                {(() => {
+                  const rowsForView =
+                    selectedTesterGamemode === "all"
+                      ? Object.values(
+                          testerStats.testers.reduce((acc, t) => {
+                            const key = t.username.toLowerCase();
+                            if (!acc[key]) {
+                              acc[key] = { username: t.username, gamemodes: [], last7: 0, total: 0 };
+                            }
+                            acc[key].gamemodes.push(t.gamemode);
+                            acc[key].last7 += t.last7;
+                            acc[key].total += t.total;
+                            return acc;
+                          }, {})
+                        )
+                      : testerStats.testers.filter((t) => t.gamemode === selectedTesterGamemode);
+
+                  rowsForView.sort((a, b) => b.total - a.total);
+
+                  return (
+                    <div className={`testerListTable ${selectedTesterGamemode !== "all" ? "compact" : ""}`}>
+                      <div className="testerListRow testerListHead">
+                        <span>Teszter</span>
+                        {selectedTesterGamemode === "all" && <span>Játékmódok</span>}
+                        <span>7 nap</span>
+                        <span>Összes teszt</span>
+                      </div>
+                      {rowsForView.length === 0 ? (
+                        <div className="testerListEmpty">Nincs teszter ehhez a játékmódhoz.</div>
+                      ) : (
+                        rowsForView.map((t) => (
+                          <div key={t.username} className="testerListRow">
+                            <span className="testerListName">
+                              <img
+                                src={`https://mc-heads.net/avatar/${encodeURIComponent(t.username)}/24`}
+                                alt=""
+                                className="testerListAvatar"
+                              />
+                              {t.username}
+                            </span>
+                            {selectedTesterGamemode === "all" && (
+                              <span className="testerListModes">{t.gamemodes.join(", ")}</span>
+                            )}
+                            <span>{t.last7}</span>
+                            <span>{t.total}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  );
+                })()}
+              </>
+            ) : (
+              <div className="testerStatsLoading">Nincs adat.</div>
+            )}
+          </div>
+        )}
+
+        {adminRole === "owner" && (
           <div className="dashLogsSection">
             <LogsTab onViewStaff={onViewStaff} />
           </div>
         )}
 
       </main>
+
+      <style jsx>{`
+        .testerStatsSection {
+          margin-top: 32px;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02));
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 20px;
+          padding: 20px 22px;
+          box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+        .testerStatsTitle {
+          margin: 0 0 16px;
+          font-size: 20px;
+          font-weight: 800;
+        }
+        .testerStatsLoading {
+          padding: 20px 0;
+          color: rgba(255, 255, 255, 0.5);
+          font-size: 13px;
+        }
+        .testerStatsGrid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+        .testerStatBox {
+          background: rgba(0, 0, 0, 0.35);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 14px;
+          padding: 14px 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .testerStatLabel {
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.45);
+        }
+        .testerStatValue {
+          font-size: 26px;
+          font-weight: 900;
+        }
+        .testerStatValue.accent {
+          color: #34d399;
+        }
+        .testerPillRow {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 18px;
+        }
+        .testerPill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 7px 13px;
+          border-radius: 999px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: rgba(0, 0, 0, 0.3);
+          color: rgba(255, 255, 255, 0.75);
+          font-size: 12.5px;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .testerPill:hover {
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+        .testerPill.active {
+          border-color: rgba(239, 68, 68, 0.6);
+          background: rgba(239, 68, 68, 0.12);
+          color: #fecaca;
+        }
+        .testerPill.all.active {
+          border-color: rgba(239, 68, 68, 0.6);
+        }
+        .testerPillIcon {
+          width: 16px;
+          height: 16px;
+          object-fit: contain;
+        }
+        .testerPillIconFallback {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.4);
+        }
+        .testerListTable {
+          display: grid;
+          gap: 4px;
+        }
+        .testerListRow {
+          display: grid;
+          grid-template-columns: 1.6fr 1.6fr 0.7fr 0.9fr;
+          align-items: center;
+          gap: 10px;
+          padding: 9px 10px;
+          border-radius: 10px;
+        }
+        .testerListTable.compact .testerListRow {
+          grid-template-columns: 1.8fr 0.8fr 1fr;
+        }
+        .testerListRow:not(.testerListHead):hover {
+          background: rgba(255, 255, 255, 0.03);
+        }
+        .testerListHead {
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+          color: rgba(255, 255, 255, 0.4);
+          padding-bottom: 6px;
+        }
+        .testerListName {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-weight: 700;
+          font-size: 13px;
+        }
+        .testerListAvatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 6px;
+        }
+        .testerListModes {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.55);
+        }
+        .testerListEmpty {
+          padding: 16px 0;
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 13px;
+        }
+        @media (max-width: 720px) {
+          .testerStatsGrid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+          .testerListRow {
+            grid-template-columns: 1.4fr 0.6fr 0.8fr;
+          }
+          .testerListModes {
+            display: none;
+          }
+        }
+      `}</style>
 
       <style jsx>{`
         .dashLogsSection {
