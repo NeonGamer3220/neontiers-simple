@@ -10,25 +10,58 @@ import "../admin-theme.css";
  * Usage:
  * <AdminNavbar adminName={adminName} adminRole={adminRole} onLogout={handleLogout} />
  */
-export default function AdminNavbar({ adminName, adminRole, onLogout }) {
+export default function AdminNavbar({ adminName, adminRole, onLogout, activeTab, onTabChange, onViewOwnProfile }) {
   const pathname = usePathname() || "";
   const [mobileOpen, setMobileOpen] = useState(false);
   const role = String(adminRole || "").toLowerCase();
   const isOwner = role === "owner";
 
+  // AdminShell (the one-page admin experience) passes onTabChange, which
+  // switches this into SPA tab mode: clicks call onTabChange instead of
+  // doing a full page navigation. Older standalone pages (e.g. a legacy
+  // /admin/logs URL opened directly) don't pass onTabChange, so the navbar
+  // falls back to plain href links there.
+  const tabMode = typeof onTabChange === "function";
+
   const links = [
-    { href: "/admin/dashboard", label: "Játékos kezelő", show: true },
-    { href: "/admin/logs", label: "Logok", show: isOwner },
-    { href: "/admin/applications", label: "Jelentkezések", show: isOwner },
+    { key: "dashboard", href: "/admin/dashboard", label: "Játékos kezelő", show: true },
+    { key: "applications", href: "/admin/applications", label: "Jelentkezések", show: isOwner },
   ].filter((l) => l.show);
 
-  const isActive = (href) => pathname === href || pathname.startsWith(href + "/");
+  const isActive = (l) =>
+    tabMode ? activeTab === l.key : pathname === l.href || pathname.startsWith(l.href + "/");
+
+  const handleLinkClick = (l) => (e) => {
+    if (tabMode) {
+      e.preventDefault();
+      onTabChange(l.key);
+    }
+    setMobileOpen(false);
+  };
+
+  const handleBrandClick = (e) => {
+    if (tabMode) {
+      e.preventDefault();
+      onTabChange("dashboard");
+    }
+    setMobileOpen(false);
+  };
+
+  const handleProfileClick = (e) => {
+    if (tabMode && onViewOwnProfile) {
+      e.preventDefault();
+      onViewOwnProfile();
+    }
+    setMobileOpen(false);
+  };
+
+  const profileHref = tabMode ? "#" : `/admin/staff/${encodeURIComponent(adminName || "")}`;
 
   return (
     <header className="anAdminNav">
       <div className="anInner">
         <div className="anBrandRow">
-          <a href="/admin/dashboard" className="anBrand">
+          <a href="/admin/dashboard" className="anBrand" onClick={handleBrandClick}>
             <span className="anBrandMark">NT</span>
             <span className="anBrandText">
               NeonTiers
@@ -51,10 +84,10 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
         <nav className={`anLinks ${mobileOpen ? "open" : ""}`} aria-label="Admin navigáció">
           {links.map((l) => (
             <a
-              key={l.href}
-              href={l.href}
-              className={`anLink ${isActive(l.href) ? "active" : ""}`}
-              onClick={() => setMobileOpen(false)}
+              key={l.key}
+              href={tabMode ? "#" : l.href}
+              className={`anLink ${isActive(l) ? "active" : ""}`}
+              onClick={handleLinkClick(l)}
             >
               {l.label}
             </a>
@@ -64,9 +97,9 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
           </a>
           <div className="anMobileFooter">
             <a
-              href={`/admin/staff/${encodeURIComponent(adminName || "")}`}
+              href={profileHref}
               className="anUserBadge anUserBadgeLink"
-              onClick={() => setMobileOpen(false)}
+              onClick={handleProfileClick}
               title="Saját profil megnyitása"
             >
               <img
@@ -89,8 +122,9 @@ export default function AdminNavbar({ adminName, adminRole, onLogout }) {
 
         <div className="anRight">
           <a
-            href={`/admin/staff/${encodeURIComponent(adminName || "")}`}
+            href={profileHref}
             className="anUserBadge anUserBadgeLink"
+            onClick={handleProfileClick}
             title="Saját profil megnyitása"
           >
             <img
