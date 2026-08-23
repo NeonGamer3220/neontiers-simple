@@ -314,6 +314,58 @@ function PlayerSearchInput({ value, onChange, usernames, placeholder = "Ellenfé
   );
 }
 
+function StatPillIcon({ type }) {
+  if (type === "total") {
+    return (
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+        <path d="M4 20V10M12 20V4M20 20v-7" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+function TesterLeaderboardList({ entries, loading }) {
+  if (loading) return <div className="testerStatsEmpty">Betöltés…</div>;
+  if (!entries || entries.length === 0) {
+    return <div className="testerStatsEmpty">Nincs még adat.</div>;
+  }
+  return (
+    <div className="testerStatsList">
+      {entries.map((e, i) => (
+        <div className="testerStatsRow" key={e.name}>
+          <span className="testerStatsRank">{i + 1}</span>
+          <div className="testerStatsInfo">
+            <span className="testerStatsName">{e.name}</span>
+            <div className="testerStatsModes">
+              {e.modes.map((m) =>
+                MODE_ICONS[m] ? (
+                  <img key={m} src={MODE_ICONS[m]} alt={m} title={m} className="testerStatsModeIcon" />
+                ) : null
+              )}
+            </div>
+          </div>
+          <div className="testerStatsPills">
+            <span className="testerStatsPill">
+              <StatPillIcon type="total" />
+              {e.total} összes
+            </span>
+            <span className="testerStatsPill">
+              <StatPillIcon type="week" />
+              {e.week} 7 nap
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function AdminRankPicker({ value, retired = false, onChange, disabled = false, onSave }) {
   const [open, setOpen] = useState(false);
   const [saveState, setSaveState] = useState("idle"); // idle | pending | saved
@@ -1109,6 +1161,25 @@ export default function AdminDashboard() {
   const [newStaffRole, setNewStaffRole] = useState("regulator");
   const [creatingStaff, setCreatingStaff] = useState(false);
 
+  // --- Top teszterek / Top regulátorok (csak Owner-nek) ---
+  const [testerStats, setTesterStats] = useState({ owners: [], regulators: [] });
+  const [testerStatsLoading, setTesterStatsLoading] = useState(false);
+
+  const loadTesterStats = async () => {
+    setTesterStatsLoading(true);
+    try {
+      const res = await fetch("/api/admin/tester-stats");
+      const data = await res.json();
+      if (res.ok) {
+        setTesterStats({ owners: data.owners || [], regulators: data.regulators || [] });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTesterStatsLoading(false);
+    }
+  };
+
   // Unique usernames across all loaded tests — used for the opponent
   // search-dropdown in the Magas Eredmény Kezelő panel.
   const allUsernames = useMemo(() => {
@@ -1457,6 +1528,7 @@ export default function AdminDashboard() {
       setLoading(false);
       if (String(data.role || "").toLowerCase() === "owner") {
         loadStaff();
+        loadTesterStats();
       }
     };
     checkAuth();
@@ -2357,6 +2429,29 @@ const freshTests = await loadTests();
         </div>
 
 
+
+        {adminRole === "owner" && (
+          <div className="testerStatsSection">
+            <div className="testerStatsBox">
+              <div className="testerStatsHeader">
+                <h2>Top teszterek</h2>
+                <p className="testerStatsSubtitle">
+                  Az elmúlt 7 nap alapján rendezve, minden játékmód összesítve.
+                </p>
+              </div>
+              <TesterLeaderboardList entries={testerStats.owners} loading={testerStatsLoading} />
+            </div>
+            <div className="testerStatsBox">
+              <div className="testerStatsHeader">
+                <h2>Top regulátorok</h2>
+                <p className="testerStatsSubtitle">
+                  Az elmúlt 7 nap alapján rendezve, minden játékmód összesítve.
+                </p>
+              </div>
+              <TesterLeaderboardList entries={testerStats.regulators} loading={testerStatsLoading} />
+            </div>
+          </div>
+        )}
 
         {adminRole === "owner" && (
           <div className="staffSplitSection">
@@ -3265,6 +3360,125 @@ const freshTests = await loadTests();
           border-color: rgba(214, 71, 71, 0.5);
           background: rgba(214, 71, 71, 0.16);
           color: #ffb4b4;
+        }
+
+        .testerStatsSection {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+          .testerStatsSection {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        .testerStatsBox {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          padding: 20px;
+        }
+
+        .testerStatsHeader h2 {
+          margin: 0 0 4px;
+          font-size: 20px;
+          font-weight: 800;
+        }
+
+        .testerStatsSubtitle {
+          margin: 0 0 16px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.55);
+        }
+
+        .testerStatsEmpty {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.5);
+          padding: 12px 0;
+        }
+
+        .testerStatsList {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .testerStatsRow {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 12px 4px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .testerStatsRow:last-child {
+          border-bottom: none;
+        }
+
+        .testerStatsRank {
+          flex: 0 0 20px;
+          font-size: 14px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.4);
+          text-align: center;
+        }
+
+        .testerStatsInfo {
+          flex: 1 1 auto;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .testerStatsName {
+          font-size: 14px;
+          font-weight: 700;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .testerStatsModes {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+        }
+
+        .testerStatsModeIcon {
+          width: 16px;
+          height: 16px;
+          border-radius: 4px;
+          object-fit: contain;
+          opacity: 0.9;
+        }
+
+        .testerStatsPills {
+          flex: 0 0 auto;
+          display: flex;
+          gap: 8px;
+        }
+
+        .testerStatsPill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 999px;
+          padding: 6px 11px;
+          font-size: 12px;
+          font-weight: 700;
+          white-space: nowrap;
+          color: rgba(255, 255, 255, 0.85);
+        }
+
+        .testerStatsPill svg {
+          flex: 0 0 auto;
+          opacity: 0.75;
         }
 
         .staffCreateRow {
