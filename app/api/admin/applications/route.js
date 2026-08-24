@@ -5,6 +5,7 @@
 
 import { cookies } from "next/headers";
 import { getSupabaseAdmin, readSession } from "../_lib/session";
+import { permissions } from "../../../_lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,8 @@ function json(data, status = 200) {
   });
 }
 
-async function requireOwner() {
+// `check` is a permissions.* function deciding whether `role` may proceed.
+async function requireRole(check) {
   const cookieStore = await cookies();
   const session = readSession(cookieStore);
   if (!session || session.pending || !session.passkey_verified) {
@@ -36,11 +38,11 @@ async function requireOwner() {
     .maybeSingle();
   if (data?.role) role = String(data.role).toLowerCase();
 
-  if (role !== "owner") {
-    return { error: json({ error: "Owner hozzáférés szükséges" }, 403) };
+  if (!check(role)) {
+    return { error: json({ error: "Hozzáférés megtagadva ehhez" }, 403) };
   }
 
-  return { supabase, adminName: session.admin_name };
+  return { supabase, adminName: session.admin_name, role };
 }
 
 const SLUG_RE = /^[a-z0-9-]+$/;
@@ -69,7 +71,7 @@ function sanitizeQuestions(input) {
 }
 
 export async function GET() {
-  const auth = await requireOwner();
+  const auth = await requireRole(permissions.canViewApplications);
   if (auth.error) return auth.error;
   const { supabase } = auth;
 
@@ -94,7 +96,7 @@ export async function GET() {
 }
 
 export async function POST(req) {
-  const auth = await requireOwner();
+  const auth = await requireRole(permissions.canCreateApplication);
   if (auth.error) return auth.error;
   const { supabase, adminName } = auth;
 

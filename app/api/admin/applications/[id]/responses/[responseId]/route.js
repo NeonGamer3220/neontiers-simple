@@ -3,6 +3,7 @@
 
 import { cookies } from "next/headers";
 import { getSupabaseAdmin, readSession } from "../../../../_lib/session";
+import { permissions } from "../../../../../../_lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,9 @@ async function requireOwner() {
     .maybeSingle();
   if (data?.role) role = String(data.role).toLowerCase();
 
-  if (role !== "owner") return { error: json({ error: "Owner hozzáférés szükséges" }, 403) };
+  if (!permissions.canDeleteApplicationResponse(role)) {
+    return { error: json({ error: "Hozzáférés megtagadva ehhez" }, 403) };
+  }
   return { supabase };
 }
 

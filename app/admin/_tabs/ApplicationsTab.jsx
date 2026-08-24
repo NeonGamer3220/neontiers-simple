@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import AdminDropdown from "../_components/AdminDropdown";
+import { permissions } from "../../_lib/roles";
 import "../admin-theme.css";
 
 const TYPE_OPTIONS = [
@@ -34,7 +35,11 @@ function emptySection() {
 }
 
 // Applications tab — rendered inside AdminShell only for owners.
-export default function ApplicationsTab() {
+export default function ApplicationsTab({ adminRole }) {
+  const canEdit = permissions.canEditApplication(adminRole);
+  const canDeleteForm = permissions.canDeleteApplication(adminRole);
+  const canToggleOpen = permissions.canToggleApplicationOpen(adminRole);
+  const canDeleteResponse = permissions.canDeleteApplicationResponse(adminRole);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
@@ -329,7 +334,7 @@ export default function ApplicationsTab() {
             <h1>Jelentkezések</h1>
             <p>Hozz létre jelentkezési űrlapokat rangokhoz, és tekintsd át a beérkezett kitöltéseket.</p>
           </div>
-          {view === "list" && (
+          {view === "list" && canEdit && (
             <button type="button" className="japBtn japBtnPrimary" onClick={openCreateBuilder}>
               + Új jelentkezés
             </button>
@@ -380,23 +385,29 @@ export default function ApplicationsTab() {
                       <button type="button" className="japBtn japBtnSmall" onClick={() => openResponses(form)}>
                         Kitöltések
                       </button>
-                      <button type="button" className="japBtn japBtnSmall" onClick={() => openEditBuilder(form)}>
-                        Szerkesztés
-                      </button>
-                      <button
-                        type="button"
-                        className="japBtn japBtnSmall japBtnToggle"
-                        onClick={() => toggleOpen(form)}
-                      >
-                        {form.is_open ? "Bezárás" : "Megnyitás"}
-                      </button>
-                      <button
-                        type="button"
-                        className="japBtn japBtnSmall japBtnDanger"
-                        onClick={() => handleDeleteForm(form)}
-                      >
-                        Törlés
-                      </button>
+                      {canEdit && (
+                        <button type="button" className="japBtn japBtnSmall" onClick={() => openEditBuilder(form)}>
+                          Szerkesztés
+                        </button>
+                      )}
+                      {canToggleOpen && (
+                        <button
+                          type="button"
+                          className="japBtn japBtnSmall japBtnToggle"
+                          onClick={() => toggleOpen(form)}
+                        >
+                          {form.is_open ? "Bezárás" : "Megnyitás"}
+                        </button>
+                      )}
+                      {canDeleteForm && (
+                        <button
+                          type="button"
+                          className="japBtn japBtnSmall japBtnDanger"
+                          onClick={() => handleDeleteForm(form)}
+                        >
+                          Törlés
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -734,13 +745,15 @@ export default function ApplicationsTab() {
                           })}
 
                           <div className="japResponseFooter">
-                            <button
-                              type="button"
-                              className="japBtn japBtnSmall japBtnDanger"
-                              onClick={() => handleDeleteResponse(resp)}
-                            >
-                              Kitöltés törlése
-                            </button>
+                            {canDeleteResponse && (
+                              <button
+                                type="button"
+                                className="japBtn japBtnSmall japBtnDanger"
+                                onClick={() => handleDeleteResponse(resp)}
+                              >
+                                Kitöltés törlése
+                              </button>
+                            )}
                           </div>
                         </div>
                       )}

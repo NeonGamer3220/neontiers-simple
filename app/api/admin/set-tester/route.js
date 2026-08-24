@@ -5,6 +5,7 @@ export const revalidate = 0;
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { rateLimit, rateLimitResponse } from "../../../_lib/rateLimit";
+import { permissions } from "../../../_lib/roles";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -53,8 +54,8 @@ export async function POST(req) {
   const admin = await requireAdmin();
   if (!admin) return json({ error: "Nincs bejelentkezve" }, 401);
   const role = String(admin.role || "").toLowerCase();
-  if (role !== "owner") {
-    return json({ error: "Csak Owner állíthatja a Tester jelölőt" }, 403);
+  if (!permissions.canToggleTesterFlag(role)) {
+    return json({ error: "Hozzáférés megtagadva: nem állíthatod a Tester jelölőt" }, 403);
   }
 
   let body;

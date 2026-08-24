@@ -10,11 +10,14 @@ import "../admin-theme.css";
  * Usage:
  * <AdminNavbar adminName={adminName} adminRole={adminRole} onLogout={handleLogout} />
  */
-export default function AdminNavbar({ adminName, adminRole, onLogout, activeTab, onTabChange, onViewOwnProfile }) {
+export default function AdminNavbar({ adminName, adminRole, onLogout, activeTab, onTabChange, onViewOwnProfile, canViewApplications }) {
   const pathname = usePathname() || "";
   const [mobileOpen, setMobileOpen] = useState(false);
   const role = String(adminRole || "").toLowerCase();
   const isOwner = role === "owner";
+  // Falls back to owner-only if the caller (a legacy standalone page)
+  // doesn't pass the finer-grained flag.
+  const showApplications = typeof canViewApplications === "boolean" ? canViewApplications : isOwner;
 
   // AdminShell (the one-page admin experience) passes onTabChange, which
   // switches this into SPA tab mode: clicks call onTabChange instead of
@@ -25,7 +28,7 @@ export default function AdminNavbar({ adminName, adminRole, onLogout, activeTab,
 
   const links = [
     { key: "dashboard", href: "/admin/dashboard", label: "Játékos kezelő", show: true },
-    { key: "applications", href: "/admin/applications", label: "Jelentkezések", show: isOwner },
+    { key: "applications", href: "/admin/applications", label: "Jelentkezések", show: showApplications },
   ].filter((l) => l.show);
 
   const isActive = (l) =>

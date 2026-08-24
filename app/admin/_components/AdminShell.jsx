@@ -5,6 +5,7 @@ import AdminNavbar from "./AdminNavbar";
 import DashboardTab from "../_tabs/DashboardTab";
 import ApplicationsTab from "../_tabs/ApplicationsTab";
 import StaffTab from "../_tabs/StaffTab";
+import { permissions } from "../../_lib/roles";
 import "../admin-theme.css";
 
 /**
@@ -45,6 +46,7 @@ export default function AdminShell({ onLoggedOut }) {
   }, []);
 
   const isOwner = adminRole === "owner";
+  const canViewApplications = permissions.canViewApplications(adminRole);
 
   const handleLogout = async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -94,9 +96,10 @@ export default function AdminShell({ onLoggedOut }) {
     );
   }
 
-  // Non-owners can't reach owner-only tabs even if activeTab was left in
-  // that state (e.g. role changed mid-session) — fall back to dashboard.
-  const effectiveTab = activeTab === "applications" && !isOwner ? "dashboard" : activeTab;
+  // Non-owners/admins can't reach the applications tab even if activeTab
+  // was left in that state (e.g. role changed mid-session) — fall back
+  // to dashboard.
+  const effectiveTab = activeTab === "applications" && !canViewApplications ? "dashboard" : activeTab;
 
   return (
     <div className="admin-panel">
@@ -107,14 +110,15 @@ export default function AdminShell({ onLoggedOut }) {
         onTabChange={handleTabChange}
         onViewOwnProfile={handleViewOwnProfile}
         onLogout={handleLogout}
+        canViewApplications={canViewApplications}
       />
 
       {effectiveTab === "dashboard" && (
         <DashboardTab adminRole={adminRole} adminName={adminName} onViewStaff={handleViewStaff} />
       )}
-      {effectiveTab === "applications" && isOwner && <ApplicationsTab />}
+      {effectiveTab === "applications" && canViewApplications && <ApplicationsTab adminRole={adminRole} />}
       {effectiveTab === "staff" && (
-        <StaffTab staffName={viewedStaffName} onBack={handleBackFromStaff} />
+        <StaffTab staffName={viewedStaffName} viewerName={adminName} onBack={handleBackFromStaff} />
       )}
     </div>
   );

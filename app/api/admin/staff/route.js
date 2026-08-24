@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { permissions } from "../../../_lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -63,9 +64,6 @@ export async function GET(req) {
   if (!adminSession) return json({ error: "Not authenticated" }, 401);
 
   const sessionRole = String(adminSession.role || "").toLowerCase();
-  if (sessionRole !== "owner") {
-    return json({ error: "Hozzáférés megtagadva: csak Owner f érhető ehhez" }, 403);
-  }
 
   const resolvedName = await resolveAdminName(adminSession);
   if (!resolvedName) {
@@ -76,6 +74,9 @@ export async function GET(req) {
   const action = (searchParams.get("action") || "list").trim();
 
   if (action === "list") {
+    if (!permissions.canViewStaffList(sessionRole)) {
+      return json({ error: "Hozzáférés megtagadva ehhez" }, 403);
+    }
     const { data, error } = await supabase
       .from("admins")
       .select("id, admin_name, role, created_at")
@@ -98,6 +99,35 @@ export async function GET(req) {
     return json({ staff });
   }
 
+  // Any authenticated staff member (any role) can look up their own
+  // record — used by the "view own profile" navbar link, which every
+  // role has access to, not just admin+.
+  if (action === "self") {
+    if (!resolvedName) return json({ error: "Invalid session" }, 401);
+
+    const { data, error } = await supabase
+      .from("admins")
+      .select("id, admin_name, role, created_at")
+      .eq("admin_name", resolvedName)
+      .maybeSingle();
+
+    if (error) return json({ error: error.message }, 500);
+    if (!data) return json({ error: "Staff fiók nem található" }, 404);
+
+    const { data: passkeyRows } = await supabase
+      .from("admin_passkeys")
+      .select("admin_name")
+      .eq("admin_name", resolvedName);
+
+    return json({
+      staff: {
+        ...data,
+        role: String(data.role || "").toLowerCase(),
+        has_passkey: Array.isArray(passkeyRows) && passkeyRows.length > 0,
+      },
+    });
+  }
+
   return json({ error: "Invalid action" }, 400);
 }
 
@@ -111,8 +141,8 @@ export async function POST(req) {
   if (!adminSession) return json({ error: "Not authenticated" }, 401);
 
   const sessionRole = String(adminSession.role || "").toLowerCase();
-  if (sessionRole !== "owner") {
-    return json({ error: "Hozzáférés megtagadva: csak Owner f érhető ehhez" }, 403);
+  if (!permissions.canViewStaffList(sessionRole)) {
+    return json({ error: "Hozzáférés megtagadva ehhez" }, 403);
   }
 
   const resolvedName = await resolveAdminName(adminSession);
@@ -130,6 +160,10 @@ export async function POST(req) {
   if (!action) return json({ error: "Missing action" }, 400);
 
   if (action === "create") {
+    if (!permissions.canCreateStaffAccount(sessionRole)) {
+      return json({ error: "Hozzáférés megtagadva: csak Owner hozhat létre staff fiókot" }, 403);
+    }
+
     const { admin_name, admin_password, role } = body;
 
     if (!admin_name || !admin_password || !role) {
@@ -180,6 +214,19 @@ export async function POST(req) {
 
     if (!id) return json({ error: "Missing id" }, 400);
 
+    const { data: targetBefore } = await supabase
+      .from("admins")
+      .select("role")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!permissions.canEditStaffAccount(sessionRole, targetBefore?.role)) {
+      return json({ error: "Hozzáférés megtagadva: ezt a fiókot nem szerkesztheted" }, 403);
+    }
+    if (role && sessionRole !== "owner") {
+      return json({ error: "Hozzáférés megtagadva: csak Owner módosíthatja a rangot" }, 403);
+    }
+
     const updateData = {};
     if (admin_name) updateData.admin_name = admin_name;
     if (admin_password) updateData.admin_password = admin_password;
@@ -221,9 +268,13 @@ export async function POST(req) {
 
     const { data: target } = await supabase
       .from("admins")
-      .select("admin_name")
+      .select("admin_name, role")
       .eq("id", id)
       .single();
+
+    if (!permissions.canEditStaffAccount(sessionRole, target?.role)) {
+      return json({ error: "Hozzáférés megtagadva: ezt a fiókot nem törölheted" }, 403);
+    }
 
     const { error } = await supabase
       .from("admins")
@@ -255,11 +306,14 @@ export async function POST(req) {
 
     const { data: target } = await supabase
       .from("admins")
-      .select("admin_name")
+      .select("admin_name, role")
       .eq("id", id)
       .single();
 
     if (!target?.admin_name) return json({ error: "Staff fiók nem található" }, 404);
+    if (!permissions.canEditStaffAccount(sessionRole, target.role)) {
+      return json({ error: "Hozzáférés megtagadva: ennek a fióknak nem törölheted a passkey-jét" }, 403);
+    }
 
     const { error } = await supabase
       .from("admin_passkeys")

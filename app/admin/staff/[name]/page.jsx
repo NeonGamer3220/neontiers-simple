@@ -50,19 +50,24 @@ export default function RegulatorProfilePage() {
   }, [router]);
 
   useEffect(() => {
-    if (!staffName) return;
+    if (!staffName || !adminName) return;
+    const isOwnProfile = String(adminName).trim().toLowerCase() === String(staffName).trim().toLowerCase();
     (async () => {
       try {
-        const res = await fetch("/api/admin/staff");
+        const res = await fetch(isOwnProfile ? "/api/admin/staff?action=self" : "/api/admin/staff");
         const data = await res.json();
-        const list = Array.isArray(data?.staff) ? data.staff : [];
-        const found = list.find((s) => s.admin_name === staffName);
-        setStaffInfo(found || { admin_name: staffName, role: "regulator" });
+        if (isOwnProfile) {
+          setStaffInfo(data?.staff || { admin_name: staffName, role: "regulator" });
+        } else {
+          const list = Array.isArray(data?.staff) ? data.staff : [];
+          const found = list.find((s) => s.admin_name === staffName);
+          setStaffInfo(found || { admin_name: staffName, role: "regulator" });
+        }
       } catch {
         setStaffInfo({ admin_name: staffName, role: "regulator" });
       }
     })();
-  }, [staffName]);
+  }, [staffName, adminName]);
 
   useEffect(() => {
     if (!staffName) return;

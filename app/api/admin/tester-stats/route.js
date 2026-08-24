@@ -5,6 +5,7 @@
 // all-time and last 7 days by created_at).
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { permissions } from "../../../_lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +49,8 @@ export async function GET() {
   if (!adminSession) return json({ error: "Not authenticated" }, 401);
 
   const sessionRole = String(adminSession.role || "").toLowerCase();
-  if (sessionRole !== "owner") {
-    return json({ error: "Hozzáférés megtagadva: csak Owner érhető ehhez" }, 403);
+  if (!permissions.canViewTesterLeaderboards(sessionRole)) {
+    return json({ error: "Hozzáférés megtagadva ehhez" }, 403);
   }
 
   const { data: rows, error } = await supabase

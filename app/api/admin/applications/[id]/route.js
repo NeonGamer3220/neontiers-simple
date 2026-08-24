@@ -4,6 +4,7 @@
 
 import { cookies } from "next/headers";
 import { getSupabaseAdmin, readSession } from "../../_lib/session";
+import { permissions } from "../../../../_lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ function json(data, status = 200) {
   });
 }
 
-async function requireOwner() {
+async function requireRole(check) {
   const cookieStore = await cookies();
   const session = readSession(cookieStore);
   if (!session || session.pending || !session.passkey_verified) {
@@ -35,11 +36,11 @@ async function requireOwner() {
     .maybeSingle();
   if (data?.role) role = String(data.role).toLowerCase();
 
-  if (role !== "owner") {
-    return { error: json({ error: "Owner hozzáférés szükséges" }, 403) };
+  if (!check(role)) {
+    return { error: json({ error: "Hozzáférés megtagadva ehhez" }, 403) };
   }
 
-  return { supabase };
+  return { supabase, role };
 }
 
 const SLUG_RE = /^[a-z0-9-]+$/;
@@ -68,7 +69,7 @@ function sanitizeQuestions(input) {
 }
 
 export async function GET(req, { params }) {
-  const auth = await requireOwner();
+  const auth = await requireRole(permissions.canViewApplicationResponses);
   if (auth.error) return auth.error;
   const { supabase } = auth;
 
@@ -94,17 +95,24 @@ export async function GET(req, { params }) {
 }
 
 export async function PUT(req, { params }) {
-  const auth = await requireOwner();
-  if (auth.error) return auth.error;
-  const { supabase } = auth;
-  const id = params?.id;
-
   let body;
   try {
     body = await req.json();
   } catch {
     return json({ error: "Érvénytelen kérés" }, 400);
   }
+
+  // A manager may only flip is_open (nyitás/zárás) — nothing else. Any
+  // other field being touched requires full edit rights (Owner).
+  const fieldsTouched = Object.keys(body || {});
+  const onlyTogglesOpen = fieldsTouched.length > 0 && fieldsTouched.every((k) => k === "is_open");
+
+  const auth = await requireRole((role) =>
+    onlyTogglesOpen ? permissions.canToggleApplicationOpen(role) : permissions.canEditApplication(role)
+  );
+  if (auth.error) return auth.error;
+  const { supabase } = auth;
+  const id = params?.id;
 
   const update = {};
 
@@ -145,7 +153,7 @@ export async function PUT(req, { params }) {
 }
 
 export async function DELETE(req, { params }) {
-  const auth = await requireOwner();
+  const auth = await requireRole(permissions.canDeleteApplication);
   if (auth.error) return auth.error;
   const { supabase } = auth;
   const id = params?.id;

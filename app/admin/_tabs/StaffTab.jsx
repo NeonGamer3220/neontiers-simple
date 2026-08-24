@@ -21,26 +21,38 @@ function fmtDate(iso) {
 // Staff/regulator profile tab — shows a given staff member's audit history.
 // `staffName` is passed in from AdminShell (set when clicking a name/badge)
 // instead of coming from a dynamic route param.
-export default function StaffTab({ staffName, onBack }) {
+export default function StaffTab({ staffName, viewerName, onBack }) {
   const [staffInfo, setStaffInfo] = useState(null);
   const [logs, setLogs] = useState([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [tab, setTab] = useState("all"); // all | tests | high
 
+  const isOwnProfile =
+    !!viewerName && !!staffName && String(viewerName).trim().toLowerCase() === String(staffName).trim().toLowerCase();
+
   useEffect(() => {
     if (!staffName) return;
     (async () => {
       try {
-        const res = await fetch("/api/admin/staff");
+        // Viewing your own profile works for every role via a
+        // self-lookup; viewing someone else's requires admin+ list
+        // access (only reachable from the Staff fiókok panel anyway).
+        const res = await fetch(
+          isOwnProfile ? "/api/admin/staff?action=self" : "/api/admin/staff"
+        );
         const data = await res.json();
-        const list = Array.isArray(data?.staff) ? data.staff : [];
-        const found = list.find((s) => s.admin_name === staffName);
-        setStaffInfo(found || { admin_name: staffName, role: "regulator" });
+        if (isOwnProfile) {
+          setStaffInfo(data?.staff || { admin_name: staffName, role: "regulator" });
+        } else {
+          const list = Array.isArray(data?.staff) ? data.staff : [];
+          const found = list.find((s) => s.admin_name === staffName);
+          setStaffInfo(found || { admin_name: staffName, role: "regulator" });
+        }
       } catch {
         setStaffInfo({ admin_name: staffName, role: "regulator" });
       }
     })();
-  }, [staffName]);
+  }, [staffName, isOwnProfile]);
 
   useEffect(() => {
     if (!staffName) return;

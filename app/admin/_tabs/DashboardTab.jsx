@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 
 import "../admin-theme.css";
 import LogsTab from "./LogsTab";
+import { permissions } from "../../_lib/roles";
 import {
   HIGH_TIERS, categoryForGamemode, scoreOptionsFor, resolveTierFromTest, makeFightRow, getFT,
 } from "../../_lib/highTestShared";
@@ -1377,6 +1378,12 @@ export default function DashboardTab({ adminRole, adminName, onViewStaff }) {
 
   const isSelectedPlayerBanned = !!selectedPlayer && bannedUsernames.has(String(selectedPlayer.username || "").trim().toLowerCase());
 
+  // Centralized role checks (see app/_lib/roles.js) — regulator < admin < manager < owner.
+  const canViewStaffList = permissions.canViewStaffList(adminRole);
+  const canCreateStaffAccount = permissions.canCreateStaffAccount(adminRole);
+  const canViewTesterLeaderboards = permissions.canViewTesterLeaderboards(adminRole);
+  const canToggleTesterFlag = permissions.canToggleTesterFlag(adminRole);
+
   // A regulator can't set their own tier or log a high-test result on
   // their own player account — only Owner can touch that, to keep
   // regulators from grading themselves.
@@ -1532,8 +1539,10 @@ export default function DashboardTab({ adminRole, adminName, onViewStaff }) {
         .catch(() => null);
       setTests(Array.isArray(testsData?.tests) ? testsData.tests : []);
       setLoading(false);
-      if (String(adminRole || "").toLowerCase() === "owner") {
+      if (permissions.canViewStaffList(adminRole)) {
         loadStaff();
+      }
+      if (permissions.canViewTesterLeaderboards(adminRole)) {
         loadTesterStats();
         loadStaffLeaderboard();
       }
@@ -2461,7 +2470,7 @@ const freshTests = await loadTests();
 
 
 
-        {adminRole === "owner" && (
+        {canViewStaffList && (
           <div className="staffSplitSection">
             <div className="staffCardHalf">
               <div className="staffCardHeader">
@@ -2469,46 +2478,50 @@ const freshTests = await loadTests();
                 <span className="staffCount">{staffList.length} fiók</span>
               </div>
 
-              <div className="staffCreateRow">
-                <input
-                  type="text"
-                  className="staffCreateInput"
-                  placeholder="Staff név"
-                  value={newStaffName}
-                  onChange={(e) => setNewStaffName(e.target.value)}
-                  disabled={creatingStaff}
-                  autoComplete="off"
-                />
-                <input
-                  type="password"
-                  className="staffCreateInput"
-                  placeholder="Staff jelszó"
-                  value={newStaffPassword}
-                  onChange={(e) => setNewStaffPassword(e.target.value)}
-                  disabled={creatingStaff}
-                  autoComplete="new-password"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleCreateStaff();
-                  }}
-                />
-                <CustomDropdown
-                  value={newStaffRole}
-                  onChange={setNewStaffRole}
-                  disabled={creatingStaff}
-                  options={[
-                    { value: "owner", label: "Owner" },
-                    { value: "regulator", label: "Regulator" },
-                  ]}
-                />
-                <button
-                  type="button"
-                  className="staffCreateBtn"
-                  onClick={handleCreateStaff}
-                  disabled={creatingStaff || !newStaffName.trim() || !newStaffPassword.trim()}
-                >
-                  {creatingStaff ? "Létrehozás..." : "Fiók létrehozása"}
-                </button>
-              </div>
+              {canCreateStaffAccount && (
+                <div className="staffCreateRow">
+                  <input
+                    type="text"
+                    className="staffCreateInput"
+                    placeholder="Staff név"
+                    value={newStaffName}
+                    onChange={(e) => setNewStaffName(e.target.value)}
+                    disabled={creatingStaff}
+                    autoComplete="off"
+                  />
+                  <input
+                    type="password"
+                    className="staffCreateInput"
+                    placeholder="Staff jelszó"
+                    value={newStaffPassword}
+                    onChange={(e) => setNewStaffPassword(e.target.value)}
+                    disabled={creatingStaff}
+                    autoComplete="new-password"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCreateStaff();
+                    }}
+                  />
+                  <CustomDropdown
+                    value={newStaffRole}
+                    onChange={setNewStaffRole}
+                    disabled={creatingStaff}
+                    options={[
+                      { value: "owner", label: "Owner" },
+                      { value: "manager", label: "Manager" },
+                      { value: "admin", label: "Admin" },
+                      { value: "regulator", label: "Regulator" },
+                    ]}
+                  />
+                  <button
+                    type="button"
+                    className="staffCreateBtn"
+                    onClick={handleCreateStaff}
+                    disabled={creatingStaff || !newStaffName.trim() || !newStaffPassword.trim()}
+                  >
+                    {creatingStaff ? "Létrehozás..." : "Fiók létrehozása"}
+                  </button>
+                </div>
+              )}
 
               {staffList.length === 0 ? (
                 <div className="staffEmpty">Nincs még létrehozott staff fiók.</div>
@@ -2517,6 +2530,7 @@ const freshTests = await loadTests();
                   {staffList.map((staff) => {
                     const normalizedRole = String(staff.role || "").toLowerCase();
                     const busy = staffBusyId === staff.id;
+                    const canEditThisStaff = permissions.canEditStaffAccount(adminRole, normalizedRole);
                     return (
                       <div key={staff.id} className="staffCardItem">
                         <div className="staffCardItemTop">
@@ -2539,47 +2553,53 @@ const freshTests = await loadTests();
                               </span>
                             </div>
                           </div>
-                          <div className="staffCardActions">
-                            {staff.has_passkey && (
+                          {canEditThisStaff ? (
+                            <div className="staffCardActions">
+                              {staff.has_passkey && (
+                                <button
+                                  type="button"
+                                  className="staffLabelBtn"
+                                  disabled={busy}
+                                  onClick={() => handleDeleteStaffPasskey(staff.id, staff.admin_name)}
+                                >
+                                  Passkey törlése
+                                </button>
+                              )}
                               <button
                                 type="button"
-                                className="staffLabelBtn"
+                                className="staffLabelBtn delete"
                                 disabled={busy}
-                                onClick={() => handleDeleteStaffPasskey(staff.id, staff.admin_name)}
+                                onClick={() => handleDeleteStaff(staff.id, staff.admin_name)}
                               >
-                                Passkey törlése
+                                Staff törlése
                               </button>
-                            )}
-                            <button
-                              type="button"
-                              className="staffLabelBtn delete"
-                              disabled={busy}
-                              onClick={() => handleDeleteStaff(staff.id, staff.admin_name)}
-                            >
-                              Staff törlése
-                            </button>
-                          </div>
+                            </div>
+                          ) : (
+                            <span className="staffCardNoAccess">Nem szerkeszthető</span>
+                          )}
                         </div>
 
-                        <div className="staffCardPasswordRow">
-                          <input
-                            type="text"
-                            className="staffPasswordInput"
-                            placeholder="Új jelszó..."
-                            value={staffPasswordDrafts[staff.id] || ""}
-                            onChange={(e) =>
-                              setStaffPasswordDrafts((prev) => ({ ...prev, [staff.id]: e.target.value }))
-                            }
-                          />
-                          <button
-                            type="button"
-                            className="staffPasswordBtn"
-                            disabled={busy || !String(staffPasswordDrafts[staff.id] || "").trim()}
-                            onClick={() => handleChangeStaffPassword(staff.id, staff.admin_name)}
-                          >
-                            Csere
-                          </button>
-                        </div>
+                        {canEditThisStaff && (
+                          <div className="staffCardPasswordRow">
+                            <input
+                              type="text"
+                              className="staffPasswordInput"
+                              placeholder="Új jelszó..."
+                              value={staffPasswordDrafts[staff.id] || ""}
+                              onChange={(e) =>
+                                setStaffPasswordDrafts((prev) => ({ ...prev, [staff.id]: e.target.value }))
+                              }
+                            />
+                            <button
+                              type="button"
+                              className="staffPasswordBtn"
+                              disabled={busy || !String(staffPasswordDrafts[staff.id] || "").trim()}
+                              onClick={() => handleChangeStaffPassword(staff.id, staff.admin_name)}
+                            >
+                              Csere
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -2729,7 +2749,7 @@ const freshTests = await loadTests();
                       </div>
 
                       <div className="tierEntryControls">
-                        {adminRole === "owner" && (
+                        {canToggleTesterFlag && (
                           <label
                             className={`testerCheckbox ${isUntested ? "disabled" : ""}`}
                             title={isUntested ? "Nincs mentett teszt ehhez a módhoz" : "Tester rang ebben a módban"}
@@ -2790,7 +2810,7 @@ const freshTests = await loadTests();
           </div>
         )}
 
-        {adminRole === "owner" && (
+        {canViewTesterLeaderboards && (
           <div className="staffLbSection">
             <div className="staffLbBox">
               <div className="staffLbHeader">
@@ -2817,7 +2837,7 @@ const freshTests = await loadTests();
           </div>
         )}
 
-        {adminRole === "owner" && (
+        {canViewTesterLeaderboards && (
           <div className="testerStatsSection">
             <h2 className="testerStatsTitle">Teszterek és tesztek</h2>
 
@@ -3739,6 +3759,15 @@ const freshTests = await loadTests();
           gap: 6px;
           flex: 0 0 auto;
           margin-left: auto;
+        }
+
+        .staffCardNoAccess {
+          flex: 0 0 auto;
+          margin-left: auto;
+          font-size: 11px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.35);
+          white-space: nowrap;
         }
 
         .staffLabelBtn {
