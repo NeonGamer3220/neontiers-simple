@@ -1,9 +1,8 @@
 // app/api/admin/tester-stats/route.js
-// Owner-only leaderboard: how many tests each staff member has logged
-// (all-time + last 7 days), split into "owner" and "regulator" boards
-// based on their current role. Source of truth is the `tests` table's
-// `tester_id` column, which the Discord bot fills in with the staff
-// member's admin_name when it records a test.
+// Owner-only stats for the "Teszterek és tesztek" panel on the dashboard:
+// how many players are marked as testers (tests.is_tester = true) per
+// gamemode, plus overall test-record counts (all rows in `tests`,
+// all-time and last 7 days by created_at).
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
@@ -53,62 +52,52 @@ export async function GET() {
     return json({ error: "Hozzáférés megtagadva: csak Owner érhető ehhez" }, 403);
   }
 
-  const [testsRes, adminsRes] = await Promise.all([
-    supabase.from("tests").select("tester_id, gamemode, created_at").not("tester_id", "is", null),
-    supabase.from("admins").select("admin_name, role"),
-  ]);
+  const { data: rows, error } = await supabase
+    .from("tests")
+    .select("username, gamemode, is_tester, created_at, retired")
+    .eq("retired", false);
 
-  if (testsRes.error) return json({ error: testsRes.error.message }, 500);
-  if (adminsRes.error) return json({ error: adminsRes.error.message }, 500);
+  if (error) return json({ error: error.message }, 500);
 
-  const roleByName = new Map();
-  for (const a of adminsRes.data || []) {
-    const name = String(a.admin_name || "").trim().toLowerCase();
-    if (!name) continue;
-    roleByName.set(name, String(a.role || "").toLowerCase());
-  }
-
+  const all = rows || [];
   const now = Date.now();
   const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const isRecent = (createdAt) => {
+    const t = createdAt ? new Date(createdAt).getTime() : 0;
+    return t >= sevenDaysAgo;
+  };
 
-  const byTester = new Map();
-  for (const row of testsRes.data || []) {
-    const rawId = String(row.tester_id || "").trim();
-    if (!rawId) continue;
-    const key = rawId.toLowerCase();
-    if (!byTester.has(key)) {
-      byTester.set(key, { name: rawId, total: 0, week: 0, modes: new Set() });
-    }
-    const entry = byTester.get(key);
-    entry.total += 1;
-    if (row.gamemode) entry.modes.add(row.gamemode);
-    const createdAt = row.created_at ? new Date(row.created_at).getTime() : 0;
-    if (createdAt >= sevenDaysAgo) entry.week += 1;
+  const testsTotal = all.length;
+  const testsLast7Days = all.filter((r) => isRecent(r.created_at)).length;
+
+  const testerRows = all.filter((r) => r.is_tester);
+
+  const testerUsernames = new Set(testerRows.map((r) => r.username));
+  const gamemodeCounts = new Map(); // gamemode -> Set(usernames)
+  for (const r of testerRows) {
+    if (!r.gamemode) continue;
+    if (!gamemodeCounts.has(r.gamemode)) gamemodeCounts.set(r.gamemode, new Set());
+    gamemodeCounts.get(r.gamemode).add(r.username);
   }
 
-  const owners = [];
-  const regulators = [];
+  const gamemodes = Array.from(gamemodeCounts.entries())
+    .map(([gamemode, usernames]) => ({ gamemode, testerCount: usernames.size }))
+    .sort((a, b) => b.testerCount - a.testerCount);
 
-  for (const [key, entry] of byTester.entries()) {
-    const role = roleByName.get(key);
-    const out = {
-      name: entry.name,
-      total: entry.total,
-      week: entry.week,
-      modes: Array.from(entry.modes),
-    };
-    if (role === "owner") owners.push(out);
-    else if (role === "regulator") regulators.push(out);
-    // Testers not matched to a current staff account are skipped —
-    // most likely former staff whose account was deleted.
-  }
-
-  const sortDesc = (a, b) => b.week - a.week || b.total - a.total || a.name.localeCompare(b.name);
-  owners.sort(sortDesc);
-  regulators.sort(sortDesc);
+  const testers = testerRows.map((r) => ({
+    username: r.username,
+    gamemode: r.gamemode,
+    last7: isRecent(r.created_at) ? 1 : 0,
+    total: 1,
+  }));
 
   return json({
-    owners: owners.slice(0, 10),
-    regulators: regulators.slice(0, 10),
+    testerCount: testerUsernames.size,
+    gamemodeCount: gamemodeCounts.size,
+    testsLast7Days,
+    testsTotal,
+    gamemodes,
+    testers,
   });
 }
+
