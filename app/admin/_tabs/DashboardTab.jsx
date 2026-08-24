@@ -1110,7 +1110,7 @@ function HighTestQuickPanel({ panel, discordId, saving, usernames, onSetPassed, 
 
 // Dashboard tab — rendered inside AdminShell for any logged-in admin.
 // adminRole comes from the shell (already resolved via /api/admin/check).
-export default function DashboardTab({ adminRole, onViewStaff }) {
+export default function DashboardTab({ adminRole, adminName, onViewStaff }) {
   const [loading, setLoading] = useState(true);
   const [tests, setTests] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1376,6 +1376,15 @@ export default function DashboardTab({ adminRole, onViewStaff }) {
   }, []);
 
   const isSelectedPlayerBanned = !!selectedPlayer && bannedUsernames.has(String(selectedPlayer.username || "").trim().toLowerCase());
+
+  // A regulator can't set their own tier or log a high-test result on
+  // their own player account — only Owner can touch that, to keep
+  // regulators from grading themselves.
+  const isRegulatorSelf =
+    adminRole === "regulator" &&
+    !!selectedPlayer &&
+    !!adminName &&
+    String(selectedPlayer.username || "").trim().toLowerCase() === String(adminName).trim().toLowerCase();
 
   const handleUnban = async () => {
     if (!selectedPlayer) return;
@@ -2697,6 +2706,11 @@ const freshTests = await loadTests();
                 <h3 className="tiersSectionTitle">Játékmódok</h3>
                 <span className="tiersSubtitle">Tier kezelés admin joggal.</span>
 </div>
+              {isRegulatorSelf && (
+                <div className="selfEditNotice">
+                  Saját magadnak nem állíthatsz be tiert vagy magas eredményt regulátorként — ezt csak Owner teheti meg.
+                </div>
+              )}
               {/*.adminTiersList */}
               <div className="playerTiersList">
                 {selectedPlayer.entries.map((entry, index) => {
@@ -2732,7 +2746,9 @@ const freshTests = await loadTests();
                         <AdminRankPicker
                           value={displayRank}
                           retired={isRetired}
+                          disabled={isRegulatorSelf}
                           onChange={(rank, retired) => {
+                            if (isRegulatorSelf) return;
                             updateEntryRank(index, rank, retired);
                             if (rank && !retired && HIGH_TIERS.includes(rank)) {
                               openHighTestPanel(index, { ...entry, rank, retired });
@@ -2740,11 +2756,11 @@ const freshTests = await loadTests();
                               closeHighTestPanel();
                             }
                           }}
-                          onSave={() => handleSaveEntryGuarded(entry, index)}
+                          onSave={isRegulatorSelf ? undefined : () => handleSaveEntryGuarded(entry, index)}
                         />
                       </div>
 
-                      {highTestPanel && highTestPanel.index === index && (
+                      {!isRegulatorSelf && highTestPanel && highTestPanel.index === index && (
                         <HighTestQuickPanel
                           panel={highTestPanel}
                           discordId={highTestDiscordId}
@@ -4762,6 +4778,17 @@ const freshTests = await loadTests();
            color: rgba(255,255,255,0.45);
            margin: 0;
          }
+
+        .selfEditNotice {
+          margin-bottom: 14px;
+          padding: 10px 14px;
+          border-radius: 10px;
+          border: 1px solid rgba(239, 68, 68, 0.35);
+          background: rgba(239, 68, 68, 0.1);
+          color: #fecaca;
+          font-size: 13px;
+          font-weight: 600;
+        }
 
 
          /* ─── Misc cleanups ─── */

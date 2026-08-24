@@ -143,6 +143,12 @@ export async function POST(req) {
   if (!minecraftName || !discordId) {
     return json({ error: "Válassz ki egy játékost a linkelt fiókok közül" }, 400);
   }
+  if (
+    role === "regulator" &&
+    String(admin.admin_name || "").trim().toLowerCase() === minecraftName.toLowerCase()
+  ) {
+    return json({ error: "Regulátorként nem írhatsz ki magas eredményt saját magadnak" }, 403);
+  }
   if (!TIER_ORDER.includes(testedTier)) {
     return json({ error: "Érvénytelen tesztelt tier" }, 400);
   }

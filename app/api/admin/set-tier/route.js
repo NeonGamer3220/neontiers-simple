@@ -82,6 +82,13 @@ export async function POST(req) {
   if (!gamemode) return json({ error: "Hiányzó gamemode" }, 400);
   if (!KNOWN_TIERS.has(rank)) return json({ error: "Érvénytelen tier" }, 400);
 
+  if (
+    role === "regulator" &&
+    String(admin.admin_name || "").trim().toLowerCase() === username.toLowerCase()
+  ) {
+    return json({ error: "Regulátorként nem állíthatsz be tiert saját magadnak" }, 403);
+  }
+
   const points = TIER_TO_POINTS[rank];
 
   const { data: previousRow } = await supabase

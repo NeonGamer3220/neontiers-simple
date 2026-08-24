@@ -110,7 +110,7 @@ export default function AdminShell({ onLoggedOut }) {
       />
 
       {effectiveTab === "dashboard" && (
-        <DashboardTab adminRole={adminRole} onViewStaff={handleViewStaff} />
+        <DashboardTab adminRole={adminRole} adminName={adminName} onViewStaff={handleViewStaff} />
       )}
       {effectiveTab === "applications" && isOwner && <ApplicationsTab />}
       {effectiveTab === "staff" && (
