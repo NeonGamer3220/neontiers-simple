@@ -726,6 +726,82 @@ const MODE_ICONS = {
   "Trident":   "/images/trident.png",
 };
 
+// ─── Small icons for count pills (rank leaderboard cards) ───
+function StatPillIcon({ type }) {
+  if (type === "total") {
+    return (
+      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+        <path d="M4 20V10M12 20V4M20 20v-7" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+// ─── Rounded leaderboard card row: rank, avatar, name, gamemode icons,
+// and two pill badges (total / last 7 days) — used by both the
+// "Teszterek és tesztek" list and the "Top teszterek / Top regulátorok"
+// staff leaderboard so they share one visual language.
+function LeaderboardCardRow({ rank, username, modes, total, week, showModes = true }) {
+  return (
+    <div className="lbCardRow">
+      <span className="lbCardRank">{rank}</span>
+      <img
+        className="lbCardAvatar"
+        src={`https://mc-heads.net/avatar/${encodeURIComponent(username)}/28`}
+        alt=""
+      />
+      <div className="lbCardInfo">
+        <span className="lbCardName">{username}</span>
+        {showModes && (
+          <div className="lbCardModes">
+            {(modes || []).map((m) =>
+              MODE_ICONS[m] ? (
+                <img key={m} src={MODE_ICONS[m]} alt={m} title={m} className="lbCardModeIcon" />
+              ) : null
+            )}
+          </div>
+        )}
+      </div>
+      <div className="lbCardPills">
+        <span className="lbCardPill">
+          <StatPillIcon type="total" />
+          {total} összes
+        </span>
+        <span className="lbCardPill">
+          <StatPillIcon type="week" />
+          {week} 7 nap
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function LeaderboardCardList({ entries, emptyText = "Nincs adat." }) {
+  if (!entries || entries.length === 0) {
+    return <div className="testerListEmpty">{emptyText}</div>;
+  }
+  return (
+    <div className="lbCardList">
+      {entries.map((e, i) => (
+        <LeaderboardCardRow
+          key={e.username}
+          rank={i + 1}
+          username={e.username}
+          modes={e.modes}
+          total={e.total}
+          week={e.week}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── Embedded high-test quick panel ───
 // Slides down under a gamemode row after the admin picks a HT3+ tier and
 // hits save — logs the fights, then resolves + persists the actual tier
@@ -1050,6 +1126,8 @@ export default function DashboardTab({ adminRole, onViewStaff }) {
   const [confirmState, setConfirmState] = useState(null);
   const [testerStats, setTesterStats] = useState(null);
   const [testerStatsLoading, setTesterStatsLoading] = useState(false);
+  const [staffLeaderboard, setStaffLeaderboard] = useState(null);
+  const [staffLeaderboardLoading, setStaffLeaderboardLoading] = useState(false);
   const [selectedTesterGamemode, setSelectedTesterGamemode] = useState("all");
   const [bannedUsernames, setBannedUsernames] = useState(new Set());
   const [unbanning, setUnbanning] = useState(false);
@@ -1448,6 +1526,7 @@ export default function DashboardTab({ adminRole, onViewStaff }) {
       if (String(adminRole || "").toLowerCase() === "owner") {
         loadStaff();
         loadTesterStats();
+        loadStaffLeaderboard();
       }
     };
     loadInitial();
@@ -1467,6 +1546,20 @@ export default function DashboardTab({ adminRole, onViewStaff }) {
       console.error(err);
     } finally {
       setTesterStatsLoading(false);
+    }
+  };
+
+  const loadStaffLeaderboard = async () => {
+    setStaffLeaderboardLoading(true);
+    try {
+      const res = await fetch("/api/admin/staff-leaderboard");
+      if (!res.ok) return;
+      const data = await res.json();
+      setStaffLeaderboard(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setStaffLeaderboardLoading(false);
     }
   };
 
@@ -2682,6 +2775,33 @@ const freshTests = await loadTests();
         )}
 
         {adminRole === "owner" && (
+          <div className="staffLbSection">
+            <div className="staffLbBox">
+              <div className="staffLbHeader">
+                <h2>Top teszterek</h2>
+                <p className="staffLbSubtitle">Az elmúlt 7 nap alapján rendezve, minden játékmód összesítve.</p>
+              </div>
+              {staffLeaderboardLoading && !staffLeaderboard ? (
+                <div className="testerListEmpty">Betöltés…</div>
+              ) : (
+                <LeaderboardCardList entries={staffLeaderboard?.owners} emptyText="Nincs még adat." />
+              )}
+            </div>
+            <div className="staffLbBox">
+              <div className="staffLbHeader">
+                <h2>Top regulátorok</h2>
+                <p className="staffLbSubtitle">Az elmúlt 7 nap alapján rendezve, minden játékmód összesítve.</p>
+              </div>
+              {staffLeaderboardLoading && !staffLeaderboard ? (
+                <div className="testerListEmpty">Betöltés…</div>
+              ) : (
+                <LeaderboardCardList entries={staffLeaderboard?.regulators} emptyText="Nincs még adat." />
+              )}
+            </div>
+          </div>
+        )}
+
+        {adminRole === "owner" && (
           <div className="testerStatsSection">
             <h2 className="testerStatsTitle">Teszterek és tesztek</h2>
 
@@ -2753,35 +2873,20 @@ const freshTests = await loadTests();
 
                   rowsForView.sort((a, b) => b.total - a.total);
 
-                  return (
-                    <div className={`testerListTable ${selectedTesterGamemode !== "all" ? "compact" : ""}`}>
-                      <div className="testerListRow testerListHead">
-                        <span>Teszter</span>
-                        {selectedTesterGamemode === "all" && <span>Játékmódok</span>}
-                        <span>7 nap</span>
-                        <span>Összes teszt</span>
-                      </div>
-                      {rowsForView.length === 0 ? (
-                        <div className="testerListEmpty">Nincs teszter ehhez a játékmódhoz.</div>
-                      ) : (
-                        rowsForView.map((t) => (
-                          <div key={t.username} className="testerListRow">
-                            <span className="testerListName">
-                              <img
-                                src={`https://mc-heads.net/avatar/${encodeURIComponent(t.username)}/24`}
-                                alt=""
-                                className="testerListAvatar"
-                              />
-                              {t.username}
-                            </span>
-                            {selectedTesterGamemode === "all" && (
-                              <span className="testerListModes">{t.gamemodes.join(", ")}</span>
-                            )}
-                            <span>{t.last7}</span>
-                            <span>{t.total}</span>
-                          </div>
-                        ))
-                      )}
+                  return rowsForView.length === 0 ? (
+                    <div className="testerListEmpty">Nincs teszter ehhez a játékmódhoz.</div>
+                  ) : (
+                    <div className="lbCardList">
+                      {rowsForView.map((t, i) => (
+                        <LeaderboardCardRow
+                          key={t.username}
+                          rank={i + 1}
+                          username={t.username}
+                          modes={selectedTesterGamemode === "all" ? t.gamemodes : [t.gamemode]}
+                          total={t.total}
+                          week={t.last7}
+                        />
+                      ))}
                     </div>
                   );
                 })()}
@@ -2936,6 +3041,114 @@ const freshTests = await loadTests();
           color: rgba(255, 255, 255, 0.45);
           font-size: 13px;
         }
+
+        /* Rounded leaderboard card rows (shared by both tester panels) */
+        .lbCardList {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .lbCardRow {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 10px 6px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .lbCardRow:last-child {
+          border-bottom: none;
+        }
+        .lbCardRank {
+          flex: 0 0 20px;
+          font-size: 14px;
+          font-weight: 700;
+          color: rgba(255, 255, 255, 0.4);
+          text-align: center;
+        }
+        .lbCardAvatar {
+          flex: 0 0 auto;
+          width: 28px;
+          height: 28px;
+          border-radius: 7px;
+        }
+        .lbCardInfo {
+          flex: 1 1 auto;
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .lbCardName {
+          font-size: 14px;
+          font-weight: 700;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .lbCardModes {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 5px;
+        }
+        .lbCardModeIcon {
+          width: 16px;
+          height: 16px;
+          border-radius: 4px;
+          object-fit: contain;
+          opacity: 0.9;
+        }
+        .lbCardPills {
+          flex: 0 0 auto;
+          display: flex;
+          gap: 8px;
+        }
+        .lbCardPill {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 999px;
+          padding: 6px 11px;
+          font-size: 12px;
+          font-weight: 700;
+          white-space: nowrap;
+          color: rgba(255, 255, 255, 0.85);
+        }
+        .lbCardPill svg {
+          flex: 0 0 auto;
+          opacity: 0.75;
+        }
+
+        /* Top teszterek / Top regulátorok — two boxes side by side */
+        .staffLbSection {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+        .staffLbBox {
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+          padding: 20px;
+        }
+        .staffLbHeader h2 {
+          margin: 0 0 4px;
+          font-size: 20px;
+          font-weight: 800;
+        }
+        .staffLbSubtitle {
+          margin: 0 0 16px;
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.55);
+        }
+        @media (max-width: 900px) {
+          .staffLbSection {
+            grid-template-columns: 1fr;
+          }
+        }
+
         @media (max-width: 720px) {
           .testerStatsGrid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
