@@ -3043,66 +3043,66 @@ const freshTests = await loadTests();
         }
 
         /* Rounded leaderboard card rows (shared by both tester panels) */
-        .lbCardList {
+        :global(.lbCardList) {
           display: flex;
           flex-direction: column;
           gap: 2px;
         }
-        .lbCardRow {
+        :global(.lbCardRow) {
           display: flex;
           align-items: center;
           gap: 12px;
           padding: 10px 6px;
           border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
-        .lbCardRow:last-child {
+        :global(.lbCardRow:last-child) {
           border-bottom: none;
         }
-        .lbCardRank {
+        :global(.lbCardRank) {
           flex: 0 0 20px;
           font-size: 14px;
           font-weight: 700;
           color: rgba(255, 255, 255, 0.4);
           text-align: center;
         }
-        .lbCardAvatar {
+        :global(.lbCardAvatar) {
           flex: 0 0 auto;
           width: 28px;
           height: 28px;
           border-radius: 7px;
         }
-        .lbCardInfo {
+        :global(.lbCardInfo) {
           flex: 1 1 auto;
           min-width: 0;
           display: flex;
           flex-direction: column;
           gap: 4px;
         }
-        .lbCardName {
+        :global(.lbCardName) {
           font-size: 14px;
           font-weight: 700;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        .lbCardModes {
+        :global(.lbCardModes) {
           display: flex;
           flex-wrap: wrap;
           gap: 5px;
         }
-        .lbCardModeIcon {
+        :global(.lbCardModeIcon) {
           width: 16px;
           height: 16px;
           border-radius: 4px;
           object-fit: contain;
           opacity: 0.9;
         }
-        .lbCardPills {
+        :global(.lbCardPills) {
           flex: 0 0 auto;
           display: flex;
           gap: 8px;
         }
-        .lbCardPill {
+        :global(.lbCardPill) {
           display: inline-flex;
           align-items: center;
           gap: 5px;
@@ -3115,7 +3115,7 @@ const freshTests = await loadTests();
           white-space: nowrap;
           color: rgba(255, 255, 255, 0.85);
         }
-        .lbCardPill svg {
+        :global(.lbCardPill svg) {
           flex: 0 0 auto;
           opacity: 0.75;
         }
